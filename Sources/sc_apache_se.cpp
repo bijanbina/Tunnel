@@ -16,10 +16,10 @@ ScApacheSe::ScApacheSe(QString name, QObject *parent):
 
     connect(rx_mapper_data      , SIGNAL(mapped(int)),
             this                , SLOT(rxReadyRead(int)));
-    connect(rx_mapper_error     , SIGNAL(mapped(int)),
-            this                , SLOT(displayError(int)));
-    connect(rx_mapper_disconnect, SIGNAL(mapped(int)),
-            this                , SLOT(tcpDisconnected(int)));
+//    connect(rx_mapper_error     , SIGNAL(mapped(int)),
+//            this                , SLOT(displayError(int)));
+//    connect(rx_mapper_disconnect, SIGNAL(mapped(int)),
+//            this                , SLOT(tcpDisconnected(int)));
 }
 
 ScApacheSe::~ScApacheSe()
@@ -41,7 +41,7 @@ ScApacheSe::~ScApacheSe()
 void ScApacheSe::connectApp()
 {
     client->connectToHost(QHostAddress::LocalHost,
-                          ScSetting::tx_port);
+                          ScSetting::local_port);
     client->waitForConnected();
     if( client->isOpen()==0 )
     {
@@ -88,6 +88,7 @@ void ScApacheSe::rxAcceptConnection()
     int new_con_id = rx_cons.length();
     rx_cons.push_back(NULL);
     rxSetupConnection(new_con_id);
+    readyRead(); // to send buff data
 }
 
 void ScApacheSe::displayError()
@@ -115,24 +116,27 @@ void ScApacheSe::tcpDisconnected()
 
 void ScApacheSe::readyRead()
 {
-    QByteArray data_rx = client->readAll();
+    read_buf += client->readAll();
+    qDebug() << "read_bufs::" << read_buf.length();
 
-    qDebug() << "read_bufs::" << data_rx.length();
+    if( rx_ipv4.empty() )
+    { // buff till someone connects
+        return;
+    }
 
     int split_size = 7000;
-    while( data_rx.length() )
+    while( read_buf.length() )
     {
         int len = split_size;
-        if( data_rx.length()<split_size )
+        if( read_buf.length()<split_size )
         {
-            len = data_rx.length();
+            len = read_buf.length();
         }
-        tx_client->buf = data_rx.mid(0, len);
-        data_rx.remove(0, len);
+        tx_client->buf = read_buf.mid(0, len);
+        read_buf.remove(0, len);
 
         tx_client->writeBuf(rx_ipv4[0]);
     }
-
 }
 
 void ScApacheSe::rxReadyRead(int id)
@@ -141,28 +145,28 @@ void ScApacheSe::rxReadyRead(int id)
     client->write(data_rx);
 }
 
-QByteArray ScApacheSe::processBuffer(int id)
-{
-    if( read_bufs[id].contains(FA_START_PACKET)==0 )
-    {
-        return "";
-    }
-    if( read_bufs[id].contains(FA_END_PACKET)==0 )
-    {
-        return "";
-    }
-    int start_index = read_bufs[id].indexOf(FA_START_PACKET);
-    start_index += strlen(FA_START_PACKET);
-    read_bufs[id].remove(0, start_index);
+//QByteArray ScApacheSe::processBuffer(int id)
+//{
+//    if( read_bufs[id].contains(FA_START_PACKET)==0 )
+//    {
+//        return "";
+//    }
+//    if( read_bufs[id].contains(FA_END_PACKET)==0 )
+//    {
+//        return "";
+//    }
+//    int start_index = read_bufs[id].indexOf(FA_START_PACKET);
+//    start_index += strlen(FA_START_PACKET);
+//    read_bufs[id].remove(0, start_index);
 
-    int end_index = read_bufs[id].indexOf(FA_END_PACKET);
-    QByteArray data = read_bufs[id].mid(0, end_index);
+//    int end_index = read_bufs[id].indexOf(FA_END_PACKET);
+//    QByteArray data = read_bufs[id].mid(0, end_index);
 
-    end_index += strlen(FA_END_PACKET);
-    read_bufs[id].remove(0, end_index);
+//    end_index += strlen(FA_END_PACKET);
+//    read_bufs[id].remove(0, end_index);
 
-    return data;
-}
+//    return data;
+//}
 
 // return id in array where connection is free
 int ScApacheSe::rxPutInFree()

@@ -49,7 +49,7 @@ private:
 
     ScRemoteClient *tx_client;
     QTcpSocket     *client;
-    QVector<QByteArray> read_bufs;
+    QByteArray      read_buf;
     QString con_name;
 
     // rx

@@ -39,6 +39,7 @@ public slots:
     // rx
     void rxReadyRead(int id);
     void rxAcceptConnection();
+    void rxDisplayError(int id);
 
 private:
     QByteArray processBuffer(int id);

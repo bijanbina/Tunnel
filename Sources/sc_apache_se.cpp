@@ -8,7 +8,7 @@ ScApacheSe::ScApacheSe(QString name, QObject *parent):
     rx_server = new QTcpServer;
     client    = new QTcpSocket;
     connect(rx_server, SIGNAL(newConnection()),
-            this,      SLOT(acceptConnection()));
+            this,      SLOT(rxAcceptConnection()));
 
     rx_mapper_data       = new QSignalMapper(this);
     rx_mapper_error      = new QSignalMapper(this);
@@ -16,8 +16,8 @@ ScApacheSe::ScApacheSe(QString name, QObject *parent):
 
     connect(rx_mapper_data      , SIGNAL(mapped(int)),
             this                , SLOT(rxReadyRead(int)));
-//    connect(rx_mapper_error     , SIGNAL(mapped(int)),
-//            this                , SLOT(displayError(int)));
+    connect(rx_mapper_error     , SIGNAL(mapped(int)),
+            this                , SLOT(rxDisplayError(int)));
 //    connect(rx_mapper_disconnect, SIGNAL(mapped(int)),
 //            this                , SLOT(tcpDisconnected(int)));
 }
@@ -107,6 +107,22 @@ void ScApacheSe::displayError()
 //    }
 }
 
+void ScApacheSe::rxDisplayError(int id)
+{
+    QString msg = "FaApacheSe::" + con_name;
+    msg += " rxError";
+    qDebug() << msg.toStdString().c_str()
+             << rx_cons[id]->errorString()
+             << rx_cons[id]->state();
+
+    rx_cons[id]->close();
+
+    qDebug() << "FaApacheSe::displayError";
+//    if( cons[id]->error()==QTcpSocket::RemoteHostClosedError )
+//    {
+//    }
+}
+
 void ScApacheSe::tcpDisconnected()
 {
     QString msg = "FaApacheSe::" + con_name;
@@ -142,6 +158,8 @@ void ScApacheSe::readyRead()
 void ScApacheSe::rxReadyRead(int id)
 {
     QByteArray data_rx = rx_cons[id]->readAll();
+    qDebug() << "rxReadyRead" << id
+             << data_rx.toStdString().c_str();
     client->write(data_rx);
 }
 

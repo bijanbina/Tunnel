@@ -127,9 +127,7 @@ void ScApachePC::tcpDisconnected(int id)
 void ScApachePC::readyRead(int id)
 {
     QByteArray data_rx = cons[id]->readAll();
-
-    qDebug() << "read_bufs::" << read_bufs[id]
-             << data_rx.length();
+    qDebug() << "read_buf::" << data_rx.length();
 
     int split_size = 7000;
     while( data_rx.length() )

@@ -30,10 +30,14 @@ public:
     QVector<QTcpSocket *> rx_cons;
     QVector<QHostAddress> rx_ipv4;
 
+    // tx
+    QVector<QTcpSocket *> tx_cons;
+    QVector<QHostAddress> tx_ipv4;
+
 public slots:
     void readyRead();
-    void acceptConnection();
-    void displayError();
+    void txAcceptConnection();
+    void txDisplayError(int id);
     void tcpDisconnected();
 
     // rx
@@ -48,16 +52,21 @@ private:
     int  rxPutInFree();
     void rxSetupConnection(int con_id);
 
-    ScRemoteClient *tx_client;
-    QTcpSocket     *client;
-    QByteArray      read_buf;
-    QString con_name;
+    QTcpSocket *client;
+    QByteArray  read_buf;
+    QString     con_name;
 
     // rx
     QSignalMapper  *rx_mapper_data;
     QSignalMapper  *rx_mapper_disconnect;
     QSignalMapper  *rx_mapper_error;
     QTcpServer     *rx_server;
+
+    // rx
+    QSignalMapper  *tx_mapper_data;
+    QSignalMapper  *tx_mapper_disconnect;
+    QSignalMapper  *tx_mapper_error;
+    QTcpServer     *tx_server;
 };
 
 #endif // SC_APACHE_SE_H

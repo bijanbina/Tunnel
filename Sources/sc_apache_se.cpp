@@ -4,11 +4,13 @@ ScApacheSe::ScApacheSe(QString name, QObject *parent):
                        QObject(parent)
 {
     con_name  = name; // for debug msg
-    tx_client = new ScRemoteClient;
+    tx_server = new QTcpServer;
     rx_server = new QTcpServer;
     client    = new QTcpSocket;
     connect(rx_server, SIGNAL(newConnection()),
             this,      SLOT(rxAcceptConnection()));
+    connect(tx_server, SIGNAL(newConnection()),
+            this,      SLOT(txAcceptConnection()));
 
     rx_mapper_data       = new QSignalMapper(this);
     rx_mapper_error      = new QSignalMapper(this);
@@ -18,8 +20,13 @@ ScApacheSe::ScApacheSe(QString name, QObject *parent):
             this                , SLOT(rxReadyRead(int)));
     connect(rx_mapper_error     , SIGNAL(mapped(int)),
             this                , SLOT(rxDisplayError(int)));
-//    connect(rx_mapper_disconnect, SIGNAL(mapped(int)),
-//            this                , SLOT(tcpDisconnected(int)));
+
+    tx_mapper_data       = new QSignalMapper(this);
+    tx_mapper_error      = new QSignalMapper(this);
+    tx_mapper_disconnect = new QSignalMapper(this);
+
+    connect(tx_mapper_error     , SIGNAL(mapped(int)),
+            this                , SLOT(txDisplayError(int)));
 }
 
 ScApacheSe::~ScApacheSe()
@@ -40,28 +47,6 @@ ScApacheSe::~ScApacheSe()
 
 void ScApacheSe::connectApp()
 {
-    client->connectToHost(QHostAddress::LocalHost,
-                          ScSetting::local_port);
-    client->waitForConnected();
-    if( client->isOpen()==0 )
-    {
-        qDebug() << "WriteBuf: failed connection not opened";
-        return;
-    }
-    client->setSocketOption(QAbstractSocket::LowDelayOption, 1);
-
-    // readyRead
-    connect(client, SIGNAL(readyRead()),
-            this,   SLOT(readyRead()));
-
-    // displayError
-    connect(client, SIGNAL(error(QAbstractSocket::SocketError)),
-            this,   SLOT(displayError()));
-
-    // disconnected
-    connect(client, SIGNAL(disconnected()),
-            this,   SLOT(tcpDisconnected()));
-
     if( rx_server->listen(QHostAddress::Any, ScSetting::rx_port) )
     {
         qDebug() << "created on port "
@@ -72,9 +57,20 @@ void ScApacheSe::connectApp()
         qDebug() << "RxServer failed, Error message is:"
                  << rx_server->errorString();
     }
+
+    if( tx_server->listen(QHostAddress::Any, ScSetting::tx_port) )
+    {
+        qDebug() << "created on port "
+                 << ScSetting::tx_port;
+    }
+    else
+    {
+        qDebug() << "RxServer failed, Error message is:"
+                 << tx_server->errorString();
+    }
 }
 
-void ScApacheSe::acceptConnection()
+void ScApacheSe::txAcceptConnection()
 {
 
 }
@@ -91,15 +87,15 @@ void ScApacheSe::rxAcceptConnection()
     readyRead(); // to send buff data
 }
 
-void ScApacheSe::displayError()
- {
+void ScApacheSe::txDisplayError(int id)
+{
     QString msg = "FaApacheSe::" + con_name;
-    msg += " Error";
+    msg += " txError";
     qDebug() << msg.toStdString().c_str()
-             << client->errorString()
-             << client->state();
+             << tx_cons[id]->errorString()
+             << tx_cons[id]->state();
 
-    client->close();
+    tx_cons[id]->close();
 
     qDebug() << "FaApacheSe::displayError";
 //    if( cons[id]->error()==QTcpSocket::RemoteHostClosedError )
@@ -135,23 +131,28 @@ void ScApacheSe::readyRead()
     read_buf += client->readAll();
     qDebug() << "read_bufs::" << read_buf.length();
 
-    if( rx_ipv4.empty() )
-    { // buff till someone connects
-        return;
-    }
-
     int split_size = 7000;
-    while( read_buf.length() )
+    int con_len = tx_cons.length();
+    for( int i=0 ; i<con_len ; i++  )
     {
-        int len = split_size;
-        if( read_buf.length()<split_size )
+        if( tx_cons[i]->isOpen() )
         {
-            len = read_buf.length();
-        }
-        tx_client->buf = read_buf.mid(0, len);
-        read_buf.remove(0, len);
+            int len = split_size;
+            if( read_buf.length()<split_size )
+            {
+                len = read_buf.length();
+            }
 
-        tx_client->writeBuf(rx_ipv4[0]);
+            tx_cons[i]->write(read_buf.mid(0, len));
+            tx_cons[i]->flush();
+            tx_cons[i]->close();
+            read_buf.remove(0, len);
+
+            if( read_buf.length()==0 )
+            {
+                break;
+            }
+        }
     }
 }
 
@@ -169,7 +170,7 @@ void ScApacheSe::rxReadyRead(int id)
 //    {
 //        return "";
 //    }
-//    if( read_bufs[id].contains(FA_END_PACKET)==0 )
+//    if( read_bufs[id].containsFA_END_PACKET)==0 )
 //    {
 //        return "";
 //    }

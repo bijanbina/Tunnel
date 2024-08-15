@@ -1,15 +1,12 @@
 ﻿#include "sc_apache_pc.h"
 
 ScApachePC::ScApachePC(QString name, QObject *parent):
-                       QObject(parent)
+    QObject(parent)
 {
-    con_name  = name; // for debug msg
-    server    = new QTcpServer;
-    rx_server = new QTcpServer;
-    client    = new ScRemoteClient;
-    connect(server, SIGNAL(newConnection()),
-            this,   SLOT(acceptConnection()));
-    connect(rx_server, SIGNAL(newConnection()),
+    con_name   = name; // for debug msg
+    server     = new QTcpServer;
+    client     = new ScRemoteClient;
+    connect(server,    SIGNAL(newConnection()),
             this,      SLOT(acceptConnection()));
 
     mapper_data       = new QSignalMapper(this);
@@ -31,9 +28,9 @@ ScApachePC::ScApachePC(QString name, QObject *parent):
     connect(rx_mapper_data      , SIGNAL(mapped(int)),
             this                , SLOT(rxReadyRead(int)));
     connect(rx_mapper_error     , SIGNAL(mapped(int)),
-            this                , SLOT(displayError(int)));
-    connect(rx_mapper_disconnect, SIGNAL(mapped(int)),
-            this                , SLOT(tcpDisconnected(int)));
+            this                , SLOT(rxDisplayError(int)));
+//    connect(rx_mapper_disconnect, SIGNAL(mapped(int)),
+//            this                , SLOT(tcpDisconnected(int)));
 }
 
 ScApachePC::~ScApachePC()
@@ -52,7 +49,7 @@ ScApachePC::~ScApachePC()
     }
 }
 
-void ScApachePC::bind()
+void ScApachePC::init()
 {
     if( server->listen(QHostAddress::Any, ScSetting::local_port) )
     {
@@ -65,15 +62,35 @@ void ScApachePC::bind()
                  << server->errorString();
     }
 
-    if( rx_server->listen(QHostAddress::Any, ScSetting::rx_port) )
+    rx_clients.resize(SC_PC_CONLEN);
+    for( int i=0 ; i<SC_PC_CONLEN ; i++ )
     {
-        qDebug() << "created on port "
-                 << ScSetting::rx_port;
-    }
-    else
-    {
-        qDebug() << "RxServer failed, Error message is:"
-                 << rx_server->errorString();
+        rx_clients[i] = new QTcpSocket;
+        rx_clients[i]->connectToHost(ScSetting::remote_host,
+                                     ScSetting::tx_port);
+        rx_clients[i]->waitForConnected();
+        if( rx_clients[i]->isOpen()==0 )
+        {
+            qDebug() << "WriteBuf: failed connection not opened";
+            return;
+        }
+        rx_clients[i]->setSocketOption(
+                    QAbstractSocket::LowDelayOption, 1);
+
+        // readyRead
+        rx_mapper_data->setMapping(rx_clients[i], i);
+        connect(rx_clients[i],  SIGNAL(readyRead()),
+                rx_mapper_data, SLOT(map()));
+
+        // displayError
+        rx_mapper_error->setMapping(rx_clients[i], i);
+        connect(rx_clients[i],   SIGNAL(error(QAbstractSocket::SocketError)),
+                rx_mapper_error, SLOT(map()));
+
+        // disconnected
+        rx_mapper_disconnect->setMapping(rx_clients[i], i);
+        connect(rx_clients[i],        SIGNAL(disconnected()),
+                rx_mapper_disconnect, SLOT(map()));
     }
 }
 
@@ -88,19 +105,8 @@ void ScApachePC::acceptConnection()
     setupConnection(new_con_id);
 }
 
-void ScApachePC::rxAcceptConnection()
-{
-    if( rxPutInFree() )
-    {
-        return;
-    }
-    int new_con_id = rx_cons.length();
-    rx_cons.push_back(NULL);
-    rxSetupConnection(new_con_id);
-}
-
 void ScApachePC::displayError(int id)
- {
+{
     QString msg = "FaApacheSe::" + con_name;
     msg += " Error";
     qDebug() << msg.toStdString().c_str()
@@ -111,9 +117,9 @@ void ScApachePC::displayError(int id)
     cons[id]->close();
 
     qDebug() << "FaApacheSe::displayError," << id;
-//    if( cons[id]->error()==QTcpSocket::RemoteHostClosedError )
-//    {
-//    }
+    //    if( cons[id]->error()==QTcpSocket::RemoteHostClosedError )
+    //    {
+    //    }
 }
 
 void ScApachePC::tcpDisconnected(int id)
@@ -150,6 +156,22 @@ void ScApachePC::rxReadyRead(int id)
 {
     QByteArray data_rx = rx_cons[id]->readAll();
     cons[0]->write(data_rx);
+}
+
+void ScApachePC::rxDisplayError(int id)
+{
+    QString msg = "FaApacheSe::" + con_name;
+    msg += " RxError";
+    qDebug() << msg.toStdString().c_str()
+             << id << rx_clients[id]->errorString()
+             << rx_clients[id]->state();
+
+    rx_clients[id]->close();
+
+    qDebug() << "FaApacheSe::rxDisplayError," << id;
+    //    if( cons[id]->error()==QTcpSocket::RemoteHostClosedError )
+    //    {
+    //    }
 }
 
 //QByteArray ScApachePC::processBuffer(int id)
@@ -200,31 +222,6 @@ int ScApachePC::putInFree()
     return 0;
 }
 
-// return id in array where connection is free
-int ScApachePC::rxPutInFree()
-{
-    int len = rx_cons.length();
-    for( int i=0 ; i<len ; i++ )
-    {
-        if( rx_cons[i]->isOpen()==0 )
-        {
-            rx_mapper_data->removeMappings(rx_cons[i]);
-            rx_mapper_error->removeMappings(rx_cons[i]);
-            rx_mapper_disconnect->removeMappings(rx_cons[i]);
-            delete rx_cons[i];
-            rxSetupConnection(i);
-
-            return 1;
-        }
-        else
-        {
-            qDebug() << "conn is open" << i;
-        }
-    }
-
-    return 0;
-}
-
 void ScApachePC::setupConnection(int con_id)
 {
     QTcpSocket *con = server->nextPendingConnection();
@@ -262,40 +259,4 @@ void ScApachePC::setupConnection(int con_id)
             mapper_disconnect, SLOT(map()));
 
     emit connected(con_id);
-}
-
-void ScApachePC::rxSetupConnection(int con_id)
-{
-    QTcpSocket *con = rx_server->nextPendingConnection();
-    rx_cons[con_id] = con;
-    con->setSocketOption(QAbstractSocket::LowDelayOption, 1);
-    quint32 ip_32 = con->peerAddress().toIPv4Address();
-    QString msg = "FaApacheSe::" + con_name;
-    if( con_id<rx_ipv4.length() )
-    { // put in free
-        rx_ipv4[con_id] = QHostAddress(ip_32);
-        msg += " refereshing connection";
-    }
-    else
-    {
-        rx_ipv4.push_back(QHostAddress(ip_32));
-        msg += " accept connection";
-    }
-    qDebug() << msg.toStdString().c_str() << con_id
-             << rx_ipv4[con_id].toString();
-
-    // readyRead
-    rx_mapper_data->setMapping(con, con_id);
-    connect(con,            SIGNAL(readyRead()),
-            rx_mapper_data, SLOT(map()));
-
-    // displayError
-    rx_mapper_error->setMapping(con, con_id);
-    connect(con, SIGNAL(error(QAbstractSocket::SocketError)),
-            rx_mapper_error, SLOT(map()));
-
-    // disconnected
-    rx_mapper_disconnect->setMapping(con, con_id);
-    connect(con,                  SIGNAL(disconnected()),
-            rx_mapper_disconnect, SLOT(map()));
 }

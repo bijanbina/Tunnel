@@ -24,6 +24,6 @@ ScLocal::ScLocal(QObject *parent):
     else
     {
         ScApachePC *pc = new ScApachePC;
-        pc->bind();
+        pc->init();
     }
 }

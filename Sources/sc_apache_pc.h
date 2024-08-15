@@ -13,6 +13,8 @@
 #include "backend.h"
 #include "remote_client.h"
 
+#define SC_PC_CONLEN    1000
+
 class ScApachePC : public QObject
 {
     Q_OBJECT
@@ -21,7 +23,7 @@ public:
     explicit ScApachePC(QString name="", QObject *parent = 0);
     ~ScApachePC();
 
-    void bind();
+    void init();
 
     QVector<QTcpSocket *> cons;
     QVector<QHostAddress> ipv4;
@@ -42,16 +44,12 @@ public slots:
 
     // rx
     void rxReadyRead(int id);
-    void rxAcceptConnection();
+    void rxDisplayError(int id);
 
 private:
     QByteArray processBuffer(int id);
     int  putInFree();
     void setupConnection(int con_id);
-
-    // rx
-    int  rxPutInFree();
-    void rxSetupConnection(int con_id);
 
     QSignalMapper  *mapper_data;
     QSignalMapper  *mapper_disconnect;
@@ -65,7 +63,7 @@ private:
     QSignalMapper  *rx_mapper_data;
     QSignalMapper  *rx_mapper_disconnect;
     QSignalMapper  *rx_mapper_error;
-    QTcpServer     *rx_server;
+    QVector<QTcpSocket *> rx_clients;
 };
 
 #endif // SC_APACHE_PC_H

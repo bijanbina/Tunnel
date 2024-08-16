@@ -52,6 +52,10 @@ private:
     int  rxPutInFree();
     void rxSetupConnection(int con_id);
 
+    // tx
+    int  txPutInFree();
+    void txSetupConnection(int con_id);
+
     QTcpSocket *client;
     QByteArray  read_buf;
     QString     con_name;

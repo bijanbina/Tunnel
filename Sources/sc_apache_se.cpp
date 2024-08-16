@@ -1,7 +1,7 @@
 ﻿#include "sc_apache_se.h"
 
 ScApacheSe::ScApacheSe(QString name, QObject *parent):
-                       QObject(parent)
+    QObject(parent)
 {
     con_name  = name; // for debug msg
     tx_server = new QTcpServer;
@@ -47,6 +47,23 @@ ScApacheSe::~ScApacheSe()
 
 void ScApacheSe::connectApp()
 {
+    client->connectToHost(QHostAddress::LocalHost,
+                          ScSetting::local_port);
+    client->waitForConnected();
+    if( client->isOpen()==0 )
+    {
+        qDebug() << "client: failed connection not opened";
+        return;
+    }
+    client->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+
+    // readyRead
+    connect(client, SIGNAL(readyRead()),
+            this,   SLOT(readyRead()));
+
+    // disconnected
+    connect(client, SIGNAL(disconnected()),
+            this,   SLOT(tcpDisconnected()));
     if( rx_server->listen(QHostAddress::Any, ScSetting::rx_port) )
     {
         qDebug() << "created on port "
@@ -72,7 +89,13 @@ void ScApacheSe::connectApp()
 
 void ScApacheSe::txAcceptConnection()
 {
-
+    if( txPutInFree() )
+    {
+        return;
+    }
+    int new_con_id = rx_cons.length();
+    tx_cons.push_back(NULL);
+    txSetupConnection(new_con_id);
 }
 
 void ScApacheSe::rxAcceptConnection()
@@ -98,9 +121,9 @@ void ScApacheSe::txDisplayError(int id)
     tx_cons[id]->close();
 
     qDebug() << "FaApacheSe::displayError";
-//    if( cons[id]->error()==QTcpSocket::RemoteHostClosedError )
-//    {
-//    }
+    //    if( cons[id]->error()==QTcpSocket::RemoteHostClosedError )
+    //    {
+    //    }
 }
 
 void ScApacheSe::rxDisplayError(int id)
@@ -112,16 +135,14 @@ void ScApacheSe::rxDisplayError(int id)
              << rx_cons[id]->state();
 
     rx_cons[id]->close();
-
-    qDebug() << "FaApacheSe::displayError";
-//    if( cons[id]->error()==QTcpSocket::RemoteHostClosedError )
-//    {
-//    }
+    //    if( cons[id]->error()==QTcpSocket::RemoteHostClosedError )
+    //    {
+    //    }
 }
 
 void ScApacheSe::tcpDisconnected()
 {
-    QString msg = "FaApacheSe::" + con_name;
+    QString msg = "FaApacheSe::Client" + con_name;
     msg += " disconnected";
     qDebug() << msg.toStdString().c_str();
 }
@@ -164,29 +185,6 @@ void ScApacheSe::rxReadyRead(int id)
     client->write(data_rx);
 }
 
-//QByteArray ScApacheSe::processBuffer(int id)
-//{
-//    if( read_bufs[id].contains(FA_START_PACKET)==0 )
-//    {
-//        return "";
-//    }
-//    if( read_bufs[id].containsFA_END_PACKET)==0 )
-//    {
-//        return "";
-//    }
-//    int start_index = read_bufs[id].indexOf(FA_START_PACKET);
-//    start_index += strlen(FA_START_PACKET);
-//    read_bufs[id].remove(0, start_index);
-
-//    int end_index = read_bufs[id].indexOf(FA_END_PACKET);
-//    QByteArray data = read_bufs[id].mid(0, end_index);
-
-//    end_index += strlen(FA_END_PACKET);
-//    read_bufs[id].remove(0, end_index);
-
-//    return data;
-//}
-
 // return id in array where connection is free
 int ScApacheSe::rxPutInFree()
 {
@@ -200,6 +198,29 @@ int ScApacheSe::rxPutInFree()
             rx_mapper_disconnect->removeMappings(rx_cons[i]);
             delete rx_cons[i];
             rxSetupConnection(i);
+
+            return 1;
+        }
+        else
+        {
+            qDebug() << "conn is open" << i;
+        }
+    }
+
+    return 0;
+}
+
+// return id in array where connection is free
+int ScApacheSe::txPutInFree()
+{
+    int len = tx_cons.length();
+    for( int i=0 ; i<len ; i++ )
+    {
+        if( rx_cons[i]->isOpen()==0 )
+        {
+            tx_mapper_error->removeMappings(tx_cons[i]);
+            delete tx_cons[i];
+            txSetupConnection(i);
 
             return 1;
         }
@@ -246,4 +267,30 @@ void ScApacheSe::rxSetupConnection(int con_id)
     rx_mapper_disconnect->setMapping(con, con_id);
     connect(con,                  SIGNAL(disconnected()),
             rx_mapper_disconnect, SLOT(map()));
+}
+
+void ScApacheSe::txSetupConnection(int con_id)
+{
+    QTcpSocket *con = tx_server->nextPendingConnection();
+    tx_cons[con_id] = con;
+    con->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+    quint32 ip_32 = con->peerAddress().toIPv4Address();
+    QString msg = "FaApacheSe::" + con_name;
+    if( con_id<tx_ipv4.length() )
+    { // put in free
+        tx_ipv4[con_id] = QHostAddress(ip_32);
+        msg += " refereshing connection";
+    }
+    else
+    {
+        tx_ipv4.push_back(QHostAddress(ip_32));
+        msg += " accept connection";
+    }
+    qDebug() << msg.toStdString().c_str() << con_id
+             << tx_ipv4[con_id].toString();
+
+    // displayError
+    tx_mapper_error->setMapping(con, con_id);
+    connect(con, SIGNAL(error(QAbstractSocket::SocketError)),
+            tx_mapper_error, SLOT(map()));
 }

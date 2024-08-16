@@ -13,7 +13,7 @@
 #include "backend.h"
 #include "remote_client.h"
 
-#define SC_PC_CONLEN    1000
+#define SC_PC_CONLEN    20
 
 class ScApachePC : public QObject
 {

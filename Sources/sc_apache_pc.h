@@ -13,7 +13,7 @@
 #include "backend.h"
 #include "remote_client.h"
 
-#define SC_PC_CONLEN    20
+#define SC_PC_CONLEN    10
 
 class ScApachePC : public QObject
 {
@@ -60,6 +60,7 @@ private:
     QSignalMapper  *rx_mapper_disconnect;
     QSignalMapper  *rx_mapper_error;
     QVector<QTcpSocket *> rx_clients;
+    QByteArray     rx_buf;
 };
 
 #endif // SC_APACHE_PC_H

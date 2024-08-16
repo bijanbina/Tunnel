@@ -28,7 +28,10 @@ void ScRemoteClient::writeBuf(QHostAddress host)
     remote->setSocketOption(QAbstractSocket::LowDelayOption, 1);
 
     int s = remote->write(buf);
-    qDebug() << "writeBuf:" << buf.length() << s;
+    if( s!=buf.length() )
+    {
+        qDebug() << "writeBuf:" << buf.length() << s;
+    }
     buf.clear();
 
     remote->disconnectFromHost();

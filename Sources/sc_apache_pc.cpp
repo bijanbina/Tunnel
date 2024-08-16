@@ -103,20 +103,22 @@ void ScApachePC::acceptConnection()
     int new_con_id = cons.length();
     cons.push_back(NULL);
     setupConnection(new_con_id);
+    if( rx_buf.length() )
+    {
+        cons[0]->write(rx_buf);
+        rx_buf.clear();
+    }
 }
 
 void ScApachePC::displayError(int id)
 {
-    QString msg = "FaApacheSe::" + con_name;
-    msg += " Error";
+    QString msg = "ScApachePC::displayError";
     qDebug() << msg.toStdString().c_str()
              << id << cons[id]->errorString()
              << cons[id]->state()
              << ipv4[id].toString();
 
     cons[id]->close();
-
-    qDebug() << "FaApacheSe::displayError," << id;
     //    if( cons[id]->error()==QTcpSocket::RemoteHostClosedError )
     //    {
     //    }
@@ -124,8 +126,7 @@ void ScApachePC::displayError(int id)
 
 void ScApachePC::tcpDisconnected(int id)
 {
-    QString msg = "FaApacheSe::" + con_name;
-    msg += " disconnected";
+    QString msg = "ScApachePC::tcpDisconnected";
     qDebug() << msg.toStdString().c_str() << id
              << ipv4[id].toString();
 }
@@ -154,23 +155,31 @@ void ScApachePC::readyRead(int id)
 
 void ScApachePC::rxReadyRead(int id)
 {
-    QByteArray data_rx = rx_clients[id]->readAll();
-    qDebug() << "ScApachePC::rxReadyRead"
-             << data_rx;
-    cons[0]->write(data_rx);
+    rx_buf += rx_clients[id]->readAll();
+//    qDebug() << "ScApachePC::rxReadyRead"
+//             << rx_buf;
+    if( cons.length() )
+    {
+        cons[0]->write(rx_buf);
+        rx_buf.clear();
+    }
 }
 
 void ScApachePC::rxDisplayError(int id)
 {
-    QString msg = "FaApacheSe::" + con_name;
-    msg += " RxError";
-    qDebug() << msg.toStdString().c_str()
-             << id << rx_clients[id]->errorString()
-             << rx_clients[id]->state();
-
     rx_clients[id]->close();
-
-    qDebug() << "FaApacheSe::rxDisplayError," << id;
+    rx_clients[id]->connectToHost(ScSetting::remote_host,
+                                  ScSetting::rx_port);
+    rx_clients[id]->waitForConnected();
+    if( rx_clients[id]->isOpen()==0 )
+    {
+        return;
+    }
+    QString msg = "ScApachePC::RxError  restored";
+    qDebug() << msg.toStdString().c_str()
+             << id << rx_clients[id]->state();
+    rx_clients[id]->setSocketOption(
+                QAbstractSocket::LowDelayOption, 1);
     //    if( cons[id]->error()==QTcpSocket::RemoteHostClosedError )
     //    {
     //    }

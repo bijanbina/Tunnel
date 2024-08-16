@@ -28,10 +28,6 @@ public:
     QVector<QTcpSocket *> cons;
     QVector<QHostAddress> ipv4;
 
-    // rx
-    QVector<QTcpSocket *> rx_cons;
-    QVector<QHostAddress> rx_ipv4;
-
 signals:
     void connected(int id);
     void dataReady(int id, QString data);

@@ -67,7 +67,7 @@ void ScApachePC::init()
     {
         rx_clients[i] = new QTcpSocket;
         rx_clients[i]->connectToHost(ScSetting::remote_host,
-                                     ScSetting::tx_port);
+                                     ScSetting::rx_port);
         rx_clients[i]->waitForConnected();
         if( rx_clients[i]->isOpen()==0 )
         {
@@ -133,7 +133,7 @@ void ScApachePC::tcpDisconnected(int id)
 void ScApachePC::readyRead(int id)
 {
     QByteArray data_rx = cons[id]->readAll();
-    qDebug() << "read_buf::" << data_rx.length();
+//    qDebug() << "read_buf::" << data_rx.length();
 
     int split_size = 7000;
     while( data_rx.length() )
@@ -154,7 +154,9 @@ void ScApachePC::readyRead(int id)
 
 void ScApachePC::rxReadyRead(int id)
 {
-    QByteArray data_rx = rx_cons[id]->readAll();
+    QByteArray data_rx = rx_clients[id]->readAll();
+    qDebug() << "ScApachePC::rxReadyRead"
+             << data_rx;
     cons[0]->write(data_rx);
 }
 
@@ -173,29 +175,6 @@ void ScApachePC::rxDisplayError(int id)
     //    {
     //    }
 }
-
-//QByteArray ScApachePC::processBuffer(int id)
-//{
-//    if( read_bufs[id].contains(FA_START_PACKET)==0 )
-//    {
-//        return "";
-//    }
-//    if( read_bufs[id].contains(FA_END_PACKET)==0 )
-//    {
-//        return "";
-//    }
-//    int start_index = read_bufs[id].indexOf(FA_START_PACKET);
-//    start_index += strlen(FA_START_PACKET);
-//    read_bufs[id].remove(0, start_index);
-
-//    int end_index = read_bufs[id].indexOf(FA_END_PACKET);
-//    QByteArray data = read_bufs[id].mid(0, end_index);
-
-//    end_index += strlen(FA_END_PACKET);
-//    read_bufs[id].remove(0, end_index);
-
-//    return data;
-//}
 
 // return id in array where connection is free
 int ScApachePC::putInFree()

@@ -1,4 +1,4 @@
-﻿#include "sc_apache_se.h"
+#include "sc_apache_se.h"
 
 ScApacheSe::ScApacheSe(QString name, QObject *parent):
     QObject(parent)
@@ -93,7 +93,7 @@ void ScApacheSe::txAcceptConnection()
     {
         return;
     }
-    int new_con_id = rx_cons.length();
+    int new_con_id = tx_cons.length();
     tx_cons.push_back(NULL);
     txSetupConnection(new_con_id);
 }
@@ -150,7 +150,8 @@ void ScApacheSe::tcpDisconnected()
 void ScApacheSe::readyRead()
 {
     read_buf += client->readAll();
-    qDebug() << "read_bufs::" << read_buf.length();
+    qDebug() << "ScApacheSe::readyRead"
+             << read_buf.length();
 
     int split_size = 7000;
     int con_len = tx_cons.length();
@@ -203,7 +204,7 @@ int ScApacheSe::rxPutInFree()
         }
         else
         {
-            qDebug() << "conn is open" << i;
+//            qDebug() << "conn is open" << i;
         }
     }
 
@@ -216,7 +217,7 @@ int ScApacheSe::txPutInFree()
     int len = tx_cons.length();
     for( int i=0 ; i<len ; i++ )
     {
-        if( rx_cons[i]->isOpen()==0 )
+        if( tx_cons[i]->isOpen()==0 )
         {
             tx_mapper_error->removeMappings(tx_cons[i]);
             delete tx_cons[i];
@@ -226,7 +227,7 @@ int ScApacheSe::txPutInFree()
         }
         else
         {
-            qDebug() << "conn is open" << i;
+//            qDebug() << "conn is open" << i;
         }
     }
 
@@ -275,11 +276,11 @@ void ScApacheSe::txSetupConnection(int con_id)
     tx_cons[con_id] = con;
     con->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     quint32 ip_32 = con->peerAddress().toIPv4Address();
-    QString msg = "FaApacheSe::" + con_name;
+    QString msg = "FaApacheSe::txSetupConnection" + con_name;
     if( con_id<tx_ipv4.length() )
     { // put in free
         tx_ipv4[con_id] = QHostAddress(ip_32);
-        msg += " refereshing connection";
+        msg += " refreshing connection";
     }
     else
     {

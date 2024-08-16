@@ -40,7 +40,7 @@ void ScRemoteClient::disconnected()
 {
     remote->close();
     buf.clear();
-    qDebug() << "ScRemoteClient: Disconnected";
+//    qDebug() << "ScRemoteClient: Disconnected";
 }
 
 void ScRemoteClient::displayError(

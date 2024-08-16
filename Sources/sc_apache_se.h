@@ -46,8 +46,6 @@ public slots:
     void rxDisplayError(int id);
 
 private:
-    QByteArray processBuffer(int id);
-
     // rx
     int  rxPutInFree();
     void rxSetupConnection(int con_id);
@@ -57,7 +55,8 @@ private:
     void txSetupConnection(int con_id);
 
     QTcpSocket *client;
-    QByteArray  read_buf;
+    QByteArray  tx_buf;
+    QByteArray  rx_buf;
     QString     con_name;
 
     // rx

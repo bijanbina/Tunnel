@@ -59,7 +59,7 @@ void ScApacheSe::connectApp()
 
     // readyRead
     connect(client, SIGNAL(readyRead()),
-            this,   SLOT(readyRead()));
+            this,   SLOT(txReadyRead()));
 
     // disconnected
     connect(client, SIGNAL(disconnected()),
@@ -89,7 +89,7 @@ void ScApacheSe::connectApp()
 
 void ScApacheSe::txAcceptConnection()
 {
-    qDebug() << "txAcceptConnection" << tx_cons.length();
+    qDebug() << tx_cons.length() << "txAccept";
     if( txPutInFree() )
     {
         return;
@@ -97,7 +97,7 @@ void ScApacheSe::txAcceptConnection()
     int new_con_id = tx_cons.length();
     tx_cons.push_back(NULL);
     txSetupConnection(new_con_id);
-    readyRead(); // to send buff data
+    txReadyRead(); // to send buff data
 }
 
 void ScApacheSe::rxAcceptConnection()
@@ -113,21 +113,19 @@ void ScApacheSe::rxAcceptConnection()
 
 void ScApacheSe::txDisplayError(int id)
 {
-    QString msg = "FaApacheSe::txError";
-    qDebug() << msg.toStdString().c_str()
-             << id << tx_cons[id]->errorString()
-             << tx_cons[id]->state();
-
-    tx_cons[id]->close();
-    //    if( cons[id]->error()==QTcpSocket::RemoteHostClosedError )
-    //    {
-    //    }
+    qDebug() << id << "ApacheSe::txError";
+    if( tx_cons[id]->error()!=QTcpSocket::RemoteHostClosedError )
+    {
+        qDebug() << id << "ApacheSe::txError"
+                 << tx_cons[id]->errorString()
+                 << tx_cons[id]->state();
+        tx_cons[id]->close();
+    }
 }
 
 void ScApacheSe::rxDisplayError(int id)
 {
-    QString msg = "FaApacheSe::" + con_name;
-    msg += " rxError";
+    QString msg = "FaApacheSe::rxError";
     //qDebug() << msg.toStdString().c_str()
     //         << rx_cons[id]->errorString()
     //         << rx_cons[id]->state();
@@ -140,12 +138,10 @@ void ScApacheSe::rxDisplayError(int id)
 
 void ScApacheSe::tcpDisconnected()
 {
-    QString msg = "FaApacheSe::Client" + con_name;
-    msg += " disconnected";
-    qDebug() << msg.toStdString().c_str();
+    qDebug() << "FaApacheSe::Client ERRRROR disconnected";
 }
 
-void ScApacheSe::readyRead()
+void ScApacheSe::txReadyRead()
 {
     tx_buf += client->readAll();
     if( tx_buf.isEmpty() )
@@ -153,8 +149,6 @@ void ScApacheSe::readyRead()
         return;
     }
 
-    qDebug() << "ScApacheSe::readyRead"
-             << tx_buf.length();
     int split_size = 7000;
     int con_len = tx_cons.length();
     for( int i=0 ; i<con_len ; i++  )

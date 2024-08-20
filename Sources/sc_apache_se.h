@@ -35,7 +35,7 @@ public:
     QVector<QHostAddress> tx_ipv4;
 
 public slots:
-    void readyRead();
+    void txReadyRead();
     void txAcceptConnection();
     void txDisplayError(int id);
     void tcpDisconnected();

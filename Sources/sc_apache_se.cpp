@@ -172,6 +172,9 @@ void ScApacheSe::txReadyRead()
             }
         }
     }
+
+    qDebug() << "ScApacheSe::TX"
+             << tx_buf.length();
 }
 
 void ScApacheSe::rxReadyRead(int id)
@@ -181,8 +184,10 @@ void ScApacheSe::rxReadyRead(int id)
     {
         return;
     }
-    qDebug() << "rxReadyRead" << id << rx_buf.length();
-    client->write(rx_buf);
+    int w = client->write(rx_buf);
+    qDebug() << "rxReadyRead" << id << rx_buf.length()
+             << w;
+    rx_buf.clear();
 }
 
 // return id in array where connection is free
@@ -218,7 +223,7 @@ int ScApacheSe::txPutInFree()
     {
         if( tx_cons[i]->isOpen()==0 )
         {
-            qDebug() << "txPutInFree: found" << i
+            qDebug() << i << "txPutFree"
                      << tx_cons[i]->state();
             tx_mapper_error->removeMappings(tx_cons[i]);
             delete tx_cons[i];
@@ -241,7 +246,7 @@ void ScApacheSe::rxSetupConnection(int con_id)
     rx_cons[con_id] = con;
     con->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     quint32 ip_32 = con->peerAddress().toIPv4Address();
-    QString msg = "FaApacheSe::" + con_name;
+    QString msg = "FaApacheSe::rxSetup";
     if( con_id<rx_ipv4.length() )
     { // put in free
         rx_ipv4[con_id] = QHostAddress(ip_32);
@@ -252,7 +257,7 @@ void ScApacheSe::rxSetupConnection(int con_id)
         rx_ipv4.push_back(QHostAddress(ip_32));
         msg += " accept connection";
     }
-    qDebug() << msg.toStdString().c_str() << con_id
+    qDebug() << con_id << msg.toStdString().c_str()
              << rx_ipv4[con_id].toString();
 
     // readyRead
@@ -277,7 +282,7 @@ void ScApacheSe::txSetupConnection(int con_id)
     tx_cons[con_id] = con;
     con->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     quint32 ip_32 = con->peerAddress().toIPv4Address();
-    QString msg = "FaApacheSe::txSetupConnection" + con_name;
+    QString msg = "ApacheSe::txSetup";
     if( con_id<tx_ipv4.length() )
     { // put in free
         tx_ipv4[con_id] = QHostAddress(ip_32);
@@ -288,8 +293,7 @@ void ScApacheSe::txSetupConnection(int con_id)
         tx_ipv4.push_back(QHostAddress(ip_32));
         msg += " accept connection";
     }
-    qDebug() << msg.toStdString().c_str() << con_id
-             << tx_ipv4[con_id].toString();
+    qDebug() << con_id << msg.toStdString().c_str();
 
     // displayError
     tx_mapper_error->setMapping(con, con_id);

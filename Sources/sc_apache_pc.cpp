@@ -71,7 +71,7 @@ void ScApachePC::init()
         rx_clients[i]->waitForConnected();
         if( rx_clients[i]->isOpen()==0 )
         {
-            qDebug() << "WriteBuf: failed connection not opened";
+            qDebug() << "init: failed connection not opened";
             return;
         }
         rx_clients[i]->setSocketOption(
@@ -133,24 +133,23 @@ void ScApachePC::tcpDisconnected(int id)
 
 void ScApachePC::readyRead(int id)
 {
-    QByteArray data_rx = cons[id]->readAll();
+    tx_buf += cons[id]->readAll();
 //    qDebug() << "read_buf::" << data_rx.length();
 
     int split_size = 7000;
-    while( data_rx.length() )
+    while( tx_buf.length() )
     {
         int len = split_size;
-        if( data_rx.length()<split_size )
+        if( tx_buf.length()<split_size )
         {
-            len = data_rx.length();
+            len = tx_buf.length();
         }
-        client->buf = data_rx.mid(0, len);
-        data_rx.remove(0, len);
+        client->buf = tx_buf.mid(0, len);
+        tx_buf.remove(0, len);
 
         QHostAddress host(ScSetting::remote_host);
         client->writeBuf(host);
     }
-
 }
 
 void ScApachePC::rxReadyRead(int id)
@@ -168,6 +167,16 @@ void ScApachePC::rxReadyRead(int id)
 void ScApachePC::rxDisplayError(int id)
 {
     rx_clients[id]->close();
+    rx_mapper_data->removeMappings(rx_clients[id]);
+    rx_mapper_error->removeMappings(rx_clients[id]);
+    rx_mapper_disconnect->removeMappings(rx_clients[id]);
+
+    // After calling display error QTcpSocket automatically
+    // close the connection after function finishes
+    // to work around this for now we recreate a connection
+    // from scratch
+    ///FIXME: Delete rx_clients[id]
+    rx_clients[id] = new QTcpSocket;
     rx_clients[id]->connectToHost(ScSetting::remote_host,
                                   ScSetting::rx_port);
     rx_clients[id]->waitForConnected();
@@ -180,6 +189,19 @@ void ScApachePC::rxDisplayError(int id)
              << id << rx_clients[id]->state();
     rx_clients[id]->setSocketOption(
                 QAbstractSocket::LowDelayOption, 1);
+    rx_mapper_data->setMapping(rx_clients[id], id);
+    connect(rx_clients[id],  SIGNAL(readyRead()),
+            rx_mapper_data, SLOT(map()));
+
+    // displayError
+    rx_mapper_error->setMapping(rx_clients[id], id);
+    connect(rx_clients[id],   SIGNAL(error(QAbstractSocket::SocketError)),
+            rx_mapper_error, SLOT(map()));
+
+    // disconnected
+    rx_mapper_disconnect->setMapping(rx_clients[id], id);
+    connect(rx_clients[id],        SIGNAL(disconnected()),
+            rx_mapper_disconnect, SLOT(map()));
     //    if( cons[id]->error()==QTcpSocket::RemoteHostClosedError )
     //    {
     //    }
@@ -220,13 +242,11 @@ void ScApachePC::setupConnection(int con_id)
     if( con_id<ipv4.length() )
     { // put in free
         ipv4[con_id] = QHostAddress(ip_32);
-        read_bufs[con_id].clear();
         msg += " refereshing connection";
     }
     else
     {
         ipv4.push_back(QHostAddress(ip_32));
-        read_bufs.push_back(QByteArray());
         msg += " accept connection";
     }
     qDebug() << msg.toStdString().c_str() << con_id

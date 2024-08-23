@@ -29,8 +29,8 @@ ScApachePC::ScApachePC(QString name, QObject *parent):
             this                , SLOT(rxReadyRead(int)));
     connect(rx_mapper_error     , SIGNAL(mapped(int)),
             this                , SLOT(rxDisplayError(int)));
-//    connect(rx_mapper_disconnect, SIGNAL(mapped(int)),
-//            this                , SLOT(tcpDisconnected(int)));
+    connect(rx_mapper_disconnect, SIGNAL(mapped(int)),
+            this                , SLOT(rxDisconnected(int)));
 }
 
 ScApachePC::~ScApachePC()
@@ -166,17 +166,15 @@ void ScApachePC::rxReadyRead(int id)
 
 void ScApachePC::rxDisplayError(int id)
 {
-    rx_clients[id]->close();
-    rx_mapper_data->removeMappings(rx_clients[id]);
-    rx_mapper_error->removeMappings(rx_clients[id]);
-    rx_mapper_disconnect->removeMappings(rx_clients[id]);
+    qDebug() << "ScApachePC::RxError"
+             << id << rx_clients[id]->state();
+    //    if( cons[id]->error()==QTcpSocket::RemoteHostClosedError )
+    //    {
+    //    }
+}
 
-    // After calling display error QTcpSocket automatically
-    // close the connection after function finishes
-    // to work around this for now we recreate a connection
-    // from scratch
-    ///FIXME: Delete rx_clients[id]
-    rx_clients[id] = new QTcpSocket;
+void ScApachePC::rxDisconnected(int id)
+{
     rx_clients[id]->connectToHost(ScSetting::remote_host,
                                   ScSetting::rx_port);
     rx_clients[id]->waitForConnected();
@@ -184,27 +182,10 @@ void ScApachePC::rxDisplayError(int id)
     {
         return;
     }
-    QString msg = "ScApachePC::RxError  restored";
-    qDebug() << msg.toStdString().c_str()
+    qDebug() << "ScApachePC::rxDisconnected  restored"
              << id << rx_clients[id]->state();
     rx_clients[id]->setSocketOption(
                 QAbstractSocket::LowDelayOption, 1);
-    rx_mapper_data->setMapping(rx_clients[id], id);
-    connect(rx_clients[id],  SIGNAL(readyRead()),
-            rx_mapper_data, SLOT(map()));
-
-    // displayError
-    rx_mapper_error->setMapping(rx_clients[id], id);
-    connect(rx_clients[id],   SIGNAL(error(QAbstractSocket::SocketError)),
-            rx_mapper_error, SLOT(map()));
-
-    // disconnected
-    rx_mapper_disconnect->setMapping(rx_clients[id], id);
-    connect(rx_clients[id],        SIGNAL(disconnected()),
-            rx_mapper_disconnect, SLOT(map()));
-    //    if( cons[id]->error()==QTcpSocket::RemoteHostClosedError )
-    //    {
-    //    }
 }
 
 // return id in array where connection is free

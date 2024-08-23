@@ -138,7 +138,17 @@ void ScApacheSe::rxDisplayError(int id)
 
 void ScApacheSe::tcpDisconnected()
 {
-    qDebug() << "FaApacheSe::Client ERRRROR disconnected";
+    qDebug() << "FaApacheSe::Client disconnected----------------";
+    tx_buf.clear();
+    client->connectToHost(QHostAddress::LocalHost,
+                          ScSetting::local_port);
+    client->waitForConnected();
+    if( client->isOpen()==0 )
+    {
+        qDebug() << "client: failed connection not opened";
+        return;
+    }
+    client->setSocketOption(QAbstractSocket::LowDelayOption, 1);
 }
 
 void ScApacheSe::txReadyRead()
@@ -184,10 +194,19 @@ void ScApacheSe::rxReadyRead(int id)
     {
         return;
     }
-    int w = client->write(rx_buf);
-    qDebug() << "rxReadyRead" << id << rx_buf.length()
-             << w;
-    rx_buf.clear();
+
+    if( client->isOpen() )
+    {
+        int w = client->write(rx_buf);
+        qDebug() << "rxReadyRead" << id << rx_buf.length()
+                 << w;
+        rx_buf.clear();
+    }
+    else
+    {
+        qDebug() << "rxReadyRead: Conn is not open" << id
+                 << rx_buf.length();
+    }
 }
 
 // return id in array where connection is free

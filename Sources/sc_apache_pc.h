@@ -13,7 +13,7 @@
 #include "backend.h"
 #include "remote_client.h"
 
-#define SC_PC_CONLEN    20
+#define SC_PC_CONLEN    10
 
 class ScApachePC : public QObject
 {
@@ -41,6 +41,7 @@ public slots:
     // rx
     void rxReadyRead(int id);
     void rxDisplayError(int id);
+    void rxDisconnected(int id);
 
 private:
     QByteArray processBuffer(int id);

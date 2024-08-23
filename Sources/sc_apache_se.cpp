@@ -1,4 +1,5 @@
 #include "sc_apache_se.h"
+#include <QThread>
 
 ScApacheSe::ScApacheSe(QString name, QObject *parent):
     QObject(parent)
@@ -6,11 +7,10 @@ ScApacheSe::ScApacheSe(QString name, QObject *parent):
     con_name  = name; // for debug msg
     tx_server = new QTcpServer;
     rx_server = new QTcpServer;
-    client    = new QTcpSocket;
     connect(rx_server, SIGNAL(newConnection()),
-            this,      SLOT(rxAcceptConnection()));
+            this,      SLOT(rxConnected()));
     connect(tx_server, SIGNAL(newConnection()),
-            this,      SLOT(txAcceptConnection()));
+            this,      SLOT(txConnected()));
 
     rx_mapper_data       = new QSignalMapper(this);
     rx_mapper_error      = new QSignalMapper(this);
@@ -25,8 +25,14 @@ ScApacheSe::ScApacheSe(QString name, QObject *parent):
     tx_mapper_error      = new QSignalMapper(this);
     tx_mapper_disconnect = new QSignalMapper(this);
 
-    connect(tx_mapper_error     , SIGNAL(mapped(int)),
-            this                , SLOT(txDisplayError(int)));
+    connect(tx_mapper_error, SIGNAL(mapped(int)),
+            this           , SLOT(txDisplayError(int)));
+
+    dbg1 = 0;
+    rx_timer = new QTimer;
+    connect(rx_timer, SIGNAL(timeout()),
+            this    , SLOT(rxTimeout()));
+    rx_timer->setSingleShot(true);
 }
 
 ScApacheSe::~ScApacheSe()
@@ -47,23 +53,28 @@ ScApacheSe::~ScApacheSe()
 
 void ScApacheSe::connectApp()
 {
-    client->connectToHost(QHostAddress::LocalHost,
+    client.connectToHost(QHostAddress::LocalHost,
                           ScSetting::local_port);
-    client->waitForConnected();
-    if( client->isOpen()==0 )
+    client.waitForConnected();
+    if( client.isOpen()==0 )
     {
         qDebug() << "client: failed connection not opened";
         return;
     }
-    client->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+    client.setSocketOption(QAbstractSocket::LowDelayOption, 1);
 
     // readyRead
-    connect(client, SIGNAL(readyRead()),
+    connect(&client, SIGNAL(readyRead()),
             this,   SLOT(txReadyRead()));
 
+    // connected
+    connect(&client, SIGNAL(connected()),
+            this,    SLOT(clientConnected()));
+
     // disconnected
-    connect(client, SIGNAL(disconnected()),
-            this,   SLOT(tcpDisconnected()));
+    connect(&client, SIGNAL(disconnected()),
+            this,    SLOT(clientDisconnected()));
+
     if( rx_server->listen(QHostAddress::Any, ScSetting::rx_port) )
     {
         qDebug() << "created on port "

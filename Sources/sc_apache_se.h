@@ -36,14 +36,17 @@ public:
 
 public slots:
     void txReadyRead();
-    void txAcceptConnection();
+    void txConnected();
     void txDisplayError(int id);
-    void tcpDisconnected();
+    void clientConnected();
+    void clientError();
+    void clientDisconnected();
 
     // rx
     void rxReadyRead(int id);
-    void rxAcceptConnection();
+    void rxConnected();
     void rxDisplayError(int id);
+    void rxTimeout();
 
 private:
     // rx
@@ -54,7 +57,9 @@ private:
     int  txPutInFree();
     void txSetupConnection(int con_id);
 
-    QTcpSocket *client;
+    int         dbg1;
+    QTimer     *rx_timer;
+    QTcpSocket  client;
     QByteArray  tx_buf;
     QByteArray  rx_buf;
     QString     con_name;

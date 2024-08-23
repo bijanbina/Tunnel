@@ -19,14 +19,14 @@ ScApacheSe::ScApacheSe(QString name, QObject *parent):
     connect(rx_mapper_data      , SIGNAL(mapped(int)),
             this                , SLOT(rxReadyRead(int)));
     connect(rx_mapper_error     , SIGNAL(mapped(int)),
-            this                , SLOT(rxDisplayError(int)));
+            this                , SLOT(rxError(int)));
 
     tx_mapper_data       = new QSignalMapper(this);
     tx_mapper_error      = new QSignalMapper(this);
     tx_mapper_disconnect = new QSignalMapper(this);
 
     connect(tx_mapper_error, SIGNAL(mapped(int)),
-            this           , SLOT(txDisplayError(int)));
+            this           , SLOT(txError(int)));
 
     dbg1 = 0;
     rx_timer = new QTimer;
@@ -98,7 +98,7 @@ void ScApacheSe::connectApp()
     }
 }
 
-void ScApacheSe::txAcceptConnection()
+void ScApacheSe::txConnected()
 {
     qDebug() << tx_cons.length() << "txAccept";
     if( txPutInFree() )
@@ -111,7 +111,7 @@ void ScApacheSe::txAcceptConnection()
     txReadyRead(); // to send buff data
 }
 
-void ScApacheSe::rxAcceptConnection()
+void ScApacheSe::rxConnected()
 {
     if( rxPutInFree() )
     {
@@ -122,7 +122,7 @@ void ScApacheSe::rxAcceptConnection()
     rxSetupConnection(new_con_id);
 }
 
-void ScApacheSe::txDisplayError(int id)
+void ScApacheSe::txError(int id)
 {
     qDebug() << id << "ApacheSe::txError";
     if( tx_cons[id]->error()!=QTcpSocket::RemoteHostClosedError )
@@ -134,10 +134,9 @@ void ScApacheSe::txDisplayError(int id)
     }
 }
 
-void ScApacheSe::rxDisplayError(int id)
+void ScApacheSe::rxError(int id)
 {
-    QString msg = "FaApacheSe::rxError";
-    //qDebug() << msg.toStdString().c_str()
+    //qDebug() << "FaApacheSe::rxError"
     //         << rx_cons[id]->errorString()
     //         << rx_cons[id]->state();
 
@@ -147,24 +146,47 @@ void ScApacheSe::rxDisplayError(int id)
     //    }
 }
 
-void ScApacheSe::tcpDisconnected()
+void ScApacheSe::rxTimeout()
 {
-    qDebug() << "FaApacheSe::Client disconnected----------------";
-    tx_buf.clear();
-    client->connectToHost(QHostAddress::LocalHost,
-                          ScSetting::local_port);
-    client->waitForConnected();
-    if( client->isOpen()==0 )
+    if( rx_buf.length()==0 )
     {
-        qDebug() << "client: failed connection not opened";
         return;
     }
-    client->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+
+    if( client.isOpen() )
+    {
+        int w = client.write(rx_buf);
+        qDebug() << "rxTimeout" << rx_buf.length()
+                 << w;
+        rx_buf.clear();
+    }
+}
+
+void ScApacheSe::clientDisconnected()
+{
+    qDebug() << "FaApacheSe::Client disconnected----------------";
+    client.connectToHost(QHostAddress::LocalHost,
+                          ScSetting::local_port);
+}
+
+void ScApacheSe::clientConnected()
+{
+    tx_buf.clear();
+    rx_buf.clear();
+    client.setSocketOption(QAbstractSocket::LowDelayOption, 1);
+    qDebug() << "FaApacheSe::Client Connected############";
+}
+
+void ScApacheSe::clientError()
+{
+    qDebug() << "FaApacheSe::clientError"
+             << client.errorString()
+             << client.state();
 }
 
 void ScApacheSe::txReadyRead()
 {
-    tx_buf += client->readAll();
+    tx_buf += client.readAll();
     if( tx_buf.isEmpty() )
     {
         return;
@@ -206,9 +228,19 @@ void ScApacheSe::rxReadyRead(int id)
         return;
     }
 
-    if( client->isOpen() )
+    if( client.isOpen() )
     {
-        int w = client->write(rx_buf);
+//        if( dbg1 )
+//        {
+//            dbg1 = 0;
+//            qDebug() << "rxReadyRead skipped" << id;
+//            rx_timer->start(2000);
+//            return;
+//        }
+        qDebug() << "rxReadyRead" << id
+                 << client.state() << rx_buf.length();
+        qDebug() << "rxReadyRead" << id << rx_buf;
+        int w = client.write(rx_buf);
         qDebug() << "rxReadyRead" << id << rx_buf.length()
                  << w;
         rx_buf.clear();

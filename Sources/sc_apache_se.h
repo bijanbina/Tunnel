@@ -37,7 +37,7 @@ public:
 public slots:
     void txReadyRead();
     void txConnected();
-    void txDisplayError(int id);
+    void txError(int id);
     void clientConnected();
     void clientError();
     void clientDisconnected();
@@ -45,7 +45,7 @@ public slots:
     // rx
     void rxReadyRead(int id);
     void rxConnected();
-    void rxDisplayError(int id);
+    void rxError(int id);
     void rxTimeout();
 
 private:

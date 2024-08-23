@@ -3,9 +3,10 @@
 ScApachePC::ScApachePC(QString name, QObject *parent):
     QObject(parent)
 {
-    con_name   = name; // for debug msg
-    server     = new QTcpServer;
-    client     = new ScRemoteClient;
+    con_name = name; // for debug msg
+    server   = new QTcpServer;
+    client   = new ScRemoteClient;
+    rx_timer = new QTimer;
     connect(server,    SIGNAL(newConnection()),
             this,      SLOT(acceptConnection()));
 
@@ -26,11 +27,15 @@ ScApachePC::ScApachePC(QString name, QObject *parent):
     rx_mapper_disconnect = new QSignalMapper(this);
 
     connect(rx_mapper_data      , SIGNAL(mapped(int)),
-            this                , SLOT(rxReadyRead(int)));
+            this                , SLOT  (rxReadyRead(int)));
     connect(rx_mapper_error     , SIGNAL(mapped(int)),
-            this                , SLOT(rxDisplayError(int)));
+            this                , SLOT  (rxDisplayError(int)));
     connect(rx_mapper_disconnect, SIGNAL(mapped(int)),
-            this                , SLOT(rxDisconnected(int)));
+            this                , SLOT  (rxDisconnected(int)));
+
+    connect(rx_timer, SIGNAL(timeout()),
+            this    , SLOT  (rxRefresh()));
+    rx_timer->start(2000);
 }
 
 ScApachePC::~ScApachePC()
@@ -186,6 +191,22 @@ void ScApachePC::rxDisconnected(int id)
              << id << rx_clients[id]->state();
     rx_clients[id]->setSocketOption(
                 QAbstractSocket::LowDelayOption, 1);
+}
+
+void ScApachePC::rxRefresh()
+{
+    int len = rx_clients.length();
+    int count = 0;
+    for( int i=0 ; i<len ; i++ )
+    {
+        if( rx_clients[i]->isOpen()==0 )
+        {
+            rx_clients[i]->connectToHost(ScSetting::remote_host,
+                                         ScSetting::rx_port);
+            count++;
+        }
+    }
+    qDebug() << "rxRefresh" << count;
 }
 
 // return id in array where connection is free

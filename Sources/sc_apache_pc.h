@@ -42,6 +42,7 @@ public slots:
     void rxReadyRead(int id);
     void rxDisplayError(int id);
     void rxDisconnected(int id);
+    void rxRefresh();
 
 private:
     QByteArray processBuffer(int id);
@@ -62,7 +63,8 @@ private:
     QSignalMapper  *rx_mapper_disconnect;
     QSignalMapper  *rx_mapper_error;
     QVector<QTcpSocket *> rx_clients;
-    QByteArray     rx_buf;
+    QByteArray      rx_buf;
+    QTimer         *rx_timer;
 };
 
 #endif // SC_APACHE_PC_H

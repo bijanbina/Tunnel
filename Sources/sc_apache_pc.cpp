@@ -1,4 +1,4 @@
-#include "sc_apache_pc.h"
+﻿#include "sc_apache_pc.h"
 
 ScApachePC::ScApachePC(QString name, QObject *parent):
     QObject(parent)
@@ -17,9 +17,9 @@ ScApachePC::ScApachePC(QString name, QObject *parent):
     connect(mapper_data      , SIGNAL(mapped(int)),
             this             , SLOT(readyRead(int)));
     connect(mapper_error     , SIGNAL(mapped(int)),
-            this             , SLOT(displayError(int)));
+            this             , SLOT(clientError(int)));
     connect(mapper_disconnect, SIGNAL(mapped(int)),
-            this             , SLOT(tcpDisconnected(int)));
+            this             , SLOT(clientDisconnected(int)));
 
     // rx
     rx_mapper_data       = new QSignalMapper(this);
@@ -29,7 +29,7 @@ ScApachePC::ScApachePC(QString name, QObject *parent):
     connect(rx_mapper_data      , SIGNAL(mapped(int)),
             this                , SLOT  (rxReadyRead(int)));
     connect(rx_mapper_error     , SIGNAL(mapped(int)),
-            this                , SLOT  (rxDisplayError(int)));
+            this                , SLOT  (rxError(int)));
     connect(rx_mapper_disconnect, SIGNAL(mapped(int)),
             this                , SLOT  (rxDisconnected(int)));
 
@@ -99,7 +99,7 @@ void ScApachePC::init()
     }
 }
 
-void ScApachePC::acceptConnection()
+void ScApachePC::clientConnected()
 {
     if( putInFree() )
     {
@@ -115,25 +115,19 @@ void ScApachePC::acceptConnection()
     }
 }
 
-void ScApachePC::displayError(int id)
+void ScApachePC::clientError(int id)
 {
-    QString msg = "ScApachePC::displayError";
-    qDebug() << msg.toStdString().c_str()
-             << id << cons[id]->errorString()
+    qDebug() << id << "clientError"
+             << cons[id]->errorString()
              << cons[id]->state()
              << ipv4[id].toString();
 
     cons[id]->close();
-    //    if( cons[id]->error()==QTcpSocket::RemoteHostClosedError )
-    //    {
-    //    }
 }
 
-void ScApachePC::tcpDisconnected(int id)
+void ScApachePC::clientDisconnected(int id)
 {
-    QString msg = "ScApachePC::tcpDisconnected";
-    qDebug() << msg.toStdString().c_str() << id
-             << ipv4[id].toString();
+    qDebug() << id << "clientDisconnected";
 }
 
 void ScApachePC::readyRead(int id)
@@ -160,22 +154,27 @@ void ScApachePC::readyRead(int id)
 void ScApachePC::rxReadyRead(int id)
 {
     rx_buf += rx_clients[id]->readAll();
-//    qDebug() << "ScApachePC::rxReadyRead"
-//             << rx_buf;
-    if( cons.length() )
+    int len = cons.length();
+    if( len )
     {
-        cons[0]->write(rx_buf);
-        rx_buf.clear();
+        for( int i=0 ; i<len ; i++ )
+        {
+            if( cons[i]->isOpen() )
+            {
+                cons[i]->write(rx_buf);
+                rx_buf.clear();
+                return;
+            }
+        }
+        qDebug() << "rxReadyRead:: Client is closed"
+                 << len;
     }
 }
 
-void ScApachePC::rxDisplayError(int id)
+void ScApachePC::rxError(int id)
 {
-    qDebug() << "ScApachePC::RxError"
-             << id << rx_clients[id]->state();
-    //    if( cons[id]->error()==QTcpSocket::RemoteHostClosedError )
-    //    {
-    //    }
+    qDebug() << id << "rxError"
+             << rx_clients[id]->state();
 }
 
 void ScApachePC::rxDisconnected(int id)
@@ -187,8 +186,8 @@ void ScApachePC::rxDisconnected(int id)
     {
         return;
     }
-    qDebug() << "ScApachePC::rxDisconnected  restored"
-             << id << rx_clients[id]->state();
+    qDebug() << id << "rxDisconnected:: restored"
+             << rx_clients[id]->state();
     rx_clients[id]->setSocketOption(
                 QAbstractSocket::LowDelayOption, 1);
 }
@@ -206,7 +205,7 @@ void ScApachePC::rxRefresh()
             count++;
         }
     }
-    qDebug() << "rxRefresh" << count;
+//    qDebug() << "rxRefresh" << count;
 }
 
 // return id in array where connection is free
@@ -240,16 +239,16 @@ void ScApachePC::setupConnection(int con_id)
     cons[con_id] = con;
     con->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     quint32 ip_32 = con->peerAddress().toIPv4Address();
-    QString msg = "FaApacheSe::" + con_name;
+    QString msg = "setupConnection:: ";
     if( con_id<ipv4.length() )
     { // put in free
         ipv4[con_id] = QHostAddress(ip_32);
-        msg += " refereshing connection";
+        msg += "refereshing connection";
     }
     else
     {
         ipv4.push_back(QHostAddress(ip_32));
-        msg += " accept connection";
+        msg += "accept connection";
     }
     qDebug() << msg.toStdString().c_str() << con_id
              << ipv4[con_id].toString();

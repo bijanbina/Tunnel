@@ -34,13 +34,13 @@ signals:
 
 public slots:
     void readyRead(int id);
-    void acceptConnection();
-    void displayError(int id);
-    void tcpDisconnected(int id);
+    void clientConnected();
+    void clientError(int id);
+    void clientDisconnected(int id);
 
     // rx
     void rxReadyRead(int id);
-    void rxDisplayError(int id);
+    void rxError(int id);
     void rxDisconnected(int id);
     void rxRefresh();
 

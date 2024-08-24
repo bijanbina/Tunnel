@@ -54,7 +54,7 @@ ScApacheSe::~ScApacheSe()
 void ScApacheSe::connectApp()
 {
     client.connectToHost(QHostAddress::LocalHost,
-                          ScSetting::local_port);
+                         ScSetting::local_port);
     client.waitForConnected();
     if( client.isOpen()==0 )
     {
@@ -66,6 +66,10 @@ void ScApacheSe::connectApp()
     // readyRead
     connect(&client, SIGNAL(readyRead()),
             this,   SLOT(txReadyRead()));
+
+    // connected
+    connect(&client, SIGNAL(error(QAbstractSocket::SocketError)),
+            this,    SLOT(clientError()));
 
     // connected
     connect(&client, SIGNAL(connected()),
@@ -166,13 +170,13 @@ void ScApacheSe::clientDisconnected()
 {
     qDebug() << "FaApacheSe::Client disconnected----------------";
     client.connectToHost(QHostAddress::LocalHost,
-                          ScSetting::local_port);
+                         ScSetting::local_port);
+    tx_buf.clear();
+    rx_buf.clear();
 }
 
 void ScApacheSe::clientConnected()
 {
-    tx_buf.clear();
-    rx_buf.clear();
     client.setSocketOption(QAbstractSocket::LowDelayOption, 1);
     qDebug() << "FaApacheSe::Client Connected############";
 }
@@ -182,6 +186,15 @@ void ScApacheSe::clientError()
     qDebug() << "FaApacheSe::clientError"
              << client.errorString()
              << client.state();
+
+    if( client.error()!=QTcpSocket::RemoteHostClosedError )
+    {
+        tx_buf.clear();
+        rx_buf.clear();
+        QThread::msleep(100);
+        client.connectToHost(QHostAddress::LocalHost,
+                             ScSetting::local_port);
+    }
 }
 
 void ScApacheSe::txReadyRead()
@@ -230,13 +243,13 @@ void ScApacheSe::rxReadyRead(int id)
 
     if( client.isOpen() )
     {
-//        if( dbg1 )
-//        {
-//            dbg1 = 0;
-//            qDebug() << "rxReadyRead skipped" << id;
-//            rx_timer->start(2000);
-//            return;
-//        }
+        //        if( dbg1 )
+        //        {
+        //            dbg1 = 0;
+        //            qDebug() << "rxReadyRead skipped" << id;
+        //            rx_timer->start(2000);
+        //            return;
+        //        }
         qDebug() << "rxReadyRead" << id
                  << client.state() << rx_buf.length();
         qDebug() << "rxReadyRead" << id << rx_buf;
@@ -270,7 +283,7 @@ int ScApacheSe::rxPutInFree()
         }
         else
         {
-//            qDebug() << "conn is open" << i;
+            //            qDebug() << "conn is open" << i;
         }
     }
 
@@ -295,7 +308,7 @@ int ScApacheSe::txPutInFree()
         }
         else
         {
-//            qDebug() << "conn is open" << i;
+            //            qDebug() << "conn is open" << i;
         }
     }
 

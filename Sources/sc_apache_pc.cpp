@@ -1,4 +1,4 @@
-﻿#include "sc_apache_pc.h"
+#include "sc_apache_pc.h"
 
 ScApachePC::ScApachePC(QString name, QObject *parent):
     QObject(parent)
@@ -8,7 +8,7 @@ ScApachePC::ScApachePC(QString name, QObject *parent):
     client   = new ScRemoteClient;
     rx_timer = new QTimer;
     connect(server,    SIGNAL(newConnection()),
-            this,      SLOT(acceptConnection()));
+            this,      SLOT(clientConnected()));
 
     mapper_data       = new QSignalMapper(this);
     mapper_error      = new QSignalMapper(this);

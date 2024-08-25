@@ -27,12 +27,6 @@ ScApacheSe::ScApacheSe(QString name, QObject *parent):
 
     connect(tx_mapper_error, SIGNAL(mapped(int)),
             this           , SLOT(txError(int)));
-
-    dbg1 = 0;
-    rx_timer = new QTimer;
-    connect(rx_timer, SIGNAL(timeout()),
-            this    , SLOT(rxTimeout()));
-    rx_timer->setSingleShot(true);
 }
 
 ScApacheSe::~ScApacheSe()
@@ -97,8 +91,19 @@ void ScApacheSe::connectApp()
     }
     else
     {
-        qDebug() << "RxServer failed, Error message is:"
+        qDebug() << "TxServer failed, Error message is:"
                  << tx_server->errorString();
+    }
+
+    if( dbg_server->listen(QHostAddress::Any, ScSetting::dbg_port) )
+    {
+        qDebug() << "created on port "
+                 << ScSetting::dbg_port;
+    }
+    else
+    {
+        qDebug() << "DbgServer failed, Error message is:"
+                 << dbg_server->errorString();
     }
 }
 
@@ -126,6 +131,17 @@ void ScApacheSe::rxConnected()
     rxSetupConnection(new_con_id);
 }
 
+void ScApacheSe::dbgConnected()
+{
+    if( dbgPutInFree() )
+    {
+        return;
+    }
+    int new_con_id = dbg_cons.length();
+    dbg_cons.push_back(NULL);
+    dbgSetupConnection(new_con_id);
+}
+
 void ScApacheSe::txError(int id)
 {
     qDebug() << id << "ApacheSe::txError";
@@ -148,22 +164,6 @@ void ScApacheSe::rxError(int id)
     //    if( cons[id]->error()==QTcpSocket::RemoteHostClosedError )
     //    {
     //    }
-}
-
-void ScApacheSe::rxTimeout()
-{
-    if( rx_buf.length()==0 )
-    {
-        return;
-    }
-
-    if( client.isOpen() )
-    {
-        int w = client.write(rx_buf);
-        qDebug() << "rxTimeout" << rx_buf.length()
-                 << w;
-        rx_buf.clear();
-    }
 }
 
 void ScApacheSe::clientDisconnected()
@@ -233,6 +233,18 @@ void ScApacheSe::txReadyRead()
              << tx_buf.length();
 }
 
+void ScApacheSe::dbgReadyRead(int id)
+{
+    QByteArray dbg_buf = dbg_cons[id]->readAll();
+    if( dbg_buf.isEmpty() )
+    {
+        return;
+    }
+
+    qDebug() << "ScApacheSe::Debug"
+             << dbg_buf;
+}
+
 void ScApacheSe::rxReadyRead(int id)
 {
     rx_buf += rx_cons[id]->readAll();
@@ -243,19 +255,10 @@ void ScApacheSe::rxReadyRead(int id)
 
     if( client.isOpen() )
     {
-        //        if( dbg1 )
-        //        {
-        //            dbg1 = 0;
-        //            qDebug() << "rxReadyRead skipped" << id;
-        //            rx_timer->start(2000);
-        //            return;
-        //        }
-        qDebug() << "rxReadyRead" << id
-                 << client.state() << rx_buf.length();
-        qDebug() << "rxReadyRead" << id << rx_buf;
         int w = client.write(rx_buf);
-        qDebug() << "rxReadyRead" << id << rx_buf.length()
-                 << w;
+        qDebug() << id << "rxReadyRead"
+                 << client.state()  << rx_buf
+                 << rx_buf.length() << w;
         rx_buf.clear();
     }
     else
@@ -308,7 +311,32 @@ int ScApacheSe::txPutInFree()
         }
         else
         {
-            //            qDebug() << "conn is open" << i;
+            //qDebug() << "conn is open" << i;
+        }
+    }
+
+    return 0;
+}
+
+// return id in array where connection is free
+int ScApacheSe::dbgPutInFree()
+{
+    int len = dbg_cons.length();
+    for( int i=0 ; i<len ; i++ )
+    {
+        if( dbg_cons[i]->isOpen()==0 )
+        {
+            qDebug() << i << "txPutFree"
+                     << dbg_cons[i]->state();
+            dbg_mapper_data->removeMappings(dbg_cons[i]);
+            delete dbg_cons[i];
+            dbgSetupConnection(i);
+
+            return 1;
+        }
+        else
+        {
+            //qDebug() << "conn is open" << i;
         }
     }
 
@@ -374,4 +402,29 @@ void ScApacheSe::txSetupConnection(int con_id)
     tx_mapper_error->setMapping(con, con_id);
     connect(con, SIGNAL(error(QAbstractSocket::SocketError)),
             tx_mapper_error, SLOT(map()));
+}
+
+void ScApacheSe::dbgSetupConnection(int con_id)
+{
+    QTcpSocket *con = dbg_server->nextPendingConnection();
+    dbg_cons[con_id] = con;
+    con->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+    quint32 ip_32 = con->peerAddress().toIPv4Address();
+    QString msg = "ApacheSe::dbgSetup";
+    if( con_id<dbg_ipv4.length() )
+    { // put in free
+        dbg_ipv4[con_id] = QHostAddress(ip_32);
+        msg += " refreshing connection";
+    }
+    else
+    {
+        dbg_ipv4.push_back(QHostAddress(ip_32));
+        msg += " accept connection";
+    }
+    qDebug() << con_id << msg.toStdString().c_str();
+
+    // readyRead
+    dbg_mapper_data->setMapping(con, con_id);
+    connect(con,            SIGNAL(readyRead()),
+            dbg_mapper_data, SLOT(map()));
 }

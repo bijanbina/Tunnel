@@ -5,6 +5,7 @@ int     ScSetting::is_server   = 0;
 int     ScSetting::local_port  = 1088;
 int     ScSetting::tx_port     = 5510;
 int     ScSetting::rx_port     = 5511;
+int     ScSetting::dbg_port    = 5512;
 QString ScSetting::password    = "pass";
 QString ScSetting::remote_host = "5.255.113.20";
 

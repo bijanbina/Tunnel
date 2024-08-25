@@ -34,10 +34,12 @@ public:
     QVector<QTcpSocket *> tx_cons;
     QVector<QHostAddress> tx_ipv4;
 
+    // dbg
+    QVector<QTcpSocket *> dbg_cons;
+    QVector<QHostAddress> dbg_ipv4;
+
 public slots:
-    void txReadyRead();
-    void txConnected();
-    void txError(int id);
+    // client
     void clientConnected();
     void clientError();
     void clientDisconnected();
@@ -46,7 +48,15 @@ public slots:
     void rxReadyRead(int id);
     void rxConnected();
     void rxError(int id);
-    void rxTimeout();
+
+    // tx
+    void txReadyRead();
+    void txConnected();
+    void txError(int id);
+
+    // dbg
+    void dbgReadyRead(int id);
+    void dbgConnected();
 
 private:
     // rx
@@ -57,7 +67,10 @@ private:
     int  txPutInFree();
     void txSetupConnection(int con_id);
 
-    int         dbg1;
+    // dbg
+    int  dbgPutInFree();
+    void dbgSetupConnection(int con_id);
+
     QTimer     *rx_timer;
     QTcpSocket  client;
     QByteArray  tx_buf;
@@ -70,11 +83,15 @@ private:
     QSignalMapper  *rx_mapper_error;
     QTcpServer     *rx_server;
 
-    // rx
+    // tx
     QSignalMapper  *tx_mapper_data;
     QSignalMapper  *tx_mapper_disconnect;
     QSignalMapper  *tx_mapper_error;
     QTcpServer     *tx_server;
+
+    // dbg
+    QSignalMapper  *dbg_mapper_data;
+    QTcpServer     *dbg_server;
 };
 
 #endif // SC_APACHE_SE_H

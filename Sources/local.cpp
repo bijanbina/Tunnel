@@ -16,10 +16,15 @@
 ScLocal::ScLocal(QObject *parent):
     QObject(parent)
 {
-    if( ScSetting::is_server )
+    if( ScSetting::state==SC_STATE_SERVER )
     {
         ScApacheSe *server = new ScApacheSe;
         server->connectApp();
+    }
+    else if( ScSetting::state==SC_STATE_TEST )
+    {
+        ScApacheTE *te = new ScApacheTE;
+        te->init();
     }
     else
     {

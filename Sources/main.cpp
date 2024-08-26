@@ -1,7 +1,7 @@
 #include <QCoreApplication>
 #include "local.h"
 
-int     ScSetting::is_server   = 0;
+int     ScSetting::state       = SC_STATE_CLIENT;
 int     ScSetting::local_port  = 1088;
 int     ScSetting::tx_port     = 5510;
 int     ScSetting::rx_port     = 5511;
@@ -19,13 +19,21 @@ int main(int argc, char *argv[])
 
     QString port = argv[1];
     ScSetting::local_port = port.toUInt();
-    if( argc >2 )
+    if( argc>2 )
     {
-        ScSetting::is_server = 1;
-        int exchange;
-        exchange = ScSetting::tx_port;
-        ScSetting::tx_port = ScSetting::rx_port;
-        ScSetting::rx_port = exchange;
+        QString arg = argv[1];
+        if( arg=="t" )
+        {
+            ScSetting::state = SC_STATE_TEST;
+        }
+        else
+        {
+            ScSetting::state = SC_STATE_SERVER;
+            int exchange;
+            exchange = ScSetting::tx_port;
+            ScSetting::tx_port = ScSetting::rx_port;
+            ScSetting::rx_port = exchange;
+        }
     }
     ScLocal local;
 

@@ -13,7 +13,8 @@ HEADERS += \
     Sources/local.h \
     Sources/remote_client.h \
     Sources/sc_apache_pc.h \
-    Sources/sc_apache_se.h
+    Sources/sc_apache_se.h \
+    Sources/sc_apache_te.h
 
 win32:HEADERS +=
 
@@ -22,6 +23,7 @@ SOURCES += \
     Sources/main.cpp \
     Sources/remote_client.cpp \
     Sources/sc_apache_pc.cpp \
-    Sources/sc_apache_se.cpp
+    Sources/sc_apache_se.cpp \
+    Sources/sc_apache_te.cpp
 
 win32:SOURCES +=

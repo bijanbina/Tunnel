@@ -241,6 +241,10 @@ void ScApacheSe::dbgReadyRead(int id)
         return;
     }
 
+    if( dbg_buf=="client_disconnected" )
+    {
+        client.disconnectFromHost();
+    }
     qDebug() << "ScApacheSe::Debug"
              << dbg_buf;
 }

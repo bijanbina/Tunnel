@@ -6,6 +6,7 @@ ScApachePC::ScApachePC(QString name, QObject *parent):
     con_name = name; // for debug msg
     server   = new QTcpServer;
     client   = new ScRemoteClient;
+    dbg      = new ScRemoteClient;
     rx_timer = new QTimer;
     connect(server,    SIGNAL(newConnection()),
             this,      SLOT(clientConnected()));
@@ -128,6 +129,9 @@ void ScApachePC::clientError(int id)
 void ScApachePC::clientDisconnected(int id)
 {
     qDebug() << id << "clientDisconnected";
+    dbg->buf = "client_disconnected";
+    QHostAddress host(ScSetting::remote_host);
+    dbg->writeBuf(host);
 }
 
 void ScApachePC::readyRead(int id)

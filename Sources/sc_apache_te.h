@@ -1,5 +1,5 @@
-#ifndef SC_APACHE_PC_H
-#define SC_APACHE_PC_H
+#ifndef SC_APACHE_TE_H
+#define SC_APACHE_TE_H
 
 #include <QTcpServer>
 #include <QTcpSocket>
@@ -15,44 +15,23 @@
 
 #define SC_PC_CONLEN    10
 
-class ScApachePC : public QObject
+class ScApacheTE : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit ScApachePC(QString name="", QObject *parent = 0);
-    ~ScApachePC();
+    explicit ScApacheTE(QString name="", QObject *parent = 0);
+    ~ScApacheTE();
 
     void init();
 
-    QVector<QTcpSocket *> cons;
-    QVector<QHostAddress> ipv4;
-
-signals:
-    void connected(int id);
-    void dataReady(int id, QString data);
-
 public slots:
-    void readyRead(int id);
-    void clientConnected();
-    void clientError(int id);
-    void clientDisconnected(int id);
-
-    // rx
     void rxReadyRead(int id);
     void rxError(int id);
     void rxDisconnected(int id);
     void rxRefresh();
 
 private:
-    QByteArray processBuffer(int id);
-    int  putInFree();
-    void setupConnection(int con_id);
-
-    QSignalMapper  *mapper_data;
-    QSignalMapper  *mapper_disconnect;
-    QSignalMapper  *mapper_error;
-    QTcpServer     *server;
     ScRemoteClient *client;
     ScRemoteClient *dbg;
     QVector<QByteArray> read_bufs;
@@ -68,4 +47,4 @@ private:
     QTimer         *rx_timer;
 };
 
-#endif // SC_APACHE_PC_H
+#endif // SC_APACHE_TE_H

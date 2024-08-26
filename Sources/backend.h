@@ -7,17 +7,14 @@
 
 #include <QString>
 
-#define STAGE_ERROR     -1  /* Error detected                   */
-#define STAGE_INIT       0  /* Initial stage                    */
-#define STAGE_HANDSHAKE  1  /* Handshake with client            */
-#define STAGE_RESOLVE    4  /* Resolve the hostname             */
-#define STAGE_STREAM     5  /* Stream between client and server */
-#define STAGE_STOP       6  /* Server stop to response          */
+#define SC_STATE_CLIENT  0
+#define SC_STATE_SERVER  1
+#define SC_STATE_TEST    2
 
 class ScSetting
 {
 public:
-    static int     is_server;
+    static int     state;
     static int     local_port;
     static int     tx_port;
     static int     rx_port;

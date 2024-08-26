@@ -21,7 +21,7 @@ class ScApacheSe : public QObject
     Q_OBJECT
 
 public:
-    explicit ScApacheSe(QString name="", QObject *parent = 0);
+    explicit ScApacheSe(QObject *parent = 0);
     ~ScApacheSe();
 
     void connectApp();
@@ -75,7 +75,6 @@ private:
     QTcpSocket  client;
     QByteArray  tx_buf;
     QByteArray  rx_buf;
-    QString     con_name;
 
     // rx
     QSignalMapper  *rx_mapper_data;

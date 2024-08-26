@@ -1,25 +1,27 @@
 #include "sc_apache_se.h"
 #include <QThread>
 
-ScApacheSe::ScApacheSe(QString name, QObject *parent):
+ScApacheSe::ScApacheSe(QObject *parent):
     QObject(parent)
 {
-    con_name  = name; // for debug msg
-    tx_server = new QTcpServer;
-    rx_server = new QTcpServer;
-    connect(rx_server, SIGNAL(newConnection()),
-            this,      SLOT(rxConnected()));
-    connect(tx_server, SIGNAL(newConnection()),
-            this,      SLOT(txConnected()));
+    tx_server  = new QTcpServer;
+    rx_server  = new QTcpServer;
+    dbg_server = new QTcpServer;
+    connect(rx_server,  SIGNAL(newConnection()),
+            this,       SLOT(rxConnected()));
+    connect(tx_server,  SIGNAL(newConnection()),
+            this,       SLOT(txConnected()));
+    connect(dbg_server, SIGNAL(newConnection()),
+            this,       SLOT(dbgConnected()));
 
     rx_mapper_data       = new QSignalMapper(this);
     rx_mapper_error      = new QSignalMapper(this);
     rx_mapper_disconnect = new QSignalMapper(this);
 
-    connect(rx_mapper_data      , SIGNAL(mapped(int)),
-            this                , SLOT(rxReadyRead(int)));
-    connect(rx_mapper_error     , SIGNAL(mapped(int)),
-            this                , SLOT(rxError(int)));
+    connect(rx_mapper_data , SIGNAL(mapped(int)),
+            this           , SLOT(rxReadyRead(int)));
+    connect(rx_mapper_error, SIGNAL(mapped(int)),
+            this           , SLOT(rxError(int)));
 
     tx_mapper_data       = new QSignalMapper(this);
     tx_mapper_error      = new QSignalMapper(this);
@@ -27,6 +29,11 @@ ScApacheSe::ScApacheSe(QString name, QObject *parent):
 
     connect(tx_mapper_error, SIGNAL(mapped(int)),
             this           , SLOT(txError(int)));
+
+    dbg_mapper_data       = new QSignalMapper(this);
+
+    connect(dbg_mapper_data, SIGNAL(mapped(int)),
+            this           , SLOT(dbgReadyRead(int)));
 }
 
 ScApacheSe::~ScApacheSe()

@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     ScSetting::local_port = port.toUInt();
     if( argc>2 )
     {
-        QString arg = argv[1];
+        QString arg = argv[2];
         if( arg=="t" )
         {
             ScSetting::state = SC_STATE_TEST;

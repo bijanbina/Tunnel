@@ -23,8 +23,8 @@ ScLocal::ScLocal(QObject *parent):
     }
     else if( ScSetting::state==SC_STATE_TEST )
     {
-        ScApacheTE *te = new ScApacheTE;
-        te->init();
+        ScApacheTe *te = new ScApacheTe;
+        te->connectApp();
     }
     else
     {

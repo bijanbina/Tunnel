@@ -64,7 +64,7 @@ private:
     QSignalMapper  *rx_mapper_disconnect;
     QSignalMapper  *rx_mapper_error;
     QVector<QTcpSocket *> rx_clients;
-    QByteArray      rx_buf;
+    QVector<QByteArray>   rx_buf;
     QTimer         *rx_timer;
 };
 

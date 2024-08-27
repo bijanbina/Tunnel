@@ -68,6 +68,7 @@ void ScApachePC::init()
                  << server->errorString();
     }
 
+    rx_buf.resize    (SC_PC_CONLEN);
     rx_clients.resize(SC_PC_CONLEN);
     for( int i=0 ; i<SC_PC_CONLEN ; i++ )
     {
@@ -109,10 +110,10 @@ void ScApachePC::clientConnected()
     int new_con_id = cons.length();
     cons.push_back(NULL);
     setupConnection(new_con_id);
-    if( rx_buf.length() )
+    if( rx_buf[new_con_id].length() )
     {
-        cons[0]->write(rx_buf);
-        rx_buf.clear();
+        cons[0]->write(rx_buf[new_con_id]);
+        rx_buf[new_con_id].clear();
     }
 }
 
@@ -157,22 +158,7 @@ void ScApachePC::readyRead(int id)
 
 void ScApachePC::rxReadyRead(int id)
 {
-    rx_buf += rx_clients[id]->readAll();
-    int len = cons.length();
-    if( len )
-    {
-        for( int i=0 ; i<len ; i++ )
-        {
-            if( cons[i]->isOpen() )
-            {
-                cons[i]->write(rx_buf);
-                rx_buf.clear();
-                return;
-            }
-        }
-        qDebug() << "rxReadyRead:: Client is closed"
-                 << len;
-    }
+    rx_buf[id] += rx_clients[id]->readAll();
 }
 
 void ScApachePC::rxError(int id)
@@ -183,6 +169,25 @@ void ScApachePC::rxError(int id)
 
 void ScApachePC::rxDisconnected(int id)
 {
+    qDebug() << id << "rxDisconnected::" << rx_buf[id];
+    int len = cons.length();
+    if( len )
+    {
+        for( int i=0 ; i<len ; i++ )
+        {
+            if( cons[i]->isOpen() )
+            {
+                cons[i]->write(rx_buf[id]);
+                rx_buf[id].clear();
+                break;
+            }
+        }
+    }
+    else
+    {
+        qDebug() << "rxReadyRead:: Client is closed";
+    }
+
     rx_clients[id]->connectToHost(ScSetting::remote_host,
                                   ScSetting::rx_port);
     rx_clients[id]->waitForConnected();

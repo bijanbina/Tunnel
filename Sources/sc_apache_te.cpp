@@ -453,7 +453,7 @@ void ScApacheTe::txRefresh()
     int buf_count = 1200;
     for( int i=0 ; i<len ; i++ )
     {
-
+        buf.clear();
         for( int j=0 ; j<buf_count ; j++ )
         {
             buf += "<";

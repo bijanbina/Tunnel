@@ -13,38 +13,86 @@
 #include "backend.h"
 #include "remote_client.h"
 
-#define SC_PC_CONLEN    10
+#define FA_START_PACKET "<START>\r\n"
+#define FA_END_PACKET   "\r\n<END>\r\n"
 
-class ScApacheTE : public QObject
+class ScApacheTe : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit ScApacheTE(QString name="", QObject *parent = 0);
-    ~ScApacheTE();
+    explicit ScApacheTe(QObject *parent = 0);
+    ~ScApacheTe();
 
-    void init();
+    void connectApp();
+
+    // rx
+    QVector<QTcpSocket *> rx_cons;
+    QVector<QHostAddress> rx_ipv4;
+
+    // tx
+    QVector<QTcpSocket *> tx_cons;
+    QVector<QHostAddress> tx_ipv4;
+
+    // dbg
+    QVector<QTcpSocket *> dbg_cons;
+    QVector<QHostAddress> dbg_ipv4;
 
 public slots:
+    // client
+    void clientConnected();
+    void clientError();
+    void clientDisconnected();
+
+    // rx
     void rxReadyRead(int id);
+    void rxConnected();
     void rxError(int id);
-    void rxDisconnected(int id);
-    void rxRefresh();
+
+    // tx
+    void txReadyRead();
+    void txConnected();
+    void txError(int id);
+    void txRefresh();
+
+    // dbg
+    void dbgReadyRead(int id);
+    void dbgConnected();
 
 private:
-    ScRemoteClient *client;
-    ScRemoteClient *dbg;
-    QVector<QByteArray> read_bufs;
-    QString        con_name;
-    QByteArray     tx_buf;
+    // rx
+    int  rxPutInFree();
+    void rxSetupConnection(int con_id);
+
+    // tx
+    int  txPutInFree();
+    void txSetupConnection(int con_id);
+
+    // dbg
+    int  dbgPutInFree();
+    void dbgSetupConnection(int con_id);
+
+    QTimer     *rx_timer;
+    QTcpSocket  client;
+    QByteArray  tx_buf;
+    QByteArray  rx_buf;
 
     // rx
     QSignalMapper  *rx_mapper_data;
     QSignalMapper  *rx_mapper_disconnect;
     QSignalMapper  *rx_mapper_error;
-    QVector<QTcpSocket *> rx_clients;
-    QByteArray      rx_buf;
-    QTimer         *rx_timer;
+    QTcpServer     *rx_server;
+
+    // tx
+    QSignalMapper  *tx_mapper_data;
+    QSignalMapper  *tx_mapper_disconnect;
+    QSignalMapper  *tx_mapper_error;
+    QTcpServer     *tx_server;
+    QTimer         *tx_timer;
+
+    // dbg
+    QSignalMapper  *dbg_mapper_data;
+    QTcpServer     *dbg_server;
 };
 
 #endif // SC_APACHE_TE_H

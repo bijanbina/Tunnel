@@ -11,6 +11,10 @@
 #define SC_STATE_SERVER  1
 #define SC_STATE_TEST    2
 
+#define SC_PC_CONLEN    10
+#define SC_MAX_PACKID   999
+#define SC_LEN_PACKID   3
+
 class ScSetting
 {
 public:

@@ -1,4 +1,4 @@
-﻿#include "sc_apache_te.h"
+#include "sc_apache_te.h"
 #include <QThread>
 
 ScApacheTe::ScApacheTe(QObject *parent):
@@ -450,14 +450,14 @@ void ScApacheTe::txRefresh()
     int len = tx_cons.length();
     int count = 0;
     QByteArray buf;
-    int buf_count = 1200;
+    int buf_count = 1000;
     for( int i=0 ; i<len ; i++ )
     {
         buf.clear();
         for( int j=0 ; j<buf_count ; j++ )
         {
             buf += "<";
-            buf += QString::number(j);
+            buf += QString::number(j).rightJustified(5, '0');
             buf += ">";
         }
         if( tx_cons[i]->isOpen() )

@@ -11,7 +11,7 @@
 #include "local.h"
 
 #define MAX_CONNECT_TIMEOUT 10
-#define MAX_REMOTE_NUM 10
+#define MAX_REMOTE_NUM      10
 
 ScLocal::ScLocal(QObject *parent):
     QObject(parent)

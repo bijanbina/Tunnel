@@ -7,6 +7,7 @@ ScApacheSe::ScApacheSe(QObject *parent):
     tx_server  = new QTcpServer;
     rx_server  = new QTcpServer;
     dbg_server = new QTcpServer;
+    tx_curr_id = 0;
     connect(rx_server,  SIGNAL(newConnection()),
             this,       SLOT(rxConnected()));
     connect(tx_server,  SIGNAL(newConnection()),
@@ -212,7 +213,7 @@ void ScApacheSe::txReadyRead()
         return;
     }
 
-    int split_size = 7000;
+    int split_size = 6990;
     int con_len = tx_cons.length();
     for( int i=0 ; i<con_len ; i++  )
     {
@@ -224,6 +225,14 @@ void ScApacheSe::txReadyRead()
                 len = tx_buf.length();
             }
 
+            QString tx_id = QString::number(tx_curr_id);
+            tx_id = tx_id.rightJustified(3, '0');
+            tx_curr_id++;
+            if( tx_curr_id>SC_MAX_PACKID )
+            {
+                tx_curr_id = 0;
+            }
+            tx_cons[i]->write(tx_id.toStdString().c_str());
             tx_cons[i]->write(tx_buf.mid(0, len));
             tx_cons[i]->flush();
             tx_cons[i]->close();

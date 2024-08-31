@@ -13,14 +13,12 @@
 #include "backend.h"
 #include "remote_client.h"
 
-#define SC_PC_CONLEN    10
-
 class ScApachePC : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit ScApachePC(QString name="", QObject *parent = 0);
+    explicit ScApachePC(QObject *parent = 0);
     ~ScApachePC();
 
     void init();
@@ -45,7 +43,8 @@ public slots:
     void rxRefresh();
 
 private:
-    QByteArray processBuffer(int id);
+    void processBuffer(int id);
+    QByteArray getPack();
     int  putInFree();
     void setupConnection(int con_id);
 
@@ -56,7 +55,6 @@ private:
     ScRemoteClient *client;
     ScRemoteClient *dbg;
     QVector<QByteArray> read_bufs;
-    QString        con_name;
     QByteArray     tx_buf;
 
     // rx
@@ -66,6 +64,7 @@ private:
     QVector<QTcpSocket *> rx_clients;
     QVector<QByteArray>   rx_buf;
     QTimer         *rx_timer;
+    int             rx_curr_id;
 };
 
 #endif // SC_APACHE_PC_H

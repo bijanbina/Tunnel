@@ -1,13 +1,13 @@
 ﻿#include "sc_apache_pc.h"
 
-ScApachePC::ScApachePC(QString name, QObject *parent):
+ScApachePC::ScApachePC(QObject *parent):
     QObject(parent)
 {
-    con_name = name; // for debug msg
-    server   = new QTcpServer;
-    client   = new ScRemoteClient;
-    dbg      = new ScRemoteClient;
-    rx_timer = new QTimer;
+    rx_curr_id = 0;
+    server     = new QTcpServer;
+    client     = new ScRemoteClient;
+    dbg        = new ScRemoteClient;
+    rx_timer   = new QTimer;
     connect(server,    SIGNAL(newConnection()),
             this,      SLOT(clientConnected()));
 
@@ -37,6 +37,10 @@ ScApachePC::ScApachePC(QString name, QObject *parent):
     connect(rx_timer, SIGNAL(timeout()),
             this    , SLOT  (rxRefresh()));
     rx_timer->start(2000);
+
+    rx_buf.resize    (SC_PC_CONLEN);
+    rx_clients.resize(SC_PC_CONLEN);
+    read_bufs .resize(SC_MAX_PACKID);
 }
 
 ScApachePC::~ScApachePC()
@@ -68,8 +72,6 @@ void ScApachePC::init()
                  << server->errorString();
     }
 
-    rx_buf.resize    (SC_PC_CONLEN);
-    rx_clients.resize(SC_PC_CONLEN);
     for( int i=0 ; i<SC_PC_CONLEN ; i++ )
     {
         rx_clients[i] = new QTcpSocket;
@@ -169,25 +171,7 @@ void ScApachePC::rxError(int id)
 
 void ScApachePC::rxDisconnected(int id)
 {
-    qDebug() << id << "rxDisconnected::" << rx_buf[id];
-    int len = cons.length();
-    if( len )
-    {
-        for( int i=0 ; i<len ; i++ )
-        {
-            if( cons[i]->isOpen() )
-            {
-                cons[i]->write(rx_buf[id]);
-                rx_buf[id].clear();
-                break;
-            }
-        }
-    }
-    else
-    {
-        qDebug() << "rxReadyRead:: Client is closed";
-    }
-
+    processBuffer(id);
     rx_clients[id]->connectToHost(ScSetting::remote_host,
                                   ScSetting::rx_port);
     rx_clients[id]->waitForConnected();
@@ -214,7 +198,57 @@ void ScApachePC::rxRefresh()
             count++;
         }
     }
-//    qDebug() << "rxRefresh" << count;
+    //    qDebug() << "rxRefresh" << count;
+}
+
+void ScApachePC::processBuffer(int id)
+{
+    qDebug() << id << "processBuffer::" << rx_buf[id];
+    QString buf_id_s = rx_buf[id].mid(0, SC_LEN_PACKID);
+    int     buf_id   = buf_id_s.toInt();
+    rx_buf[id].remove(0, SC_LEN_PACKID);
+    read_bufs[buf_id] = rx_buf[id];
+    rx_buf[id].clear();
+    int len = cons.length();
+    if( len )
+    {
+        for( int i=0 ; i<len ; i++ )
+        {
+            if( cons[i]->isOpen() )
+            {
+                QByteArray pack = getPack();
+                cons[i]->write(pack);
+                break;
+            }
+        }
+    }
+    else
+    {
+        qDebug() << "rxReadyRead:: Client is closed";
+    }
+}
+
+QByteArray ScApachePC::getPack()
+{
+    QByteArray pack;
+    int count = 0;
+    while( read_bufs[rx_curr_id].length() )
+    {
+        pack += read_bufs[rx_curr_id];
+        rx_curr_id++;
+        count++;
+        read_bufs[rx_curr_id].clear();
+        if( rx_curr_id>SC_MAX_PACKID )
+        {
+            rx_curr_id = 0;
+        }
+        if( count>SC_MAX_PACKID )
+        {
+            break;
+        }
+    }
+
+    return pack;
 }
 
 // return id in array where connection is free

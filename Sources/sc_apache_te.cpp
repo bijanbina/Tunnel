@@ -8,6 +8,7 @@ ScApacheTe::ScApacheTe(QObject *parent):
     tx_timer   = new QTimer;
     rx_server  = new QTcpServer;
     dbg_server = new QTcpServer;
+    tx_curr_id = 0;
     connect(rx_server,  SIGNAL(newConnection()),
             this,       SLOT(rxConnected()));
     connect(tx_server,  SIGNAL(newConnection()),
@@ -454,7 +455,7 @@ void ScApacheTe::txRefresh()
     for( int i=0 ; i<len ; i++ )
     {
         buf.clear();
-        for( int j=0 ; j<buf_count ; j++ )
+        for( int j=i*buf_count ; j<(i+1)*buf_count ; j++ )
         {
             buf += "<";
             buf += QString::number(j).rightJustified(5, '0');
@@ -462,9 +463,19 @@ void ScApacheTe::txRefresh()
         }
         if( tx_cons[i]->isOpen() )
         {
+            QString tx_id = QString::number(tx_curr_id);
+            tx_id = tx_id.rightJustified(3, '0');
+            tx_curr_id++;
+            if( tx_curr_id>SC_MAX_PACKID )
+            {
+                tx_curr_id = 0;
+            }
+            tx_cons[i]->write(tx_id.toStdString().c_str());
             tx_cons[i]->write(buf);
+            tx_cons[i]->flush();
+            tx_cons[i]->close();
             count++;
         }
     }
-//    qDebug() << "rxRefresh" << count;
+    qDebug() << "txRefresh" << count;
 }

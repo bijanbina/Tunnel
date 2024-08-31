@@ -29,11 +29,11 @@ int main(int argc, char *argv[])
         else
         {
             ScSetting::state = SC_STATE_SERVER;
-            int exchange;
-            exchange = ScSetting::tx_port;
-            ScSetting::tx_port = ScSetting::rx_port;
-            ScSetting::rx_port = exchange;
         }
+        int tmp;
+        tmp = ScSetting::tx_port;
+        ScSetting::tx_port = ScSetting::rx_port;
+        ScSetting::rx_port = tmp;
     }
     ScLocal local;
 

@@ -218,7 +218,7 @@ void ScApacheTe::txReadyRead()
         return;
     }
 
-    int split_size = 7000;
+    int split_size = 6990;
     int con_len = tx_cons.length();
     for( int i=0 ; i<con_len ; i++  )
     {

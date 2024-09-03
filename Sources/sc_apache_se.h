@@ -94,6 +94,7 @@ private:
     QSignalMapper  *tx_mapper_error;
     QTcpServer     *tx_server;
     int             tx_curr_id;
+    int             tx_i;
 
     // dbg
     QSignalMapper  *dbg_mapper_data;

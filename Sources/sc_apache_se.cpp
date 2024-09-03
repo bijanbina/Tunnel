@@ -9,6 +9,7 @@ ScApacheSe::ScApacheSe(QObject *parent):
     dbg_server = new QTcpServer;
     tx_curr_id = 0;
     rx_curr_id = 0;
+    tx_i       = 0;
     rx_buf.resize(SC_PC_CONLEN);
     read_bufs.resize(SC_MAX_PACKID);
     connect(rx_server,  SIGNAL(newConnection()),
@@ -124,6 +125,7 @@ void ScApacheSe::reset()
 {
     tx_curr_id = 0;
     rx_curr_id = 0;
+    tx_i       = 0;
     tx_buf.clear();
     rx_buf.clear();
     read_bufs.clear();
@@ -336,9 +338,10 @@ void ScApacheSe::txReadyRead()
 
     int split_size = 6990;
     int con_len = tx_cons.length();
-    for( int i=0 ; i<con_len ; i++  )
+    int count = 0;
+    while( count<con_len )
     {
-        if( tx_cons[i]->isOpen() )
+        if( tx_cons[tx_i]->isOpen() )
         {
             int len = split_size;
             if( tx_buf.length()<split_size )
@@ -353,16 +356,22 @@ void ScApacheSe::txReadyRead()
             {
                 tx_curr_id = 0;
             }
-            tx_cons[i]->write(tx_id.toStdString().c_str());
-            tx_cons[i]->write(tx_buf.mid(0, len));
-            tx_cons[i]->flush();
-            tx_cons[i]->close();
+            tx_cons[tx_i]->write(tx_id.toStdString().c_str());
+            tx_cons[tx_i]->write(tx_buf.mid(0, len));
+            tx_cons[tx_i]->flush();
+            tx_cons[tx_i]->close();
             tx_buf.remove(0, len);
 
             if( tx_buf.length()==0 )
             {
                 break;
             }
+        }
+        count++;
+        tx_i++;
+        if( SC_PC_CONLEN<=tx_i )
+        {
+            tx_curr_id = 0;
         }
     }
 

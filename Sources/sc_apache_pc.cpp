@@ -142,7 +142,7 @@ void ScApachePC::readyRead(int id)
     tx_buf += cons[id]->readAll();
 //    qDebug() << "read_buf::" << data_rx.length();
 
-    int split_size = 7000;
+    int split_size = 6990;
     while( tx_buf.length() )
     {
         int len = split_size;

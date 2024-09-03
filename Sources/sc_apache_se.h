@@ -60,9 +60,12 @@ public slots:
     void dbgConnected();
 
 private:
+    void reset();
+
     // rx
     int  rxPutInFree();
     void rxSetupConnection(int con_id);
+    QByteArray getPack();
 
     // tx
     int  txPutInFree();
@@ -81,7 +84,9 @@ private:
     QSignalMapper   *rx_mapper_disconnect;
     QSignalMapper   *rx_mapper_error;
     QTcpServer      *rx_server;
+    int              rx_curr_id;
     QVector<QByteArray> rx_buf;
+    QVector<QByteArray> read_bufs;
 
     // tx
     QSignalMapper  *tx_mapper_data;

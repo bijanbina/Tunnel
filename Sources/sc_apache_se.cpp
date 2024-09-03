@@ -19,10 +19,12 @@ ScApacheSe::ScApacheSe(QObject *parent):
     rx_mapper_error      = new QSignalMapper(this);
     rx_mapper_disconnect = new QSignalMapper(this);
 
-    connect(rx_mapper_data , SIGNAL(mapped(int)),
-            this           , SLOT(rxReadyRead(int)));
-    connect(rx_mapper_error, SIGNAL(mapped(int)),
-            this           , SLOT(rxError(int)));
+    connect(rx_mapper_data      , SIGNAL(mapped(int)),
+            this                , SLOT(rxReadyRead(int)));
+    connect(rx_mapper_error     , SIGNAL(mapped(int)),
+            this                , SLOT(rxError(int)));
+    connect(rx_mapper_disconnect, SIGNAL(mapped(int)),
+            this                , SLOT(rxDisconnected(int)));
 
     tx_mapper_data       = new QSignalMapper(this);
     tx_mapper_error      = new QSignalMapper(this);
@@ -181,6 +183,7 @@ void ScApacheSe::clientDisconnected()
                          ScSetting::local_port);
     tx_buf.clear();
     rx_buf.clear();
+    rx_buf.resize(SC_PC_CONLEN);
 }
 
 void ScApacheSe::clientConnected()
@@ -199,6 +202,7 @@ void ScApacheSe::clientError()
     {
         tx_buf.clear();
         rx_buf.clear();
+        rx_buf.resize(SC_PC_CONLEN);
         QThread::msleep(100);
         client.connectToHost(QHostAddress::LocalHost,
                              ScSetting::local_port);
@@ -257,6 +261,7 @@ void ScApacheSe::dbgReadyRead(int id)
         return;
     }
 
+    dbg_buf.remove(0, SC_LEN_PACKID);
     if( dbg_buf=="client_disconnected" )
     {
         client.disconnectFromHost();
@@ -267,24 +272,29 @@ void ScApacheSe::dbgReadyRead(int id)
 
 void ScApacheSe::rxReadyRead(int id)
 {
-    rx_buf += rx_cons[id]->readAll();
-    if( rx_buf.length()==0 )
+    rx_buf[id] += rx_cons[id]->readAll();
+}
+
+void ScApacheSe::rxDisconnected(int id)
+{
+    if( rx_buf[id].length()==0 )
     {
         return;
     }
 
     if( client.isOpen() )
     {
-        int w = client.write(rx_buf);
-        qDebug() << id << "rxReadyRead"
-                 << client.state()  << rx_buf
-                 << rx_buf.length() << w;
-        rx_buf.clear();
+        rx_buf[id].remove(0, SC_LEN_PACKID);
+        int w = client.write(rx_buf[id]);
+        qDebug() << id << "rxDisconnected"
+                 << client.state()  << rx_buf[id]
+                 << rx_buf[id].length() << w;
+        rx_buf[id].clear();
     }
     else
     {
-        qDebug() << "rxReadyRead: Conn is not open" << id
-                 << rx_buf.length();
+        qDebug() << "rxDisconnected: Conn is not open" << id
+                 << rx_buf[id].length();
     }
 }
 

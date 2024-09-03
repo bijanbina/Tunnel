@@ -20,6 +20,9 @@ public:
 private slots:
     void disconnected();
     void displayError(QAbstractSocket::SocketError socketError);
+
+private:
+    int counter;
 };
 
 #endif // SC_REMOTECLIENT_H

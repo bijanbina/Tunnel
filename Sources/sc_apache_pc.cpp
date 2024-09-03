@@ -1,4 +1,4 @@
-﻿#include "sc_apache_pc.h"
+#include "sc_apache_pc.h"
 
 ScApachePC::ScApachePC(QObject *parent):
     QObject(parent)
@@ -235,9 +235,9 @@ QByteArray ScApachePC::getPack()
     while( read_bufs[rx_curr_id].length() )
     {
         pack += read_bufs[rx_curr_id];
+        read_bufs[rx_curr_id].clear();
         rx_curr_id++;
         count++;
-        read_bufs[rx_curr_id].clear();
         if( rx_curr_id>SC_MAX_PACKID )
         {
             rx_curr_id = 0;

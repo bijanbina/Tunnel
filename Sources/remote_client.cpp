@@ -3,7 +3,8 @@
 ScRemoteClient::ScRemoteClient(QObject *parent):
     QObject(parent)
 {
-    remote = new QTcpSocket();
+    counter = 0;
+    remote  = new QTcpSocket();
     connect(remote, SIGNAL(disconnected()),
             this,   SLOT  (disconnected()));
     connect(remote, SIGNAL(error(QAbstractSocket::SocketError)),
@@ -27,6 +28,15 @@ void ScRemoteClient::writeBuf(QHostAddress host)
     }
     remote->setSocketOption(QAbstractSocket::LowDelayOption, 1);
 
+    QString buf_id = QString::number(counter);
+    buf_id = buf_id.rightJustified(3, '0');
+    counter++;
+    if( counter>SC_MAX_PACKID )
+    {
+        counter = 0;
+    }
+    buf.prepend(buf_id.toStdString().c_str());
+
     int s = remote->write(buf);
     if( s!=buf.length() )
     {
@@ -46,8 +56,8 @@ void ScRemoteClient::disconnected()
 //    qDebug() << "ScRemoteClient: Disconnected";
 }
 
-void ScRemoteClient::displayError(
-        QAbstractSocket::SocketError socketError)
+void ScRemoteClient::displayError(QAbstractSocket::SocketError
+                                  socketError)
 {
 //    if( socketError==QTcpSocket::RemoteHostClosedError )
 //    {

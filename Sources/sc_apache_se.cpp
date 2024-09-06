@@ -371,7 +371,7 @@ void ScApacheSe::txReadyRead()
         tx_i++;
         if( SC_PC_CONLEN<=tx_i )
         {
-            tx_curr_id = 0;
+            tx_i = 0;
         }
     }
 }

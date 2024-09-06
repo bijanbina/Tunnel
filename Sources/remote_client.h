@@ -9,7 +9,7 @@ class ScRemoteClient : public QObject
 {
     Q_OBJECT
 public:
-    explicit ScRemoteClient(QObject *parent = nullptr);
+    explicit ScRemoteClient(int port, QObject *parent = nullptr);
     void open();
     void writeBuf(QHostAddress host);
 
@@ -23,6 +23,7 @@ private slots:
 
 private:
     int counter;
+    int tx_port;
 };
 
 #endif // SC_REMOTECLIENT_H

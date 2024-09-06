@@ -5,11 +5,11 @@ ScApachePC::ScApachePC(QObject *parent):
 {
     rx_curr_id = 0;
     server     = new QTcpServer;
-    client     = new ScRemoteClient;
-    dbg        = new ScRemoteClient;
+    client     = new ScRemoteClient(ScSetting::tx_port);
+    dbg        = new ScRemoteClient(ScSetting::dbg_port);
     rx_timer   = new QTimer;
-    connect(server,    SIGNAL(newConnection()),
-            this,      SLOT(clientConnected()));
+    connect(server, SIGNAL(newConnection()),
+            this  , SLOT(clientConnected()));
 
     mapper_data       = new QSignalMapper(this);
     mapper_error      = new QSignalMapper(this);

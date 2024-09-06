@@ -1,8 +1,9 @@
 #include "remote_client.h"
 
-ScRemoteClient::ScRemoteClient(QObject *parent):
+ScRemoteClient::ScRemoteClient(int port, QObject *parent):
     QObject(parent)
 {
+    tx_port = port;
     counter = 0;
     remote  = new QTcpSocket();
     connect(remote, SIGNAL(disconnected()),
@@ -19,7 +20,7 @@ void ScRemoteClient::open()
 
 void ScRemoteClient::writeBuf(QHostAddress host)
 {
-    remote->connectToHost(host, ScSetting::tx_port);
+    remote->connectToHost(host, tx_port);
     remote->waitForConnected();
     if( remote->isOpen()==0 )
     {

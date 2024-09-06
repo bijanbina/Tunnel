@@ -11,7 +11,7 @@ ScApacheSe::ScApacheSe(QObject *parent):
     rx_curr_id = 0;
     tx_i       = 0;
     rx_buf.resize(SC_PC_CONLEN);
-    read_bufs.resize(SC_MAX_PACKID);
+    read_bufs.resize(SC_MAX_PACKID+1);
     connect(rx_server,  SIGNAL(newConnection()),
             this,       SLOT(rxConnected()));
     connect(tx_server,  SIGNAL(newConnection()),
@@ -130,12 +130,12 @@ void ScApacheSe::reset()
     rx_buf.clear();
     read_bufs.clear();
     rx_buf.resize(SC_PC_CONLEN);
-    read_bufs.resize(SC_MAX_PACKID);
+    read_bufs.resize(SC_MAX_PACKID+1);
 }
 
 void ScApacheSe::clientDisconnected()
 {
-    qDebug() << "FaApacheSe::Client disconnected----------------";
+    qDebug() << "ScApacheSe::Client disconnected----------------";
     client.connectToHost(QHostAddress::LocalHost,
                          ScSetting::local_port);
     reset();
@@ -144,7 +144,7 @@ void ScApacheSe::clientDisconnected()
 void ScApacheSe::clientConnected()
 {
     client.setSocketOption(QAbstractSocket::LowDelayOption, 1);
-    qDebug() << "FaApacheSe::Client Connected############";
+    qDebug() << "ScApacheSe::Client Connected############";
 }
 
 void ScApacheSe::clientError()
@@ -231,7 +231,6 @@ void ScApacheSe::rxDisconnected(int id)
         QByteArray pack = getPack();
         int w = client.write(pack);
         qDebug() << id << "rxDisconnected"
-                 << client.state()  << rx_buf[id]
                  << rx_buf[id].length() << w;
         rx_buf[id].clear();
     }
@@ -305,7 +304,7 @@ void ScApacheSe::rxSetupConnection(int con_id)
 
 void ScApacheSe::txConnected()
 {
-    qDebug() << tx_cons.length() << "txAccept";
+//    qDebug() << tx_cons.length() << "txAccept";
     if( txPutInFree() )
     {
         return;
@@ -318,7 +317,6 @@ void ScApacheSe::txConnected()
 
 void ScApacheSe::txError(int id)
 {
-    qDebug() << id << "ApacheSe::txError";
     if( tx_cons[id]->error()!=QTcpSocket::RemoteHostClosedError )
     {
         qDebug() << id << "ApacheSe::txError"
@@ -339,6 +337,8 @@ void ScApacheSe::txReadyRead()
     int split_size = 6990;
     int con_len = tx_cons.length();
     int count = 0;
+    qDebug() << "ScApacheSe::TX"
+             << tx_buf.length();
     while( count<con_len )
     {
         if( tx_cons[tx_i]->isOpen() )
@@ -374,9 +374,6 @@ void ScApacheSe::txReadyRead()
             tx_curr_id = 0;
         }
     }
-
-    qDebug() << "ScApacheSe::TX"
-             << tx_buf.length();
 }
 
 // return id in array where connection is free
@@ -387,8 +384,8 @@ int  ScApacheSe::txPutInFree()
     {
         if( tx_cons[i]->isOpen()==0 )
         {
-            qDebug() << i << "txPutFree"
-                     << tx_cons[i]->state();
+//            qDebug() << i << "txPutFree"
+//                     << tx_cons[i]->state();
             tx_mapper_error->removeMappings(tx_cons[i]);
             delete tx_cons[i];
             txSetupConnection(i);
@@ -465,8 +462,8 @@ int  ScApacheSe::dbgPutInFree()
     {
         if( dbg_cons[i]->isOpen()==0 )
         {
-            qDebug() << i << "txPutFree"
-                     << dbg_cons[i]->state();
+//            qDebug() << i << "dbgPutFree"
+//                     << dbg_cons[i]->state();
             dbg_mapper_data->removeMappings(dbg_cons[i]);
             delete dbg_cons[i];
             dbgSetupConnection(i);
@@ -499,7 +496,7 @@ void ScApacheSe::dbgSetupConnection(int con_id)
         dbg_ipv4.push_back(QHostAddress(ip_32));
         msg += " accept connection";
     }
-    qDebug() << con_id << msg.toStdString().c_str();
+//    qDebug() << con_id << msg.toStdString().c_str();
 
     // readyRead
     dbg_mapper_data->setMapping(con, con_id);

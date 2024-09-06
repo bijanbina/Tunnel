@@ -40,7 +40,7 @@ ScApachePC::ScApachePC(QObject *parent):
 
     rx_buf.resize    (SC_PC_CONLEN);
     rx_clients.resize(SC_PC_CONLEN);
-    read_bufs .resize(SC_MAX_PACKID);
+    read_bufs .resize(SC_MAX_PACKID+1);
 }
 
 ScApachePC::~ScApachePC()
@@ -179,8 +179,8 @@ void ScApachePC::rxDisconnected(int id)
     {
         return;
     }
-    qDebug() << id << "rxDisconnected:: restored"
-             << rx_clients[id]->state();
+//    qDebug() << id << "rxDisconnected:: restored"
+//             << rx_clients[id]->state();
     rx_clients[id]->setSocketOption(
                 QAbstractSocket::LowDelayOption, 1);
 }
@@ -203,9 +203,10 @@ void ScApachePC::rxRefresh()
 
 void ScApachePC::processBuffer(int id)
 {
-    qDebug() << id << "processBuffer::" << rx_buf[id];
     QString buf_id_s = rx_buf[id].mid(0, SC_LEN_PACKID);
     int     buf_id   = buf_id_s.toInt();
+    qDebug() << id << "processBuffer::" << buf_id
+             << rx_buf[id].length();
     rx_buf[id].remove(0, SC_LEN_PACKID);
     read_bufs[buf_id] = rx_buf[id];
     rx_buf[id].clear();

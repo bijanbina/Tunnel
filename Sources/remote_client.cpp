@@ -5,30 +5,31 @@ ScRemoteClient::ScRemoteClient(int port, QObject *parent):
 {
     tx_port = port;
     counter = 0;
-    remote  = new QTcpSocket();
-    connect(remote, SIGNAL(disconnected()),
-            this,   SLOT  (disconnected()));
-    connect(remote, SIGNAL(error(QAbstractSocket::SocketError)),
-            this, SLOT(displayError(QAbstractSocket::SocketError)));
-}
+    curr_id = 0;
+    timer   = new QTimer;
 
-void ScRemoteClient::open()
-{
-    remote->connectToHost(QHostAddress(ScSetting::remote_host),
-                          ScSetting::tx_port);
-}
-
-void ScRemoteClient::writeBuf(QHostAddress host)
-{
-    remote->connectToHost(host, tx_port);
-    remote->waitForConnected();
-    if( remote->isOpen()==0 )
+    cons.resize(SC_PC_CONLEN);
+    for( int i=0 ; i<SC_PC_CONLEN ; i++ )
     {
-        qDebug() << "WriteBuf: failed connection not opened";
-        return;
+        cons[i] = new QTcpSocket;
+        cons[i]->connectToHost(ScSetting::remote_host,
+                               tx_port);
+        if( cons[i]->isOpen()==0 )
+        {
+            qDebug() << "init: failed connection not opened";
+            return;
+        }
+        cons[i]->setSocketOption(
+                    QAbstractSocket::LowDelayOption, 1);
     }
-    remote->setSocketOption(QAbstractSocket::LowDelayOption, 1);
 
+    connect(timer, SIGNAL(timeout()),
+            this , SLOT  (conRefresh()));
+    timer->start(2000);
+}
+
+void ScRemoteClient::writeBuf()
+{
     QString buf_id = QString::number(counter);
     buf_id = buf_id.rightJustified(3, '0');
     counter++;
@@ -65,7 +66,22 @@ void ScRemoteClient::displayError(QAbstractSocket::SocketError
 //        return;
 //    }
 
-    qDebug() << "Network error The following error occurred"
-             << remote->errorString();
-    remote->close();
+//    qDebug() << "Network error The following error occurred"
+//             << remote->errorString();
+//    remote->close();
+}
+void ScRemoteClient::conRefresh()
+{
+    int len = cons.length();
+    int count = 0;
+    for( int i=0 ; i<len ; i++ )
+    {
+        if( cons[i]->isOpen()==0 )
+        {
+            cons[i]->connectToHost(ScSetting::remote_host,
+                                   tx_port);
+            count++;
+        }
+    }
+        qDebug() << "conRefresh" << count;
 }

@@ -77,12 +77,6 @@ void ScApachePC::init()
         rx_clients[i] = new QTcpSocket;
         rx_clients[i]->connectToHost(ScSetting::remote_host,
                                      ScSetting::rx_port);
-        rx_clients[i]->waitForConnected();
-        if( rx_clients[i]->isOpen()==0 )
-        {
-            qDebug() << "init: failed connection not opened";
-            return;
-        }
         rx_clients[i]->setSocketOption(
                     QAbstractSocket::LowDelayOption, 1);
 
@@ -133,8 +127,7 @@ void ScApachePC::clientDisconnected(int id)
 {
     qDebug() << id << "clientDisconnected";
     dbg->buf = "client_disconnected";
-    QHostAddress host(ScSetting::remote_host);
-    dbg->writeBuf(host);
+    dbg->writeBuf();
 }
 
 void ScApachePC::readyRead(int id)
@@ -153,8 +146,7 @@ void ScApachePC::readyRead(int id)
         client->buf = tx_buf.mid(0, len);
         tx_buf.remove(0, len);
 
-        QHostAddress host(ScSetting::remote_host);
-        client->writeBuf(host);
+        client->writeBuf();
     }
 }
 

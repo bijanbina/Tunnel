@@ -39,21 +39,38 @@ void ScRemoteClient::writeBuf()
     }
     buf.prepend(buf_id.toStdString().c_str());
 
-    int s = remote->write(buf);
-    if( s!=buf.length() )
+    int s = 0;
+    for( int count=0 ; count<SC_PC_CONLEN ; count++ )
     {
-        qDebug() << "writeBuf:" << buf.length() << s;
-    }
-    buf.clear();
+        if( cons[curr_id]->isOpen() )
+        {
+            s = cons[curr_id]->write(buf);
+            qDebug() << "writeBuf::" << s;
+            curr_id++;
+            if( curr_id>=SC_PC_CONLEN )
+            {
+                curr_id = 0;
+            }
+            if( s!=buf.length() )
+            {
+                qDebug() << "writeBuf:" << buf.length() << s;
+            }
+            buf.clear();
 
-    remote->disconnectFromHost();
-    remote->waitForDisconnected();
-    remote->close();
+            cons[curr_id]->disconnectFromHost();
+            cons[curr_id]->close();
+            return;
+        }
+        curr_id++;
+        if( curr_id>=SC_PC_CONLEN )
+        {
+            curr_id = 0;
+        }
+    }
 }
 
 void ScRemoteClient::disconnected()
 {
-    remote->close();
     buf.clear();
 //    qDebug() << "ScRemoteClient: Disconnected";
 }

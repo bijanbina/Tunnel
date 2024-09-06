@@ -63,12 +63,6 @@ void ScApacheSe::connectApp()
 {
     client.connectToHost(QHostAddress::LocalHost,
                          ScSetting::local_port);
-    client.waitForConnected();
-    if( client.isOpen()==0 )
-    {
-        qDebug() << "client: failed connection not opened";
-        return;
-    }
     client.setSocketOption(QAbstractSocket::LowDelayOption, 1);
 
     // readyRead
@@ -231,7 +225,7 @@ void ScApacheSe::rxDisconnected(int id)
         QByteArray pack = getPack();
         int w = client.write(pack);
         qDebug() << id << "rxDisconnected"
-                 << rx_buf[id].length() << w;
+                 << pack.length() << w;
         rx_buf[id].clear();
     }
     else

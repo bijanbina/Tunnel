@@ -46,11 +46,6 @@ void ScRemoteClient::writeBuf()
         {
             s = cons[curr_id]->write(buf);
             qDebug() << "writeBuf::" << s;
-            curr_id++;
-            if( curr_id>=SC_PC_CONLEN )
-            {
-                curr_id = 0;
-            }
             if( s!=buf.length() )
             {
                 qDebug() << "writeBuf:" << buf.length() << s;
@@ -59,6 +54,11 @@ void ScRemoteClient::writeBuf()
 
             cons[curr_id]->disconnectFromHost();
             cons[curr_id]->close();
+            curr_id++;
+            if( curr_id>=SC_PC_CONLEN )
+            {
+                curr_id = 0;
+            }
             return;
         }
         curr_id++;
@@ -100,5 +100,5 @@ void ScRemoteClient::conRefresh()
             count++;
         }
     }
-        qDebug() << "conRefresh" << count;
+//    qDebug() << "conRefresh" << count;
 }

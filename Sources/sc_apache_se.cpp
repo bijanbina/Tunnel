@@ -490,7 +490,7 @@ void ScApacheSe::dbgSetupConnection(int con_id)
         dbg_ipv4.push_back(QHostAddress(ip_32));
         msg += " accept connection";
     }
-//    qDebug() << con_id << msg.toStdString().c_str();
+    qDebug() << con_id << msg.toStdString().c_str();
 
     // readyRead
     dbg_mapper_data->setMapping(con, con_id);

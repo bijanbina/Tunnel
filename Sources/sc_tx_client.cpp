@@ -6,7 +6,8 @@ ScTxClient::ScTxClient(int port, QObject *parent):
     tx_port = port;
     counter = 0;
     curr_id = 0;
-    refresh_timer   = new QTimer;
+    refresh_timer = new QTimer;
+    tx_timer      = new QTimer;
 
     cons.resize(SC_PC_CONLEN);
     for( int i=0 ; i<SC_PC_CONLEN ; i++ )
@@ -24,51 +25,44 @@ ScTxClient::ScTxClient(int port, QObject *parent):
     }
 
     connect(refresh_timer, SIGNAL(timeout()),
-            this , SLOT  (conRefresh()));
+            this         , SLOT  (conRefresh()));
     refresh_timer->start(100);
+
+    connect(tx_timer, SIGNAL(timeout()),
+            this    , SLOT  (timeout()));
+    tx_timer->start(100);
 }
 
 void ScTxClient::writeBuf(QByteArray data)
 {
-    buf = data;
-    QString buf_id = QString::number(counter);
-    buf_id = buf_id.rightJustified(3, '0');
-    counter++;
-    if( counter>SC_MAX_PACKID )
+    buf += data;
+    if( buf.length()<2000 )
     {
-        counter = 0;
-    }
-    buf.prepend(buf_id.toStdString().c_str());
-
-    int s = 0;
-    for( int count=0 ; count<SC_PC_CONLEN ; count++ )
-    {
-        if( cons[curr_id]->isOpen() )
-        {
-            s = cons[curr_id]->write(buf);
-            if( s!=buf.length() )
-            {
-                qDebug() << "writeBuf:" << buf.length() << s;
-            }
-            buf.clear();
-
-            cons[curr_id]->disconnectFromHost();
-            cons[curr_id]->close();
-            curr_id++;
-            if( curr_id>=SC_PC_CONLEN )
-            {
-                curr_id = 0;
-            }
-            return;
-        }
-        curr_id++;
-        if( curr_id>=SC_PC_CONLEN )
-        {
-            curr_id = 0;
-        }
+        return;
     }
 
-    qDebug() << "-------SC_TX_CLIENT ERROR: DATA LOST-------";
+    QByteArray send_buf;
+    int split_size = 6990;
+    while( buf.length() )
+    {
+        int len = split_size;
+        if( buf.length()<split_size )
+        {
+            len = buf.length();
+        }
+        send_buf = buf.mid(0, len);
+
+        addCounter(&send_buf);
+        if( sendData(send_buf) )
+        {
+            buf.remove(0, len);
+        }
+        else
+        {
+            qDebug() << "-----SC_TX_CLIENT ERROR: DATA LOST-----";
+            break;
+        }
+    }
 }
 
 void ScTxClient::disconnected()
@@ -105,8 +99,77 @@ void ScTxClient::conRefresh()
     //    qDebug() << "conRefresh" << count;
 }
 
-void ScTxClient::timeout(int id)
+void ScTxClient::timeout()
 {
+    QByteArray send_buf;
+    int split_size = 6990;
+    while( buf.length() )
+    {
+        int len = split_size;
+        if( buf.length()<split_size )
+        {
+            len = buf.length();
+        }
+        send_buf = buf.mid(0, len);
 
+        addCounter(&send_buf);
+        if( sendData(send_buf) )
+        {
+            buf.remove(0, len);
+        }
+        else
+        {
+            qDebug() << "-----SC_TX_CLIENT ERROR: DATA LOST-----";
+            break;
+        }
+    }
+}
+
+void ScTxClient::addCounter(QByteArray *send_buf)
+{
+    QString buf_id = QString::number(counter);
+    buf_id = buf_id.rightJustified(3, '0');
+    counter++;
+    if( counter>SC_MAX_PACKID )
+    {
+        counter = 0;
+    }
+    send_buf->prepend(buf_id.toStdString().c_str());
+}
+
+// return 1 when sending data is successful
+int ScTxClient::sendData(QByteArray send_buf)
+{
+    int s = 0;
+    for( int count=0 ; count<SC_PC_CONLEN ; count++ )
+    {
+        if( cons[curr_id]->isOpen() )
+        {
+            s = cons[curr_id]->write(send_buf);
+            cons[curr_id]->disconnectFromHost();
+            cons[curr_id]->close();
+            curr_id++;
+            if( curr_id>=SC_PC_CONLEN )
+            {
+                curr_id = 0;
+            }
+
+            if( s!=send_buf.length() )
+            {
+                qDebug() << "writeBuf: Error"
+                         << send_buf.length() << s;
+                return 0;
+            }
+
+            return 1;
+        }
+        curr_id++;
+        if( curr_id>=SC_PC_CONLEN )
+        {
+            curr_id = 0;
+        }
+    }
+
+    return 0;
 }
 

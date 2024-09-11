@@ -127,6 +127,11 @@ void ScApachePC::clientDisconnected(int id)
 {
     qDebug() << id << "clientDisconnected";
     dbg->writeBuf("client_disconnected");
+    tx_buf.clear();
+    rx_buf.clear();
+    read_bufs.clear();
+    rx_buf.resize    (SC_PC_CONLEN);
+    read_bufs .resize(SC_MAX_PACKID+1);
 }
 
 void ScApachePC::readyRead(int id)

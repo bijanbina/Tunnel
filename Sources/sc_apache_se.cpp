@@ -276,9 +276,9 @@ void ScApacheSe::rxSetupConnection(int con_id)
     {
         rx_ipv4.push_back(QHostAddress(ip_32));
         msg += " accept connection";
+        qDebug() << con_id << msg.toStdString().c_str()
+                 << rx_ipv4[con_id].toString();
     }
-    qDebug() << con_id << msg.toStdString().c_str()
-             << rx_ipv4[con_id].toString();
 
     // readyRead
     rx_mapper_data->setMapping(con, con_id);
@@ -411,8 +411,8 @@ void ScApacheSe::txSetupConnection(int con_id)
     {
         tx_ipv4.push_back(QHostAddress(ip_32));
         msg += " accept connection";
+        qDebug() << con_id << msg.toStdString().c_str();
     }
-    qDebug() << con_id << msg.toStdString().c_str();
 
     // displayError
     tx_mapper_error->setMapping(con, con_id);

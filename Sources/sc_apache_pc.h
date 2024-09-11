@@ -11,7 +11,7 @@
 #include <QTimer>
 #include <QSignalMapper>
 #include "backend.h"
-#include "remote_client.h"
+#include "sc_tx_client.h"
 
 class ScApachePC : public QObject
 {
@@ -41,6 +41,7 @@ public slots:
     void rxError(int id);
     void rxDisconnected(int id);
     void rxRefresh();
+    void rxTimeout(int id);
 
 private:
     void processBuffer(int id);
@@ -52,8 +53,8 @@ private:
     QSignalMapper  *mapper_disconnect;
     QSignalMapper  *mapper_error;
     QTcpServer     *server;
-    ScRemoteClient *client;
-    ScRemoteClient *dbg;
+    ScTxClient *client;
+    ScTxClient *dbg;
     QVector<QByteArray> read_bufs;
     QByteArray     tx_buf;
 
@@ -63,7 +64,8 @@ private:
     QSignalMapper  *rx_mapper_error;
     QVector<QTcpSocket *> rx_clients;
     QVector<QByteArray>   rx_buf;
-    QTimer         *rx_timer;
+    QVector<QTimer *>     rx_timer;
+    QTimer         *refresh_timer;
     int             rx_curr_id;
 };
 

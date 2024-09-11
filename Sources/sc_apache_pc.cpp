@@ -5,9 +5,9 @@ ScApachePC::ScApachePC(QObject *parent):
 {
     rx_curr_id = 0;
     server     = new QTcpServer;
-    client     = new ScRemoteClient(ScSetting::tx_port);
-    dbg        = new ScRemoteClient(ScSetting::dbg_port);
-    rx_timer   = new QTimer;
+    client     = new ScTxClient(ScSetting::tx_port);
+    dbg        = new ScTxClient(ScSetting::dbg_port);
+    refresh_timer   = new QTimer;
     connect(server, SIGNAL(newConnection()),
             this  , SLOT(clientConnected()));
 
@@ -34,9 +34,9 @@ ScApachePC::ScApachePC(QObject *parent):
     connect(rx_mapper_disconnect, SIGNAL(mapped(int)),
             this                , SLOT  (rxDisconnected(int)));
 
-    connect(rx_timer, SIGNAL(timeout()),
-            this    , SLOT  (rxRefresh()));
-    rx_timer->start(2000);
+    connect(refresh_timer, SIGNAL(timeout()),
+            this         , SLOT  (rxRefresh()));
+    refresh_timer->start(100);
 
     rx_buf.resize    (SC_PC_CONLEN);
     rx_clients.resize(SC_PC_CONLEN);
@@ -126,8 +126,7 @@ void ScApachePC::clientError(int id)
 void ScApachePC::clientDisconnected(int id)
 {
     qDebug() << id << "clientDisconnected";
-    dbg->buf = "client_disconnected";
-    dbg->writeBuf();
+    dbg->writeBuf("client_disconnected");
 }
 
 void ScApachePC::readyRead(int id)
@@ -143,10 +142,8 @@ void ScApachePC::readyRead(int id)
         {
             len = tx_buf.length();
         }
-        client->buf = tx_buf.mid(0, len);
+        client->writeBuf(tx_buf.mid(0, len));
         tx_buf.remove(0, len);
-
-        client->writeBuf();
     }
 }
 
@@ -191,6 +188,11 @@ void ScApachePC::rxRefresh()
         }
     }
     //    qDebug() << "rxRefresh" << count;
+}
+
+void ScApachePC::rxTimeout(int id)
+{
+
 }
 
 void ScApachePC::processBuffer(int id)

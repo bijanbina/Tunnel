@@ -3,7 +3,7 @@
 
 #include <QString>
 #include <QDebug>
-#include "remote_client.h"
+#include "sc_tx_client.h"
 #include "sc_apache_pc.h"
 #include "sc_apache_se.h"
 #include "sc_apache_te.h"

@@ -1,31 +1,32 @@
-#ifndef SC_REMOTECLIENT_H
-#define SC_REMOTECLIENT_H
+#ifndef SC_TX_CLIENT_H
+#define SC_TX_CLIENT_H
 
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QTimer>
 #include "backend.h"
 
-class ScRemoteClient : public QObject
+class ScTxClient : public QObject
 {
     Q_OBJECT
 public:
-    explicit ScRemoteClient(int port, QObject *parent = nullptr);
-    void writeBuf();
-
-    QByteArray  buf;
+    explicit ScTxClient(int port, QObject *parent = nullptr);
+    void writeBuf(QByteArray data);
 
 private slots:
     void disconnected();
     void displayError(QAbstractSocket::SocketError socketError);
     void conRefresh();
+    void timeout(int id);
 
 private:
     int     counter;
     int     tx_port;
     int     curr_id;
-    QTimer *timer;
+    QTimer *refresh_timer;
+    QByteArray  buf;
     QVector<QTcpSocket *> cons;
+    QVector<QTimer *>     timers;
 };
 
-#endif // SC_REMOTECLIENT_H
+#endif // SC_TX_CLIENT_H

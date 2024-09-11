@@ -11,7 +11,7 @@
 #include <QTimer>
 #include <QSignalMapper>
 #include "backend.h"
-#include "remote_client.h"
+#include "sc_tx_client.h"
 
 #define FA_START_PACKET "<START>\r\n"
 #define FA_END_PACKET   "\r\n<END>\r\n"

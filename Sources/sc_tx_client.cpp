@@ -1,12 +1,12 @@
-#include "remote_client.h"
+#include "sc_tx_client.h"
 
-ScRemoteClient::ScRemoteClient(int port, QObject *parent):
+ScTxClient::ScTxClient(int port, QObject *parent):
     QObject(parent)
 {
     tx_port = port;
     counter = 0;
     curr_id = 0;
-    timer   = new QTimer;
+    refresh_timer   = new QTimer;
 
     cons.resize(SC_PC_CONLEN);
     for( int i=0 ; i<SC_PC_CONLEN ; i++ )
@@ -23,13 +23,14 @@ ScRemoteClient::ScRemoteClient(int port, QObject *parent):
                     QAbstractSocket::LowDelayOption, 1);
     }
 
-    connect(timer, SIGNAL(timeout()),
+    connect(refresh_timer, SIGNAL(timeout()),
             this , SLOT  (conRefresh()));
-    timer->start(2000);
+    refresh_timer->start(100);
 }
 
-void ScRemoteClient::writeBuf()
+void ScTxClient::writeBuf(QByteArray data)
 {
+    buf = data;
     QString buf_id = QString::number(counter);
     buf_id = buf_id.rightJustified(3, '0');
     counter++;
@@ -45,7 +46,6 @@ void ScRemoteClient::writeBuf()
         if( cons[curr_id]->isOpen() )
         {
             s = cons[curr_id]->write(buf);
-            qDebug() << "writeBuf::" << s;
             if( s!=buf.length() )
             {
                 qDebug() << "writeBuf:" << buf.length() << s;
@@ -67,15 +67,17 @@ void ScRemoteClient::writeBuf()
             curr_id = 0;
         }
     }
+
+    qDebug() << "-------SC_TX_CLIENT ERROR: DATA LOST-------";
 }
 
-void ScRemoteClient::disconnected()
+void ScTxClient::disconnected()
 {
     buf.clear();
 //    qDebug() << "ScRemoteClient: Disconnected";
 }
 
-void ScRemoteClient::displayError(QAbstractSocket::SocketError
+void ScTxClient::displayError(QAbstractSocket::SocketError
                                   socketError)
 {
 //    if( socketError==QTcpSocket::RemoteHostClosedError )
@@ -87,7 +89,7 @@ void ScRemoteClient::displayError(QAbstractSocket::SocketError
 //             << remote->errorString();
 //    remote->close();
 }
-void ScRemoteClient::conRefresh()
+void ScTxClient::conRefresh()
 {
     int len = cons.length();
     int count = 0;
@@ -100,5 +102,11 @@ void ScRemoteClient::conRefresh()
             count++;
         }
     }
-//    qDebug() << "conRefresh" << count;
+    //    qDebug() << "conRefresh" << count;
 }
+
+void ScTxClient::timeout(int id)
+{
+
+}
+

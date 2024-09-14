@@ -29,40 +29,18 @@ ScTxClient::ScTxClient(int port, QObject *parent):
     refresh_timer->start(100);
 
     connect(tx_timer, SIGNAL(timeout()),
-            this    , SLOT  (timeout()));
+            this    , SLOT  (writeBuf()));
     tx_timer->start(100);
 }
 
-void ScTxClient::writeBuf(QByteArray data)
+void ScTxClient::write(QByteArray data)
 {
     buf += data;
-    if( buf.length()<2000 )
+    if( buf.length()<SC_MIN_PACKLEN )
     {
         return;
     }
-
-    QByteArray send_buf;
-    int split_size = 6990;
-    while( buf.length() )
-    {
-        int len = split_size;
-        if( buf.length()<split_size )
-        {
-            len = buf.length();
-        }
-        send_buf = buf.mid(0, len);
-
-        addCounter(&send_buf);
-        if( sendData(send_buf) )
-        {
-            buf.remove(0, len);
-        }
-        else
-        {
-            qDebug() << "-----SC_TX_CLIENT ERROR: DATA LOST-----";
-            break;
-        }
-    }
+    writeBuf();
 }
 
 void ScTxClient::disconnected()
@@ -99,10 +77,10 @@ void ScTxClient::conRefresh()
     //    qDebug() << "conRefresh" << count;
 }
 
-void ScTxClient::timeout()
+void ScTxClient::writeBuf()
 {
     QByteArray send_buf;
-    int split_size = 6990;
+    int split_size = SC_MXX_PACKLEN;
     while( buf.length() )
     {
         int len = split_size;

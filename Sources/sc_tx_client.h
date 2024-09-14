@@ -11,13 +11,13 @@ class ScTxClient : public QObject
     Q_OBJECT
 public:
     explicit ScTxClient(int port, QObject *parent = nullptr);
-    void writeBuf(QByteArray data);
+    void write(QByteArray data);
 
 private slots:
     void disconnected();
     void displayError(QAbstractSocket::SocketError socketError);
     void conRefresh();
-    void timeout();
+    void writeBuf();
 
 private:
     void addCounter(QByteArray *send_buf);

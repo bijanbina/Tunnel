@@ -126,7 +126,7 @@ void ScApachePC::clientError(int id)
 void ScApachePC::clientDisconnected(int id)
 {
     qDebug() << id << "clientDisconnected";
-    dbg->writeBuf("client_disconnected");
+    dbg->write("client_disconnected");
     tx_buf.clear();
     rx_buf.clear();
     read_bufs.clear();
@@ -139,7 +139,7 @@ void ScApachePC::readyRead(int id)
     tx_buf += cons[id]->readAll();
 //    qDebug() << "read_buf::" << data_rx.length();
 
-    int split_size = 6990;
+    int split_size = SC_MXX_PACKLEN;
     while( tx_buf.length() )
     {
         int len = split_size;
@@ -147,7 +147,7 @@ void ScApachePC::readyRead(int id)
         {
             len = tx_buf.length();
         }
-        client->writeBuf(tx_buf.mid(0, len));
+        client->write(tx_buf.mid(0, len));
         tx_buf.remove(0, len);
     }
 }
@@ -193,11 +193,6 @@ void ScApachePC::rxRefresh()
         }
     }
     //    qDebug() << "rxRefresh" << count;
-}
-
-void ScApachePC::rxTimeout(int id)
-{
-
 }
 
 void ScApachePC::processBuffer(int id)

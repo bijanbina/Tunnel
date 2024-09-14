@@ -328,7 +328,7 @@ void ScApacheSe::txReadyRead()
         return;
     }
 
-    int split_size = 6990;
+    int split_size = SC_MXX_PACKLEN;
     int con_len = tx_cons.length();
     int count = 0;
     qDebug() << "ScApacheSe::TX"

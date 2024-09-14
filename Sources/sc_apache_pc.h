@@ -41,7 +41,6 @@ public slots:
     void rxError(int id);
     void rxDisconnected(int id);
     void rxRefresh();
-    void rxTimeout(int id);
 
 private:
     void processBuffer(int id);
@@ -53,8 +52,8 @@ private:
     QSignalMapper  *mapper_disconnect;
     QSignalMapper  *mapper_error;
     QTcpServer     *server;
-    ScTxClient *client;
-    ScTxClient *dbg;
+    ScTxClient     *client;
+    ScTxClient     *dbg;
     QVector<QByteArray> read_bufs;
     QByteArray     tx_buf;
 

@@ -55,7 +55,7 @@ void ScTxServer::openPort()
 void ScTxServer::reset()
 {
     curr_id = 0;
-    conn_i       = 0;
+    conn_i  = 0;
     buf.clear();
 }
 

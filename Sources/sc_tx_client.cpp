@@ -61,6 +61,7 @@ void ScTxClient::displayError(QAbstractSocket::SocketError
 //             << remote->errorString();
 //    remote->close();
 }
+
 void ScTxClient::conRefresh()
 {
     int len = cons.length();

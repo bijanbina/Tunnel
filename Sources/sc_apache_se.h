@@ -12,6 +12,7 @@
 #include <QSignalMapper>
 #include "backend.h"
 #include "sc_tx_client.h"
+#include "sc_tx_server.h"
 
 #define FA_START_PACKET "<START>\r\n"
 #define FA_END_PACKET   "\r\n<END>\r\n"
@@ -29,10 +30,6 @@ public:
     // rx
     QVector<QTcpSocket *> rx_cons;
     QVector<QHostAddress> rx_ipv4;
-
-    // tx
-    QVector<QTcpSocket *> tx_cons;
-    QVector<QHostAddress> tx_ipv4;
 
     // dbg
     QVector<QTcpSocket *> dbg_cons;
@@ -52,8 +49,6 @@ public slots:
 
     // tx
     void txReadyRead();
-    void txConnected();
-    void txError(int id);
 
     // dbg
     void dbgReadyRead(int id);
@@ -67,17 +62,12 @@ private:
     void rxSetupConnection(int con_id);
     QByteArray getPack();
 
-    // tx
-    int  txPutInFree();
-    void txSetupConnection(int con_id);
-
     // dbg
     int  dbgPutInFree();
     void dbgSetupConnection(int con_id);
 
     QTimer     *rx_timer;
     QTcpSocket  client;
-    QByteArray  tx_buf;
 
     // rx
     QSignalMapper   *rx_mapper_data;
@@ -89,12 +79,8 @@ private:
     QVector<QByteArray> read_bufs;
 
     // tx
-    QSignalMapper  *tx_mapper_data;
-    QSignalMapper  *tx_mapper_disconnect;
-    QSignalMapper  *tx_mapper_error;
-    QTcpServer     *tx_server;
-    int             tx_curr_id;
-    int             tx_i;
+    QSignalMapper *tx_mapper_data;
+    ScTxServer    *tx_server;
 
     // dbg
     QSignalMapper  *dbg_mapper_data;

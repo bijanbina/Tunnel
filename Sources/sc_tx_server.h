@@ -22,6 +22,7 @@ public:
     ~ScTxServer();
 
     void openPort();
+    void reset();
 
     QVector<QTcpSocket *> cons;
     QVector<QHostAddress> ipv4;
@@ -33,7 +34,6 @@ public slots:
     void writeBuf();
 
 private:
-    void reset();
     void addCounter(QByteArray *send_buf);
     int  sendData(QByteArray send_buf);
 

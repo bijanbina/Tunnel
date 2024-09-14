@@ -80,6 +80,11 @@ void ScTxClient::conRefresh()
 
 void ScTxClient::writeBuf()
 {
+    if( buf.isEmpty() || cons.isEmpty() )
+    {
+        return;
+    }
+
     QByteArray send_buf;
     int split_size = SC_MXX_PACKLEN;
     while( buf.length() )

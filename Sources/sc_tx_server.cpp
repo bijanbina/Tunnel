@@ -9,7 +9,7 @@ ScTxServer::ScTxServer(QObject *parent):
     curr_id = 0;
     conn_i       = 0;
     connect(server,  SIGNAL(newConnection()),
-            this,       SLOT(txConnected()));
+            this  ,  SLOT(txConnected()));
 
     mapper_error      = new QSignalMapper(this);
     mapper_disconnect = new QSignalMapper(this);
@@ -85,11 +85,14 @@ void ScTxServer::txError(int id)
 
 void ScTxServer::writeBuf()
 {
+    if( buf.isEmpty() || cons.isEmpty() )
+    {
+        return;
+    }
+
     QByteArray send_buf;
     int split_size = SC_MXX_PACKLEN;
     int con_len = cons.length();
-    qDebug() << "ScApacheSe::TX"
-             << buf.length();
     for( int i=0 ; i<con_len ; i++ )
     {
         if( cons[conn_i]->isOpen() )
@@ -102,6 +105,8 @@ void ScTxServer::writeBuf()
             send_buf = buf.mid(0, len);
             addCounter(&send_buf);
 
+            qDebug() << "ScApacheSe::TX"
+                     << len;
             if( sendData(send_buf) )
             {
                 buf.remove(0, len);

@@ -14,7 +14,8 @@ HEADERS += \
     Sources/sc_apache_pc.h \
     Sources/sc_apache_se.h \
     Sources/sc_apache_te.h \
-    Sources/sc_tx_client.h
+    Sources/sc_tx_client.h \
+    Sources/sc_tx_server.h
 
 win32:HEADERS +=
 
@@ -24,6 +25,7 @@ SOURCES += \
     Sources/sc_apache_pc.cpp \
     Sources/sc_apache_se.cpp \
     Sources/sc_apache_te.cpp \
-    Sources/sc_tx_client.cpp
+    Sources/sc_tx_client.cpp \
+    Sources/sc_tx_server.cpp
 
 win32:SOURCES +=

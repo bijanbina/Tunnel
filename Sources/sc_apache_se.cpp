@@ -13,8 +13,6 @@ ScApacheSe::ScApacheSe(QObject *parent):
 
     connect(rx_server,  SIGNAL(newConnection()),
             this,       SLOT(rxConnected()));
-    connect(tx_server,  SIGNAL(newConnection()),
-            this,       SLOT(txConnected()));
     connect(dbg_server, SIGNAL(newConnection()),
             this,       SLOT(dbgConnected()));
 

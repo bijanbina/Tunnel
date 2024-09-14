@@ -82,7 +82,7 @@ void ScApachePC::init()
 
         // readyRead
         rx_mapper_data->setMapping(rx_clients[i], i);
-        connect(rx_clients[i],  SIGNAL(txReadyRead()),
+        connect(rx_clients[i],  SIGNAL(readyRead()),
                 rx_mapper_data, SLOT(map()));
 
         // displayError
@@ -274,7 +274,7 @@ void ScApachePC::setupConnection(int con_id)
 
     // readyRead
     mapper_data->setMapping(con, con_id);
-    connect(con, SIGNAL(txReadyRead()), mapper_data, SLOT(map()));
+    connect(con, SIGNAL(readyRead()), mapper_data, SLOT(map()));
 
     // displayError
     mapper_error->setMapping(con, con_id);

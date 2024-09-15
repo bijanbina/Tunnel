@@ -31,7 +31,7 @@ signals:
     void dataReady(int id, QString data);
 
 public slots:
-    void readyRead(int id);
+    void txReadyRead(int id);
     void clientConnected();
     void clientError(int id);
     void clientDisconnected(int id);
@@ -41,6 +41,9 @@ public slots:
     void rxError(int id);
     void rxDisconnected(int id);
     void rxRefresh();
+
+    // tx
+    void txTest();
 
 private:
     void processBuffer(int id);
@@ -52,10 +55,10 @@ private:
     QSignalMapper  *mapper_disconnect;
     QSignalMapper  *mapper_error;
     QTcpServer     *server;
-    ScTxClient     *client;
+    ScTxClient     *tx_con;
     ScTxClient     *dbg;
     QVector<QByteArray> read_bufs;
-    QByteArray     tx_buf;
+    QTimer         *tx_timer;
 
     // rx
     QSignalMapper  *rx_mapper_data;

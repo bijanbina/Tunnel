@@ -5,9 +5,10 @@ ScApachePcTE::ScApachePcTE(QObject *parent):
 {
     rx_curr_id = 0;
     server     = new QTcpServer;
-    client     = new ScTxClient(ScSetting::tx_port);
+    tx_con     = new ScTxClient(ScSetting::tx_port);
     dbg        = new ScTxClient(ScSetting::dbg_port);
-    refresh_timer   = new QTimer;
+    refresh_timer = new QTimer;
+    tx_timer      = new QTimer;
     connect(server, SIGNAL(newConnection()),
             this  , SLOT(clientConnected()));
 
@@ -16,7 +17,7 @@ ScApachePcTE::ScApachePcTE(QObject *parent):
     mapper_disconnect = new QSignalMapper(this);
 
     connect(mapper_data      , SIGNAL(mapped(int)),
-            this             , SLOT(readyRead(int)));
+            this             , SLOT(txReadyRead(int)));
     connect(mapper_error     , SIGNAL(mapped(int)),
             this             , SLOT(clientError(int)));
     connect(mapper_disconnect, SIGNAL(mapped(int)),
@@ -41,6 +42,10 @@ ScApachePcTE::ScApachePcTE(QObject *parent):
     rx_buf.resize    (SC_PC_CONLEN);
     rx_clients.resize(SC_PC_CONLEN);
     read_bufs .resize(SC_MAX_PACKID+1);
+
+    connect(tx_timer, SIGNAL(timeout()),
+            this    , SLOT  (txTest()));
+    tx_timer->start(15000);
 }
 
 ScApachePcTE::~ScApachePcTE()
@@ -82,7 +87,7 @@ void ScApachePcTE::init()
 
         // readyRead
         rx_mapper_data->setMapping(rx_clients[i], i);
-        connect(rx_clients[i],  SIGNAL(readyRead()),
+        connect(rx_clients[i],  SIGNAL(txReadyRead()),
                 rx_mapper_data, SLOT(map()));
 
         // displayError
@@ -127,29 +132,17 @@ void ScApachePcTE::clientDisconnected(int id)
 {
     qDebug() << id << "clientDisconnected";
     dbg->write("client_disconnected");
-    tx_buf.clear();
     rx_buf.clear();
     read_bufs.clear();
     rx_buf.resize    (SC_PC_CONLEN);
     read_bufs .resize(SC_MAX_PACKID+1);
 }
 
-void ScApachePcTE::readyRead(int id)
+void ScApachePcTE::txReadyRead(int id)
 {
-    tx_buf += cons[id]->readAll();
-//    qDebug() << "read_buf::" << data_rx.length();
-
-    int split_size = SC_MXX_PACKLEN;
-    while( tx_buf.length() )
-    {
-        int len = split_size;
-        if( tx_buf.length()<split_size )
-        {
-            len = tx_buf.length();
-        }
-        client->write(tx_buf.mid(0, len));
-        tx_buf.remove(0, len);
-    }
+    QByteArray data = cons[id]->readAll();
+//    qDebug() << "read_buf::" << data.length();
+    tx_con->write(data);
 }
 
 void ScApachePcTE::rxReadyRead(int id)
@@ -186,6 +179,27 @@ void ScApachePcTE::rxRefresh()
         }
     }
     //    qDebug() << "rxRefresh" << count;
+}
+
+void ScApachePcTE::txTest()
+{
+    int len = cons.length();
+    int count = 0;
+    QByteArray buf;
+    int buf_count = 500;
+    for( int i=0 ; i<len ; i++ )
+    {
+        buf.clear();
+        for( int j=i*buf_count ; j<(i+1)*buf_count ; j++ )
+        {
+            buf += "<";
+            buf += QString::number(j).rightJustified(5, '0');
+            buf += ">";
+        }
+        tx_con->write(buf);
+        count++;
+    }
+    qDebug() << "txRefresh" << count;
 }
 
 void ScApachePcTE::processBuffer(int id)
@@ -286,7 +300,7 @@ void ScApachePcTE::setupConnection(int con_id)
 
     // readyRead
     mapper_data->setMapping(con, con_id);
-    connect(con, SIGNAL(readyRead()), mapper_data, SLOT(map()));
+    connect(con, SIGNAL(txReadyRead()), mapper_data, SLOT(map()));
 
     // displayError
     mapper_error->setMapping(con, con_id);

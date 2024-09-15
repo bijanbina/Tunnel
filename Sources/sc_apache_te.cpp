@@ -9,6 +9,10 @@ ScApacheTe::ScApacheTe(QObject *parent):
     rx_server  = new QTcpServer;
     dbg_server = new QTcpServer;
     tx_curr_id = 0;
+    rx_curr_id = 0;
+    rx_buf.resize(SC_PC_CONLEN);
+    read_bufs.resize(SC_MAX_PACKID+1);
+
     connect(rx_server,  SIGNAL(newConnection()),
             this,       SLOT(rxConnected()));
     connect(tx_server,  SIGNAL(newConnection()),
@@ -122,13 +126,22 @@ void ScApacheTe::connectApp()
     }
 }
 
+void ScApacheTe::reset()
+{
+    tx_buf.clear();
+    rx_curr_id = 0;
+    rx_buf.clear();
+    read_bufs.clear();
+    rx_buf.resize(SC_PC_CONLEN);
+    read_bufs.resize(SC_MAX_PACKID+1);
+}
+
 void ScApacheTe::clientDisconnected()
 {
     qDebug() << "FaApacheSe::Client disconnected----------------";
     client.connectToHost(QHostAddress::LocalHost,
                          ScSetting::local_port);
-    tx_buf.clear();
-    rx_buf.clear();
+    reset();
 }
 
 void ScApacheTe::clientConnected()
@@ -145,8 +158,7 @@ void ScApacheTe::clientError()
 
     if( client.error()!=QTcpSocket::RemoteHostClosedError )
     {
-        tx_buf.clear();
-        rx_buf.clear();
+        reset();
         QThread::msleep(100);
         client.connectToHost(QHostAddress::LocalHost,
                              ScSetting::local_port);

@@ -5,7 +5,7 @@ ScApachePC::ScApachePC(QObject *parent):
 {
     rx_curr_id = 0;
     server     = new QTcpServer;
-    client     = new ScTxClient(ScSetting::tx_port);
+    tx_con     = new ScTxClient(ScSetting::tx_port);
     dbg        = new ScTxClient(ScSetting::dbg_port);
     refresh_timer   = new QTimer;
     connect(server, SIGNAL(newConnection()),
@@ -16,7 +16,7 @@ ScApachePC::ScApachePC(QObject *parent):
     mapper_disconnect = new QSignalMapper(this);
 
     connect(mapper_data      , SIGNAL(mapped(int)),
-            this             , SLOT(readyRead(int)));
+            this             , SLOT(txReadyRead(int)));
     connect(mapper_error     , SIGNAL(mapped(int)),
             this             , SLOT(clientError(int)));
     connect(mapper_disconnect, SIGNAL(mapped(int)),
@@ -82,7 +82,7 @@ void ScApachePC::init()
 
         // readyRead
         rx_mapper_data->setMapping(rx_clients[i], i);
-        connect(rx_clients[i],  SIGNAL(readyRead()),
+        connect(rx_clients[i],  SIGNAL(txReadyRead()),
                 rx_mapper_data, SLOT(map()));
 
         // displayError
@@ -127,29 +127,17 @@ void ScApachePC::clientDisconnected(int id)
 {
     qDebug() << id << "clientDisconnected";
     dbg->write("client_disconnected");
-    tx_buf.clear();
     rx_buf.clear();
     read_bufs.clear();
     rx_buf.resize    (SC_PC_CONLEN);
     read_bufs .resize(SC_MAX_PACKID+1);
 }
 
-void ScApachePC::readyRead(int id)
+void ScApachePC::txReadyRead(int id)
 {
-    tx_buf += cons[id]->readAll();
-//    qDebug() << "read_buf::" << data_rx.length();
-
-    int split_size = SC_MXX_PACKLEN;
-    while( tx_buf.length() )
-    {
-        int len = split_size;
-        if( tx_buf.length()<split_size )
-        {
-            len = tx_buf.length();
-        }
-        client->write(tx_buf.mid(0, len));
-        tx_buf.remove(0, len);
-    }
+    QByteArray data = cons[id]->readAll();
+//    qDebug() << "read_buf::" << data.length();
+    tx_con->write(data);
 }
 
 void ScApachePC::rxReadyRead(int id)
@@ -286,7 +274,7 @@ void ScApachePC::setupConnection(int con_id)
 
     // readyRead
     mapper_data->setMapping(con, con_id);
-    connect(con, SIGNAL(readyRead()), mapper_data, SLOT(map()));
+    connect(con, SIGNAL(txReadyRead()), mapper_data, SLOT(map()));
 
     // displayError
     mapper_error->setMapping(con, con_id);

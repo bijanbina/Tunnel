@@ -25,6 +25,7 @@ public:
     ~ScApacheTe();
 
     void connectApp();
+    void reset();
 
     // rx
     QVector<QTcpSocket *> rx_cons;

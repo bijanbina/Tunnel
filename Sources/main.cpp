@@ -18,13 +18,20 @@ int main(int argc, char *argv[])
     app.setApplicationName("PolyBar");
 
     QString port = argv[1];
-    ScSetting::local_port = port.toUInt();
+    if( port=="p" )
+    {
+        ScSetting::state = SC_STATE_PC_TEST;
+    }
+    else
+    {
+        ScSetting::local_port = port.toUInt();
+    }
     if( argc>2 )
     {
         QString arg = argv[2];
         if( arg=="t" )
         {
-            ScSetting::state = SC_STATE_TEST;
+            ScSetting::state = SC_STATE_SE_TEST;
         }
         else
         {

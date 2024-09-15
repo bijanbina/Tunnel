@@ -12,6 +12,7 @@ HEADERS += \
     Sources/backend.h \
     Sources/local.h \
     Sources/sc_apache_pc.h \
+    Sources/sc_apache_pcte.h \
     Sources/sc_apache_se.h \
     Sources/sc_apache_te.h \
     Sources/sc_tx_client.h \
@@ -23,6 +24,7 @@ SOURCES += \
     Sources/local.cpp \
     Sources/main.cpp \
     Sources/sc_apache_pc.cpp \
+    Sources/sc_apache_pcte.cpp \
     Sources/sc_apache_se.cpp \
     Sources/sc_apache_te.cpp \
     Sources/sc_tx_client.cpp \

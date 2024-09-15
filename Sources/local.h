@@ -5,6 +5,7 @@
 #include <QDebug>
 #include "sc_tx_client.h"
 #include "sc_apache_pc.h"
+#include "sc_apache_pcte.h"
 #include "sc_apache_se.h"
 #include "sc_apache_te.h"
 

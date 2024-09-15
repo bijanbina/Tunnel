@@ -168,13 +168,6 @@ void ScApachePC::rxDisconnected(int id)
     processBuffer(id);
     rx_clients[id]->connectToHost(ScSetting::remote_host,
                                   ScSetting::rx_port);
-    rx_clients[id]->waitForConnected();
-    if( rx_clients[id]->isOpen()==0 )
-    {
-        return;
-    }
-//    qDebug() << id << "rxDisconnected:: restored"
-//             << rx_clients[id]->state();
     rx_clients[id]->setSocketOption(
                 QAbstractSocket::LowDelayOption, 1);
 }

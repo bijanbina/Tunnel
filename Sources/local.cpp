@@ -21,10 +21,15 @@ ScLocal::ScLocal(QObject *parent):
         ScApacheSe *server = new ScApacheSe;
         server->connectApp();
     }
-    else if( ScSetting::state==SC_STATE_TEST )
+    else if( ScSetting::state==SC_STATE_SE_TEST )
     {
         ScApacheTe *te = new ScApacheTe;
         te->connectApp();
+    }
+    else if( ScSetting::state==SC_STATE_PC_TEST )
+    {
+        ScApachePcTE *pcte = new ScApachePcTE;
+        pcte->init();
     }
     else
     {

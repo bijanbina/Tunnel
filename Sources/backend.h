@@ -7,9 +7,10 @@
 
 #include <QString>
 
-#define SC_STATE_CLIENT  0
-#define SC_STATE_SERVER  1
-#define SC_STATE_TEST    2
+#define SC_STATE_CLIENT   0
+#define SC_STATE_SERVER   1
+#define SC_STATE_SE_TEST  2
+#define SC_STATE_PC_TEST  2
 
 #define SC_PC_CONLEN    20
 #define SC_MAX_PACKID   999

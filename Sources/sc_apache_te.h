@@ -47,7 +47,9 @@ public slots:
     // rx
     void rxReadyRead(int id);
     void rxConnected();
+    void rxDisconnected(int id);
     void rxError(int id);
+    QByteArray getPack();
 
     // tx
     void txReadyRead();
@@ -75,13 +77,15 @@ private:
     QTimer     *rx_timer;
     QTcpSocket  client;
     QByteArray  tx_buf;
-    QByteArray  rx_buf;
 
     // rx
     QSignalMapper  *rx_mapper_data;
     QSignalMapper  *rx_mapper_disconnect;
     QSignalMapper  *rx_mapper_error;
     QTcpServer     *rx_server;
+    int             rx_curr_id;
+    QVector<QByteArray> rx_buf;
+    QVector<QByteArray> read_bufs;
 
     // tx
     QSignalMapper  *tx_mapper_data;

@@ -434,7 +434,7 @@ void ScApacheTe::txRefresh()
         if( tx_cons[i]->isOpen() )
         {
             QString tx_id = QString::number(tx_curr_id);
-            tx_id = tx_id.rightJustified(3, '0');
+            tx_id = tx_id.rightJustified(SC_LEN_PACKID, '0');
             tx_curr_id++;
             if( tx_curr_id>SC_MAX_PACKID )
             {

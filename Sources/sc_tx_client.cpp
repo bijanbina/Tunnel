@@ -82,7 +82,8 @@ void ScTxClient::conRefresh()
     {
         qDebug() << "ScTxClient::conRefresh port:"
                  << tx_port << "alive:"
-                 << cons.length()-count;
+                 << cons.length()-count << "count:"
+                 << count;
     }
 }
 
@@ -120,7 +121,7 @@ void ScTxClient::writeBuf()
 void ScTxClient::addCounter(QByteArray *send_buf)
 {
     QString buf_id = QString::number(counter);
-    buf_id = buf_id.rightJustified(3, '0');
+    buf_id = buf_id.rightJustified(SC_LEN_PACKID, '0');
     send_buf->prepend(buf_id.toStdString().c_str());
     counter++;
     if( counter>SC_MAX_PACKID )

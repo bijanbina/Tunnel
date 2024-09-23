@@ -185,10 +185,10 @@ QByteArray ScApacheSe::getPack()
         }
     }
 
-    qDebug() << "ScApacheSe::getPack rx_curr_id"
+    qDebug() << "ScApacheSe::getPack start:"
              << rx_curr_id-count << count
              << "rx_len:" << rx_cons.length()
-             << "rx_len:" << tx_server->cons.length();
+             << "tx_len:" << tx_server->cons.length();
 
     return pack;
 }

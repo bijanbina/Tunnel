@@ -147,7 +147,7 @@ void ScApachePC::rxReadyRead(int id)
 
 void ScApachePC::rxError(int id)
 {
-    qDebug() << id << "rxError"
+    qDebug() << id << "ScApachePC::rxError"
              << rx_clients[id]->state();
 }
 
@@ -230,8 +230,9 @@ QByteArray ScApachePC::getPack()
         }
     }
 
-    qDebug() << "ScApachePC::getPack rx_curr_id"
-             << rx_curr_id-count << count
+    qDebug() << "ScApachePC::getPack start:"
+             << rx_curr_id-count
+             << "count:" << count << "tx_con:"
              << tx_con->cons.length();
     return pack;
 }

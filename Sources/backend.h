@@ -13,11 +13,18 @@
 #define SC_STATE_PC_TEST  2
 
 #define SC_PC_CONLEN    20
-#define SC_MAX_PACKID   999
-#define SC_LEN_PACKID   3
+#define SC_MAX_PACKID   9999
+#define SC_LEN_PACKID   4
 
 #define SC_MIN_PACKLEN  2000
 #define SC_MXX_PACKLEN  6990
+
+#define SC_TXSERVER_TIMEOUT  100   //ms
+#define SC_TXCLIENT_TIMEOUT  SC_TXSERVER_TIMEOUT
+#define SC_PCSIDE_TIMEOUT    100   //ms
+#define SC_TEST_TIMEOUT      15000 // how often send test packet
+#define SC_TXWRITE_TIMEOUT   100   // how often make sure to send
+                                   // all remaining data
 
 class ScSetting
 {

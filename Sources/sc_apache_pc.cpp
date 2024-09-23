@@ -36,7 +36,7 @@ ScApachePC::ScApachePC(QObject *parent):
 
     connect(refresh_timer, SIGNAL(timeout()),
             this         , SLOT  (rxRefresh()));
-    refresh_timer->start(100);
+    refresh_timer->start(SC_PCSIDE_TIMEOUT);
 
     rx_buf.resize    (SC_PC_CONLEN);
     rx_clients.resize(SC_PC_CONLEN);
@@ -174,6 +174,12 @@ void ScApachePC::rxRefresh()
         }
     }
     //    qDebug() << "rxRefresh" << count;
+
+    if( count )
+    {
+        qDebug() << "ScApachePC::rxRefresh"
+                 << rx_clients.length() << cons.length()-count;
+    }
 }
 
 void ScApachePC::processBuffer(int id)
@@ -224,6 +230,9 @@ QByteArray ScApachePC::getPack()
         }
     }
 
+    qDebug() << "ScApachePC::getPack rx_curr_id"
+             << rx_curr_id-count << count
+             << tx_con->cons.length();
     return pack;
 }
 

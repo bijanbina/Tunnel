@@ -13,6 +13,8 @@ public:
     explicit ScTxClient(int port, QObject *parent = nullptr);
     void write(QByteArray data);
 
+    QVector<QTcpSocket *> cons;
+
 private slots:
     void disconnected();
     void displayError(QAbstractSocket::SocketError socketError);
@@ -21,7 +23,7 @@ private slots:
 
 private:
     void addCounter(QByteArray *send_buf);
-    int  sendData(QByteArray send_buf);
+    int  sendData  (QByteArray  send_buf);
 
     int     counter;
     int     tx_port;
@@ -29,7 +31,6 @@ private:
     QTimer *refresh_timer;
     QTimer *tx_timer;
     QByteArray  buf;
-    QVector<QTcpSocket *> cons;
 };
 
 #endif // SC_TX_CLIENT_H

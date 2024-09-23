@@ -37,7 +37,7 @@ ScApachePcTE::ScApachePcTE(QObject *parent):
 
     connect(refresh_timer, SIGNAL(timeout()),
             this         , SLOT  (rxRefresh()));
-    refresh_timer->start(100);
+    refresh_timer->start(SC_PCSIDE_TIMEOUT);
 
     rx_buf.resize    (SC_PC_CONLEN);
     rx_clients.resize(SC_PC_CONLEN);
@@ -45,7 +45,7 @@ ScApachePcTE::ScApachePcTE(QObject *parent):
 
     connect(tx_timer, SIGNAL(timeout()),
             this    , SLOT  (txTest()));
-    tx_timer->start(15000);
+    tx_timer->start(SC_TEST_TIMEOUT);
 }
 
 ScApachePcTE::~ScApachePcTE()

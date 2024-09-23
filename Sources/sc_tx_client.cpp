@@ -26,11 +26,11 @@ ScTxClient::ScTxClient(int port, QObject *parent):
 
     connect(refresh_timer, SIGNAL(timeout()),
             this         , SLOT  (conRefresh()));
-    refresh_timer->start(100);
+    refresh_timer->start(SC_TXCLIENT_TIMEOUT);
 
     connect(tx_timer, SIGNAL(timeout()),
             this    , SLOT  (writeBuf()));
-    tx_timer->start(100);
+    tx_timer->start(SC_TXWRITE_TIMEOUT);
 }
 
 void ScTxClient::write(QByteArray data)
@@ -75,7 +75,12 @@ void ScTxClient::conRefresh()
             count++;
         }
     }
-    //    qDebug() << "conRefresh" << count;
+
+    if( count )
+    {
+        qDebug() << "ScTxClient::conRefresh"
+                 << tx_port << cons.length()-count;
+    }
 }
 
 void ScTxClient::writeBuf()
@@ -113,12 +118,12 @@ void ScTxClient::addCounter(QByteArray *send_buf)
 {
     QString buf_id = QString::number(counter);
     buf_id = buf_id.rightJustified(3, '0');
+    send_buf->prepend(buf_id.toStdString().c_str());
     counter++;
     if( counter>SC_MAX_PACKID )
     {
         counter = 0;
     }
-    send_buf->prepend(buf_id.toStdString().c_str());
 }
 
 // return 1 when sending data is successful

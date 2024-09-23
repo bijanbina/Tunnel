@@ -45,7 +45,7 @@ ScApacheTe::ScApacheTe(QObject *parent):
 
     connect(tx_timer, SIGNAL(timeout()),
             this    , SLOT  (txRefresh()));
-    tx_timer->start(15000);
+    tx_timer->start(SC_TEST_TIMEOUT);
 }
 
 ScApacheTe::~ScApacheTe()
@@ -231,7 +231,7 @@ QByteArray ScApacheTe::getPack()
         read_bufs[rx_curr_id].clear();
         rx_curr_id++;
         count++;
-        if( rx_curr_id>SC_MAX_PACKID )
+        if( rx_curr_id>=SC_MAX_PACKID )
         {
             rx_curr_id = 0;
         }

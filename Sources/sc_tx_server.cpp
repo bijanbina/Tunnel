@@ -19,7 +19,7 @@ ScTxServer::ScTxServer(QObject *parent):
 
     connect(timer, SIGNAL(timeout()),
             this , SLOT  (writeBuf()));
-    timer->start(100);
+    timer->start(SC_TXSERVER_TIMEOUT);
 }
 
 ScTxServer::~ScTxServer()

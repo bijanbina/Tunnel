@@ -185,6 +185,11 @@ QByteArray ScApacheSe::getPack()
         }
     }
 
+    qDebug() << "ScApacheSe::getPack rx_curr_id"
+             << rx_curr_id-count << count
+             << "rx_len:" << rx_cons.length()
+             << "rx_len:" << tx_server->cons.length();
+
     return pack;
 }
 
@@ -259,6 +264,10 @@ void ScApacheSe::rxSetupConnection(int con_id)
         msg += " accept connection";
         qDebug() << con_id << msg.toStdString().c_str()
                  << rx_ipv4[con_id].toString();
+    }
+    if( con_id>=rx_buf.length() )
+    {
+        rx_buf.push_back("");
     }
 
     // readyRead

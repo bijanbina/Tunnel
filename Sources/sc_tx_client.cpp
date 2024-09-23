@@ -68,7 +68,9 @@ void ScTxClient::conRefresh()
     int count = 0;
     for( int i=0 ; i<len ; i++ )
     {
-        if( cons[i]->isOpen()==0 )
+        if( cons[i]->isOpen()==0 &&
+            cons[i]->state()!=QTcpSocket::ConnectingState &&
+            cons[i]->state()!=QTcpSocket::ClosingState )
         {
             cons[i]->connectToHost(ScSetting::remote_host,
                                    tx_port);
@@ -78,8 +80,9 @@ void ScTxClient::conRefresh()
 
     if( count )
     {
-        qDebug() << "ScTxClient::conRefresh"
-                 << tx_port << cons.length()-count;
+        qDebug() << "ScTxClient::conRefresh port:"
+                 << tx_port << "alive:"
+                 << cons.length()-count;
     }
 }
 

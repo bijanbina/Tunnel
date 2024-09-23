@@ -189,7 +189,7 @@ void ScTxServer::txSetupConnection(int con_id)
 void ScTxServer::addCounter(QByteArray *send_buf)
 {
     QString tx_id = QString::number(curr_id);
-    tx_id = tx_id.rightJustified(3, '0');
+    tx_id = tx_id.rightJustified(SC_LEN_PACKID, '0');
     curr_id++;
     if( curr_id>SC_MAX_PACKID )
     {

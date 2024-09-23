@@ -105,8 +105,8 @@ void ScTxServer::writeBuf()
             send_buf = buf.mid(0, len);
             addCounter(&send_buf);
 
-            qDebug() << "ScApacheSe::TX"
-                     << len;
+            qDebug() << "ScApacheSe::writeBuf curr_id:"
+                     << curr_id-1 << len;
             if( sendData(send_buf) )
             {
                 buf.remove(0, len);

@@ -147,8 +147,13 @@ void ScApachePC::rxReadyRead(int id)
 
 void ScApachePC::rxError(int id)
 {
-    qDebug() << id << "ScApachePC::rxError"
-             << rx_clients[id]->state();
+    if( rx_clients[id]->error()!=
+            QTcpSocket::RemoteHostClosedError )
+    {
+        qDebug() << id << "ScApachePC::rxError"
+                 << rx_clients[id]->state()
+                 << rx_clients[id]->errorString();
+    }
 }
 
 void ScApachePC::rxDisconnected(int id)
@@ -186,8 +191,8 @@ void ScApachePC::processBuffer(int id)
 {
     QString buf_id_s = rx_buf[id].mid(0, SC_LEN_PACKID);
     int     buf_id   = buf_id_s.toInt();
-    qDebug() << id << "processBuffer::" << buf_id
-             << rx_buf[id].length();
+    qDebug() << id << "ScApachePC::processBuffer buf_id:"
+             << buf_id << rx_buf[id].length();
     rx_buf[id].remove(0, SC_LEN_PACKID);
     read_bufs[buf_id] = rx_buf[id];
     rx_buf[id].clear();

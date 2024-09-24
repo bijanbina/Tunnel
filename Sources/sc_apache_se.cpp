@@ -110,8 +110,6 @@ void ScApacheSe::clientDisconnected()
 {
     qDebug() << "ScApacheSe::Client disconnected----------------";
     reset();
-    client.connectToHost(QHostAddress::LocalHost,
-                         ScSetting::local_port);
 }
 
 void ScApacheSe::clientConnected()
@@ -212,7 +210,9 @@ void ScApacheSe::rxDisconnected(int id)
         QByteArray pack = getPack();
         int w = client.write(pack);
         qDebug() << id << "rxDisconnected"
-                 << pack.length() << w;
+                 << pack.length()
+                 << "buf_id:" << buf_id
+                 << "rx_curr_id:" << rx_curr_id;
         rx_buf[id].clear();
     }
     else
@@ -324,6 +324,9 @@ void ScApacheSe::dbgReadyRead(int id)
         if( client.isOpen() )
         {
             client.disconnectFromHost();
+            client.waitForDisconnected();
+            client.connectToHost(QHostAddress::LocalHost,
+                                 ScSetting::local_port);
         }
         else
         {

@@ -26,6 +26,7 @@ public:
 
     QVector<QTcpSocket *> cons;
     QVector<QHostAddress> ipv4;
+    QVector<QByteArray>   tx_buf;
 
 public slots:
     void write(QByteArray data);

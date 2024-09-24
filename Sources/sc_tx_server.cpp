@@ -7,7 +7,8 @@ ScTxServer::ScTxServer(QObject *parent):
     server  = new QTcpServer;
     timer   = new QTimer;
     curr_id = 0;
-    conn_i       = 0;
+    conn_i  = 0;
+    tx_buf.resize(SC_MAX_PACKID);
     connect(server,  SIGNAL(newConnection()),
             this  ,  SLOT(txConnected()));
 
@@ -188,6 +189,7 @@ void ScTxServer::txSetupConnection(int con_id)
 
 void ScTxServer::addCounter(QByteArray *send_buf)
 {
+    tx_buf[curr_id] = *send_buf;
     QString tx_id = QString::number(curr_id);
     tx_id = tx_id.rightJustified(SC_LEN_PACKID, '0');
     curr_id++;

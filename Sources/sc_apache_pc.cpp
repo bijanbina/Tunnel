@@ -95,6 +95,8 @@ void ScApachePC::init()
         connect(rx_clients[i],        SIGNAL(disconnected()),
                 rx_mapper_disconnect, SLOT(map()));
     }
+
+    dbg->write("init");
 }
 
 void ScApachePC::clientConnected()
@@ -131,6 +133,8 @@ void ScApachePC::clientDisconnected(int id)
     read_bufs.clear();
     rx_buf.resize    (SC_PC_CONLEN);
     read_bufs .resize(SC_MAX_PACKID+1);
+    rx_curr_id = 0;
+    tx_con->reset();
 }
 
 void ScApachePC::txReadyRead(int id)

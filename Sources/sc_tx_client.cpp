@@ -33,6 +33,12 @@ ScTxClient::ScTxClient(int port, QObject *parent):
     tx_timer->start(SC_TXWRITE_TIMEOUT);
 }
 
+void ScTxClient::reset()
+{
+    counter = 0;
+    buf.clear();
+}
+
 void ScTxClient::write(QByteArray data)
 {
     buf += data;

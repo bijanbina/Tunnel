@@ -11,6 +11,8 @@ class ScTxClient : public QObject
     Q_OBJECT
 public:
     explicit ScTxClient(int port, QObject *parent = nullptr);
+
+    void reset();
     void write(QByteArray data);
 
     QVector<QTcpSocket *> cons;

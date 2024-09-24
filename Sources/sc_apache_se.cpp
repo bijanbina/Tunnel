@@ -53,8 +53,6 @@ ScApacheSe::~ScApacheSe()
 
 void ScApacheSe::connectApp()
 {
-    client.connectToHost(QHostAddress::LocalHost,
-                         ScSetting::local_port);
     client.setSocketOption(QAbstractSocket::LowDelayOption, 1);
 
     // readyRead
@@ -111,9 +109,9 @@ void ScApacheSe::reset()
 void ScApacheSe::clientDisconnected()
 {
     qDebug() << "ScApacheSe::Client disconnected----------------";
+    reset();
     client.connectToHost(QHostAddress::LocalHost,
                          ScSetting::local_port);
-    reset();
 }
 
 void ScApacheSe::clientConnected()
@@ -314,7 +312,14 @@ void ScApacheSe::dbgReadyRead(int id)
     dbg_buf.remove(0, SC_LEN_PACKID);
     if( dbg_buf=="client_disconnected" )
     {
+        // connect and reset automatically
         client.disconnectFromHost();
+    }
+    if( dbg_buf=="init" )
+    {
+        reset();
+        client.connectToHost(QHostAddress::LocalHost,
+                             ScSetting::local_port);
     }
     qDebug() << "ScApacheSe::Debug"
              << dbg_buf;

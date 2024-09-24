@@ -3,7 +3,8 @@
 ScApachePC::ScApachePC(QObject *parent):
     QObject(parent)
 {
-    rx_curr_id = 0;
+    rx_curr_id   = 0;
+    rc_connected = 0;
     server     = new QTcpServer;
     tx_con     = new ScTxClient(ScSetting::tx_port);
     dbg        = new ScTxClient(ScSetting::dbg_port);
@@ -95,14 +96,13 @@ void ScApachePC::init()
         connect(rx_clients[i],        SIGNAL(disconnected()),
                 rx_mapper_disconnect, SLOT(map()));
     }
-
-    dbg->write("init");
 }
 
 void ScApachePC::clientConnected()
 {
     if( putInFree() )
     {
+        dbg->write("init");
         return;
     }
     int new_con_id = cons.length();
@@ -110,9 +110,12 @@ void ScApachePC::clientConnected()
     setupConnection(new_con_id);
     if( rx_buf[new_con_id].length() )
     {
+        qDebug() << "saaalam" << new_con_id;
         cons[0]->write(rx_buf[new_con_id]);
         rx_buf[new_con_id].clear();
     }
+
+    dbg->write("init");
 }
 
 void ScApachePC::clientError(int id)
@@ -135,18 +138,33 @@ void ScApachePC::clientDisconnected(int id)
     read_bufs .resize(SC_MAX_PACKID+1);
     rx_curr_id = 0;
     tx_con->reset();
+    rc_connected = 0;
 }
 
 void ScApachePC::txReadyRead(int id)
 {
     QByteArray data = cons[id]->readAll();
-//    qDebug() << "read_buf::" << data.length();
-    tx_con->write(data);
+    if( rc_connected )
+    {
+        //    qDebug() << "read_buf::" << data.length();
+        tx_con->write(data);
+    }
+    else
+    {
+        tx_buf += data;
+    }
 }
 
 void ScApachePC::rxReadyRead(int id)
 {
     rx_buf[id] += rx_clients[id]->readAll();
+
+    rc_connected = 1;
+    if( tx_buf.length() )
+    {
+        tx_con->write(tx_buf);
+        tx_buf.clear();
+    }
 }
 
 void ScApachePC::rxError(int id)
@@ -208,15 +226,14 @@ void ScApachePC::processBuffer(int id)
             if( cons[i]->isOpen() )
             {
                 QByteArray pack = getPack();
-                cons[i]->write(pack);
-                break;
+                int ret = cons[i]->write(pack);
+                qDebug() << "pack:" << pack << i
+                         << "write:" << pack.length() << ret;
+                return;
             }
         }
     }
-    else
-    {
-        qDebug() << "rxReadyRead:: Client is closed";
-    }
+    qDebug() << "rxReadyRead:: Client is closed" << len;
 }
 
 QByteArray ScApachePC::getPack()

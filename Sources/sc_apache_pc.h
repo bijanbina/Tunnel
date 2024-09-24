@@ -53,6 +53,7 @@ private:
     QSignalMapper  *mapper_error;
     QTcpServer     *server;
     ScTxClient     *tx_con;
+    QByteArray      tx_buf;
     ScTxClient     *dbg;
     QVector<QByteArray> read_bufs;
 
@@ -65,6 +66,7 @@ private:
     QVector<QTimer *>     rx_timer;
     QTimer         *refresh_timer;
     int             rx_curr_id;
+    int             rc_connected; // remote client connected
 };
 
 #endif // SC_APACHE_PC_H

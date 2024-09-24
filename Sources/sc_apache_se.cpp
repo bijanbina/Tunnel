@@ -102,7 +102,7 @@ void ScApacheSe::reset()
     tx_server->reset();
     rx_buf.clear();
     read_bufs.clear();
-    rx_buf.resize(SC_PC_CONLEN);
+    rx_buf.resize(rx_cons.length());
     read_bufs.resize(SC_MAX_PACKID+1);
 }
 
@@ -152,7 +152,10 @@ void ScApacheSe::rxError(int id)
     //         << rx_cons[id]->errorString()
     //         << rx_cons[id]->state();
 
-    rx_cons[id]->close();
+    if( id<rx_cons.length() )
+    {
+        rx_cons[id]->close();
+    }
     //    if( cons[id]->error()==QTcpSocket::RemoteHostClosedError )
     //    {
     //    }
@@ -214,8 +217,8 @@ void ScApacheSe::rxDisconnected(int id)
     }
     else
     {
-        qDebug() << "rxDisconnected: Conn is not open" << id
-                 << rx_buf[id].length();
+        qDebug() << id << "ScApacheSe::rxDisconnected"
+                 << "client is not open" << rx_buf[id].length();
     }
 }
 
@@ -318,8 +321,15 @@ void ScApacheSe::dbgReadyRead(int id)
     if( dbg_buf=="init" )
     {
         reset();
-        client.connectToHost(QHostAddress::LocalHost,
-                             ScSetting::local_port);
+        if( client.isOpen() )
+        {
+            client.disconnectFromHost();
+        }
+        else
+        {
+            client.connectToHost(QHostAddress::LocalHost,
+                                 ScSetting::local_port);
+        }
     }
     qDebug() << "ScApacheSe::Debug"
              << dbg_buf;
@@ -333,8 +343,8 @@ int  ScApacheSe::dbgPutInFree()
     {
         if( dbg_cons[i]->isOpen()==0 )
         {
-//            qDebug() << i << "dbgPutFree"
-//                     << dbg_cons[i]->state();
+            //            qDebug() << i << "dbgPutFree"
+            //                     << dbg_cons[i]->state();
             dbg_mapper_data->removeMappings(dbg_cons[i]);
             delete dbg_cons[i];
             dbgSetupConnection(i);

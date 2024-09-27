@@ -211,12 +211,17 @@ void ScApachePC::rxRefresh()
 
 void ScApachePC::processBuffer(int id)
 {
+    if( rx_buf[id].isEmpty() )
+    {
+        return;
+    }
+
     QString buf_id_s = rx_buf[id].mid(0, SC_LEN_PACKID);
-    int     buf_id   = buf_id_s.toInt();
+    rx_last_id       = buf_id_s.toInt();
     qDebug() << id << "ScApachePC::processBuffer buf_id:"
-             << buf_id << rx_buf[id].length();
+             << rx_last_id << rx_buf[id].length();
     rx_buf[id].remove(0, SC_LEN_PACKID);
-    read_bufs[buf_id] = rx_buf[id];
+    read_bufs[rx_last_id] = rx_buf[id];
     rx_buf[id].clear();
     int len = cons.length();
     if( len )
@@ -234,6 +239,24 @@ void ScApachePC::processBuffer(int id)
         }
     }
     qDebug() << "rxReadyRead:: Client is closed" << len;
+}
+
+// check if we need to resend a packet
+void ScApachePC::checkMissed()
+{
+    int diff = rx_last_id-rx_curr_id;
+    if( diff<0 )
+    {
+        diff += SC_LEN_PACKID;
+    }
+
+    if( diff>SC_MISS_WINDOW )
+    {
+        QByteArray msg = SC_CMD_RESEND;
+        msg += QString::number(rx_curr_id);
+        dbg->write(msg);
+    }
+    qDebug() << "rxReadyRead:: Client is closed" << SC_CMD_RESEND;
 }
 
 QByteArray ScApachePC::getPack()

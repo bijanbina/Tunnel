@@ -334,6 +334,12 @@ void ScApacheSe::dbgReadyRead(int id)
                                  ScSetting::local_port);
         }
     }
+    if( dbg_buf.contains(SC_CMD_RESEND) )
+    {
+        QString pack_id_s = dbg_buf.mid(0, 6); //resend = 6 char
+        int     pack_id   = pack_id_s.toInt();
+        tx_server->resendBuf(pack_id);
+    }
     qDebug() << "ScApacheSe::Debug"
              << dbg_buf;
 }

@@ -26,6 +26,7 @@
 #define SC_TEST_TIMEOUT      15000 // how often send test packet
 #define SC_TXWRITE_TIMEOUT   100   // how often make sure to send
                                    // all remaining data
+#define SC_CMD_RESEND        "resend"
 
 class ScSetting
 {

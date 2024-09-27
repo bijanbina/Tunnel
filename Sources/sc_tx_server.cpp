@@ -115,7 +115,12 @@ void ScTxServer::writeBuf()
 
             if( buf.length()==0 )
             {
-                break;
+                conn_i++;
+                if( SC_PC_CONLEN<=conn_i )
+                {
+                    conn_i = 0;
+                }
+                return;
             }
         }
         conn_i++;
@@ -124,7 +129,34 @@ void ScTxServer::writeBuf()
             conn_i = 0;
         }
     }
+}
 
+void ScTxServer::resendBuf(int id)
+{
+    QByteArray send_buf;
+    int con_len = cons.length();
+    for( int i=0 ; i<con_len ; i++ )
+    {
+        if( cons[conn_i]->isOpen() )
+        {
+            send_buf = tx_buf[id];
+
+            qDebug() << "ScApacheSe::resendBuf curr_id:"
+                     << id;
+            sendData(send_buf);
+            conn_i++;
+            if( SC_PC_CONLEN<=conn_i )
+            {
+                conn_i = 0;
+            }
+            return;
+        }
+        conn_i++;
+        if( SC_PC_CONLEN<=conn_i )
+        {
+            conn_i = 0;
+        }
+    }
 }
 
 void ScTxServer::write(QByteArray data)
@@ -189,7 +221,6 @@ void ScTxServer::txSetupConnection(int con_id)
 
 void ScTxServer::addCounter(QByteArray *send_buf)
 {
-    tx_buf[curr_id] = *send_buf;
     QString tx_id = QString::number(curr_id);
     tx_id = tx_id.rightJustified(SC_LEN_PACKID, '0');
     curr_id++;
@@ -198,6 +229,7 @@ void ScTxServer::addCounter(QByteArray *send_buf)
         curr_id = 0;
     }
     send_buf->prepend(tx_id.toStdString().c_str());
+    tx_buf[curr_id] = *send_buf;
 }
 
 // return 1 when sending data is successful

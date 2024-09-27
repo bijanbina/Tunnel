@@ -23,6 +23,7 @@ public:
 
     void openPort();
     void reset();
+    void resendBuf(int id);
 
     QVector<QTcpSocket *> cons;
     QVector<QHostAddress> ipv4;

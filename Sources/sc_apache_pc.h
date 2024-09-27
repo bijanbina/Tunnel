@@ -43,9 +43,10 @@ public slots:
     void rxRefresh();
 
 private:
-    void processBuffer(int id);
     QByteArray getPack();
     int  putInFree();
+    void checkMissed();
+    void processBuffer(int id);
     void setupConnection(int con_id);
 
     QSignalMapper  *mapper_data;
@@ -67,6 +68,8 @@ private:
     QTimer         *refresh_timer;
     int             rx_curr_id;
     int             rc_connected; // remote client connected
+    int             rx_last_id;   // last rx packed id to determine
+    // if we miss a packet to request resend
 };
 
 #endif // SC_APACHE_PC_H

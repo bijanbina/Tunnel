@@ -14,6 +14,7 @@ public:
 
     void reset();
     void write(QByteArray data);
+    void resendBuf(int id);
 
     QVector<QTcpSocket *> cons;
 
@@ -33,6 +34,7 @@ private:
     QTimer *refresh_timer;
     QTimer *tx_timer;
     QByteArray  buf;
+    QVector<QByteArray>   tx_buf;
 };
 
 #endif // SC_TX_CLIENT_H

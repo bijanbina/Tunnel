@@ -6,6 +6,7 @@ ScTxClient::ScTxClient(int port, QObject *parent):
     tx_port = port;
     counter = 0;
     curr_id = 0;
+    tx_buf.resize(SC_MAX_PACKID);
     refresh_timer = new QTimer;
     tx_timer      = new QTimer;
 
@@ -134,8 +135,17 @@ void ScTxClient::addCounter(QByteArray *send_buf)
     {
         counter = 0;
     }
+    tx_buf[curr_id] = *send_buf;
 }
 
+void ScTxClient::resendBuf(int id)
+{
+    QByteArray send_buf = tx_buf[id];
+
+    qDebug() << "ScApacheSe::resendBuf curr_id:"
+             << id;
+    sendData(send_buf);
+}
 // return 1 when sending data is successful
 int ScTxClient::sendData(QByteArray send_buf)
 {

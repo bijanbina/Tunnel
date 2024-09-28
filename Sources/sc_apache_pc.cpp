@@ -8,7 +8,8 @@ ScApachePC::ScApachePC(QObject *parent):
     server     = new QTcpServer;
     tx_con     = new ScTxClient(ScSetting::tx_port);
     dbg        = new ScTxClient(ScSetting::dbg_port);
-    refresh_timer   = new QTimer;
+    refresh_timer = new QTimer;
+    ack_timer    = new QTimer;
     connect(server, SIGNAL(newConnection()),
             this  , SLOT(clientConnected()));
 
@@ -38,6 +39,10 @@ ScApachePC::ScApachePC(QObject *parent):
     connect(refresh_timer, SIGNAL(timeout()),
             this         , SLOT  (rxRefresh()));
     refresh_timer->start(SC_PCSIDE_TIMEOUT);
+
+    connect(ack_timer, SIGNAL(timeout()),
+            this     , SLOT  (sendAck()));
+    ack_timer->start(SC_ACK_TIMEOUT);
 
     rx_buf.resize    (SC_PC_CONLEN);
     rx_clients.resize(SC_PC_CONLEN);
@@ -217,11 +222,11 @@ void ScApachePC::processBuffer(int id)
     }
 
     QString buf_id_s = rx_buf[id].mid(0, SC_LEN_PACKID);
-    rx_last_id       = buf_id_s.toInt();
+    int     buf_id       = buf_id_s.toInt();
     qDebug() << id << "ScApachePC::processBuffer buf_id:"
-             << rx_last_id << rx_buf[id].length();
+             << buf_id << rx_buf[id].length();
     rx_buf[id].remove(0, SC_LEN_PACKID);
-    read_bufs[rx_last_id] = rx_buf[id];
+    read_bufs[buf_id] = rx_buf[id];
     rx_buf[id].clear();
     int len = cons.length();
     if( len )
@@ -232,8 +237,11 @@ void ScApachePC::processBuffer(int id)
             {
                 QByteArray pack = getPack();
                 int ret = cons[i]->write(pack);
-                qDebug() << "pack:" << pack << i
-                         << "write:" << pack.length() << ret;
+                if( ret==0 )
+                {
+                    qDebug() << "FAILED PACK:" << pack << i
+                             << "write:" << pack.length() << ret;
+                }
                 return;
             }
         }
@@ -242,21 +250,11 @@ void ScApachePC::processBuffer(int id)
 }
 
 // check if we need to resend a packet
-void ScApachePC::checkMissed()
+void ScApachePC::sendAck()
 {
-    int diff = rx_last_id-rx_curr_id;
-    if( diff<0 )
-    {
-        diff += SC_LEN_PACKID;
-    }
-
-    if( diff>SC_MISS_WINDOW )
-    {
-        QByteArray msg = SC_CMD_RESEND;
-        msg += QString::number(rx_curr_id);
-        dbg->write(msg);
-    }
-    qDebug() << "rxReadyRead:: Client is closed" << SC_CMD_RESEND;
+    QByteArray msg = SC_CMD_ACK;
+    msg += QString::number(rx_curr_id);
+    dbg->write(msg);
 }
 
 QByteArray ScApachePC::getPack()

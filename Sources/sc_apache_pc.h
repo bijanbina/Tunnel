@@ -41,11 +41,11 @@ public slots:
     void rxError(int id);
     void rxDisconnected(int id);
     void rxRefresh();
+    void sendAck();
 
 private:
     QByteArray getPack();
     int  putInFree();
-    void checkMissed();
     void processBuffer(int id);
     void setupConnection(int con_id);
 
@@ -66,9 +66,9 @@ private:
     QVector<QByteArray>   rx_buf;
     QVector<QTimer *>     rx_timer;
     QTimer         *refresh_timer;
+    QTimer         *ack_timer;
     int             rx_curr_id;
     int             rc_connected; // remote client connected
-    int             rx_last_id;   // last rx packed id to determine
     // if we miss a packet to request resend
 };
 

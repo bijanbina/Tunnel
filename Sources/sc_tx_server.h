@@ -28,6 +28,7 @@ public:
     QVector<QTcpSocket *> cons;
     QVector<QHostAddress> ipv4;
     QVector<QByteArray>   tx_buf;
+    int                   curr_id;
 
 public slots:
     void write(QByteArray data);
@@ -49,7 +50,6 @@ private:
     QSignalMapper  *mapper_error;
     QTcpServer     *server;
     QTimer         *timer;
-    int             curr_id;
     int             conn_i;
 };
 

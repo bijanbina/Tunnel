@@ -334,11 +334,16 @@ void ScApacheSe::dbgReadyRead(int id)
                                  ScSetting::local_port);
         }
     }
-    if( dbg_buf.contains(SC_CMD_RESEND) )
+    if( dbg_buf.contains(SC_CMD_ACK) )
     {
-        QString pack_id_s = dbg_buf.mid(0, 6); //resend = 6 char
-        int     pack_id   = pack_id_s.toInt();
-        tx_server->resendBuf(pack_id);
+        QString ack_id_s = dbg_buf.mid(0, 6); //resend = 6 char
+        int     ack_id   = ack_id_s.toInt();
+
+        if( ack_id>tx_server->curr_id )
+        {
+            return;
+        }
+        tx_server->resendBuf(ack_id);
     }
     qDebug() << "ScApacheSe::Debug"
              << dbg_buf;

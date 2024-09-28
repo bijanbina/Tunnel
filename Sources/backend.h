@@ -15,7 +15,6 @@
 #define SC_PC_CONLEN    20
 #define SC_MAX_PACKID   999
 #define SC_LEN_PACKID   3
-#define SC_MISS_WINDOW  20 // num of packet missed
 
 #define SC_MIN_PACKLEN  2000
 #define SC_MXX_PACKLEN  6990
@@ -26,7 +25,9 @@
 #define SC_TEST_TIMEOUT      15000 // how often send test packet
 #define SC_TXWRITE_TIMEOUT   100   // how often make sure to send
                                    // all remaining data
-#define SC_CMD_RESEND        "resend"
+#define SC_ACK_TIMEOUT       100   // how often make sure to check
+                                   // all packet are here
+#define SC_CMD_ACK           "ack"
 
 class ScSetting
 {

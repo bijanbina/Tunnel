@@ -107,7 +107,7 @@ void ScApachePC::clientConnected()
 {
     if( putInFree() )
     {
-        dbg->write("init");
+        dbg->write(SC_CMD_INIT SC_CMD_EOP);
         return;
     }
     int new_con_id = cons.length();
@@ -120,7 +120,7 @@ void ScApachePC::clientConnected()
         rx_buf[new_con_id].clear();
     }
 
-    dbg->write("init");
+    dbg->write(SC_CMD_INIT SC_CMD_EOP);
 }
 
 void ScApachePC::clientError(int id)
@@ -136,7 +136,7 @@ void ScApachePC::clientError(int id)
 void ScApachePC::clientDisconnected(int id)
 {
     qDebug() << id << "clientDisconnected";
-    dbg->write("client_disconnected");
+    dbg->write(SC_CMD_DISCONNECT SC_CMD_EOP);
     rx_buf.clear();
     read_bufs.clear();
     rx_buf.resize    (SC_PC_CONLEN);
@@ -254,6 +254,7 @@ void ScApachePC::sendAck()
 {
     QByteArray msg = SC_CMD_ACK;
     msg += QString::number(rx_curr_id);
+    msg += SC_CMD_EOP;
     dbg->write(msg);
 }
 

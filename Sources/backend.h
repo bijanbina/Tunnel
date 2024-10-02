@@ -28,6 +28,10 @@
 #define SC_ACK_TIMEOUT       100   // how often make sure to check
                                    // all packet are here
 #define SC_CMD_ACK           "ack"
+#define SC_CMD_INIT          "init"
+#define SC_CMD_DISCONNECT    "client_disconnected"
+#define SC_CMD_EOP           "\n"  // End of packet
+#define SC_CMD_EOP_CHAR      '\n'  // End of packet
 
 class ScSetting
 {

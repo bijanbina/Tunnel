@@ -27,12 +27,15 @@ ScApacheSe::ScApacheSe(QObject *parent):
     connect(rx_mapper_disconnect, SIGNAL(mapped(int)),
             this                , SLOT(rxDisconnected(int)));
 
-    tx_mapper_data       = new QSignalMapper(this);
+    tx_mapper_data   = new QSignalMapper(this);
 
-    dbg_mapper_data       = new QSignalMapper(this);
+    dbg_mapper_data  = new QSignalMapper(this);
+    dbg_mapper_error = new QSignalMapper(this);
 
     connect(dbg_mapper_data, SIGNAL(mapped(int)),
             this           , SLOT(dbgReadyRead(int)));
+    connect(dbg_mapper_error, SIGNAL(mapped(int)),
+            this            , SLOT(dbgError(int)));
 }
 
 ScApacheSe::~ScApacheSe()
@@ -313,40 +316,63 @@ void ScApacheSe::dbgReadyRead(int id)
     }
 
     dbg_buf.remove(0, SC_LEN_PACKID);
-    if( dbg_buf=="client_disconnected" )
+    QByteArrayList cmd = dbg_buf.split(SC_CMD_EOP_CHAR);
+    for( int i=0 ; i<cmd.length() ; i++ )
     {
-        // connect and reset automatically
-        client.disconnectFromHost();
-    }
-    if( dbg_buf=="init" )
-    {
-        reset();
-        if( client.isOpen() )
+        if( cmd[i]==SC_CMD_DISCONNECT )
         {
+            // connect and reset automatically
             client.disconnectFromHost();
-            client.waitForDisconnected();
-            client.connectToHost(QHostAddress::LocalHost,
-                                 ScSetting::local_port);
         }
-        else
+        else if( cmd[i]==SC_CMD_INIT )
         {
-            client.connectToHost(QHostAddress::LocalHost,
-                                 ScSetting::local_port);
+            reset();
+            if( client.isOpen() )
+            {
+                client.disconnectFromHost();
+                client.waitForDisconnected();
+                client.connectToHost(QHostAddress::LocalHost,
+                                     ScSetting::local_port);
+            }
+            else
+            {
+                client.connectToHost(QHostAddress::LocalHost,
+                                     ScSetting::local_port);
+            }
         }
-    }
-    if( dbg_buf.contains(SC_CMD_ACK) )
-    {
-        QString ack_id_s = dbg_buf.mid(0, 6); //resend = 6 char
-        int     ack_id   = ack_id_s.toInt();
+        else if( cmd[i].contains(SC_CMD_ACK) )
+        {
+            int cmd_len = strlen(SC_CMD_ACK);
+            cmd[i].remove(0, cmd_len);
+            int     ack_id   = cmd[i].toInt();
 
-        if( ack_id>tx_server->curr_id )
-        {
+            if( ack_id>tx_server->curr_id )
+            {
+                return;
+            }
+            tx_server->resendBuf(ack_id);
+            qDebug() << "ScApacheSe::ACK"
+                     << ack_id << tx_server->curr_id;
             return;
         }
-        tx_server->resendBuf(ack_id);
+        qDebug() << "ScApacheSe::Debug"
+                 << cmd[i];
     }
-    qDebug() << "ScApacheSe::Debug"
-             << dbg_buf;
+}
+
+void ScApacheSe::dbgError(int id)
+{
+    if( id<dbg_cons.length() )
+    {
+        dbg_cons[id]->close();
+        if( dbg_cons[id]->error()!=
+                QTcpSocket::RemoteHostClosedError )
+        {
+            qDebug() << "ScApacheSe::dbgError"
+                     << dbg_cons[id]->errorString()
+                     << dbg_cons[id]->state();
+        }
+    }
 }
 
 // return id in array where connection is free
@@ -390,11 +416,15 @@ void ScApacheSe::dbgSetupConnection(int con_id)
     {
         dbg_ipv4.push_back(QHostAddress(ip_32));
         msg += " accept connection";
+        qDebug() << con_id << msg.toStdString().c_str();
     }
-    qDebug() << con_id << msg.toStdString().c_str();
 
     // readyRead
     dbg_mapper_data->setMapping(con, con_id);
     connect(con,            SIGNAL(readyRead()),
             dbg_mapper_data, SLOT(map()));
+
+    dbg_mapper_error->setMapping(con, con_id);
+    connect(con     , SIGNAL(error(QAbstractSocket::SocketError)),
+            dbg_mapper_error, SLOT(map()));
 }

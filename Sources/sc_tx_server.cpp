@@ -6,7 +6,7 @@ ScTxServer::ScTxServer(QObject *parent):
 {
     server  = new QTcpServer;
     timer   = new QTimer;
-    curr_id = 0;
+    curr_id = -1;
     conn_i  = 0;
     tx_buf.resize(SC_MAX_PACKID);
     connect(server,  SIGNAL(newConnection()),
@@ -55,7 +55,7 @@ void ScTxServer::openPort()
 
 void ScTxServer::reset()
 {
-    curr_id = 0;
+    curr_id = -1;
     conn_i  = 0;
     buf.clear();
 }
@@ -107,7 +107,7 @@ void ScTxServer::writeBuf()
             addCounter(&send_buf);
 
             qDebug() << "ScApacheSe::writeBuf curr_id:"
-                     << curr_id-1 << len;
+                     << curr_id << len;
             if( sendData(send_buf) )
             {
                 buf.remove(0, len);
@@ -221,9 +221,9 @@ void ScTxServer::txSetupConnection(int con_id)
 
 void ScTxServer::addCounter(QByteArray *send_buf)
 {
+    curr_id++;
     QString tx_id = QString::number(curr_id);
     tx_id = tx_id.rightJustified(SC_LEN_PACKID, '0');
-    curr_id++;
     if( curr_id>SC_MAX_PACKID )
     {
         curr_id = 0;

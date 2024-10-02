@@ -53,6 +53,7 @@ public slots:
     // dbg
     void dbgReadyRead(int id);
     void dbgConnected();
+    void dbgError(int id);
 
 private:
     void reset();
@@ -84,6 +85,7 @@ private:
 
     // dbg
     QSignalMapper  *dbg_mapper_data;
+    QSignalMapper  *dbg_mapper_error;
     QTcpServer     *dbg_server;
 };
 

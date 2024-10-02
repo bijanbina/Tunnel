@@ -7,7 +7,7 @@ ScApacheTe::ScApacheTe(QObject *parent):
     tx_server  = new QTcpServer;
     tx_timer   = new QTimer;
     rx_server  = new QTcpServer;
-    dbg_server = new QTcpServer;
+    rxdbg_server = new QTcpServer;
     tx_curr_id = 0;
     rx_curr_id = 0;
     rx_buf.resize(SC_PC_CONLEN);
@@ -17,7 +17,7 @@ ScApacheTe::ScApacheTe(QObject *parent):
             this,       SLOT(rxConnected()));
     connect(tx_server,  SIGNAL(newConnection()),
             this,       SLOT(txConnected()));
-    connect(dbg_server, SIGNAL(newConnection()),
+    connect(rxdbg_server, SIGNAL(newConnection()),
             this,       SLOT(dbgConnected()));
 
     rx_mapper_data       = new QSignalMapper(this);
@@ -114,15 +114,16 @@ void ScApacheTe::connectApp()
                  << tx_server->errorString();
     }
 
-    if( dbg_server->listen(QHostAddress::Any, ScSetting::dbg_port) )
+    if( rxdbg_server->listen(QHostAddress::Any,
+                           ScSetting::dbg_rx_port) )
     {
         qDebug() << "created on port "
-                 << ScSetting::dbg_port;
+                 << ScSetting::dbg_rx_port;
     }
     else
     {
         qDebug() << "DbgServer failed, Error message is:"
-                 << dbg_server->errorString();
+                 << rxdbg_server->errorString();
     }
 }
 
@@ -504,7 +505,7 @@ int ScApacheTe::dbgPutInFree()
 
 void ScApacheTe::dbgSetupConnection(int con_id)
 {
-    QTcpSocket *con = dbg_server->nextPendingConnection();
+    QTcpSocket *con = rxdbg_server->nextPendingConnection();
     dbg_cons[con_id] = con;
     con->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     quint32 ip_32 = con->peerAddress().toIPv4Address();

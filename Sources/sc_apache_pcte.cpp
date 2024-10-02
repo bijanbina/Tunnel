@@ -6,7 +6,7 @@ ScApachePcTE::ScApachePcTE(QObject *parent):
     rx_curr_id = 0;
     server     = new QTcpServer;
     tx_con     = new ScTxClient(ScSetting::tx_port);
-    dbg        = new ScTxClient(ScSetting::dbg_port);
+    dbg        = new ScTxClient(ScSetting::dbg_tx_port);
     refresh_timer = new QTimer;
     tx_timer      = new QTimer;
     connect(server, SIGNAL(newConnection()),

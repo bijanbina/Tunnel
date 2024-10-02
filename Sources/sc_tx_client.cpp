@@ -85,7 +85,7 @@ void ScTxClient::conRefresh()
         }
     }
 
-    if( count && tx_port!=ScSetting::dbg_port )
+    if( count && tx_port!=ScSetting::dbg_tx_port )
     {
         qDebug() << "ScTxClient::conRefresh port:"
                  << tx_port << "alive:"

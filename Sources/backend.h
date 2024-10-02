@@ -40,7 +40,8 @@ public:
     static int     local_port;
     static int     tx_port;
     static int     rx_port;
-    static int     dbg_port;
+    static int     dbg_rx_port;
+    static int     dbg_tx_port;
     static QString password;
     static QString remote_host;
 };

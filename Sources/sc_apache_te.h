@@ -98,7 +98,7 @@ private:
 
     // dbg
     QSignalMapper  *dbg_mapper_data;
-    QTcpServer     *dbg_server;
+    QTcpServer     *rxdbg_server;
 };
 
 #endif // SC_APACHE_TE_H

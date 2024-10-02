@@ -7,7 +7,7 @@ ScApachePC::ScApachePC(QObject *parent):
     rc_connected = 0;
     server     = new QTcpServer;
     tx_con     = new ScTxClient(ScSetting::tx_port);
-    dbg        = new ScTxClient(ScSetting::dbg_port);
+    dbg        = new ScTxClient(ScSetting::dbg_tx_port);
     refresh_timer = new QTimer;
     ack_timer    = new QTimer;
     connect(server, SIGNAL(newConnection()),

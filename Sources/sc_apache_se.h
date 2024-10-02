@@ -31,9 +31,13 @@ public:
     QVector<QTcpSocket *> rx_cons;
     QVector<QHostAddress> rx_ipv4;
 
-    // dbg
-    QVector<QTcpSocket *> dbg_cons;
-    QVector<QHostAddress> dbg_ipv4;
+    // dbg rx
+    QVector<QTcpSocket *> dbgrx_cons;
+    QVector<QHostAddress> dbgrx_ipv4;
+
+    // dbg tx
+    QVector<QTcpSocket *> dbgtx_cons;
+    QVector<QHostAddress> dbgtx_ipv4;
 
 public slots:
     // client
@@ -50,10 +54,14 @@ public slots:
     // tx
     void txReadyRead();
 
-    // dbg
-    void dbgReadyRead(int id);
-    void dbgConnected();
-    void dbgError(int id);
+    // dbg rx
+    void dbgRxReadyRead(int id);
+    void dbgRxConnected();
+    void dbgRxError(int id);
+
+    // dbg tx
+    void dbgTxConnected();
+    void dbgTxError(int id);
 
 private:
     void reset();
@@ -63,9 +71,13 @@ private:
     void rxSetupConnection(int con_id);
     QByteArray getPack();
 
-    // dbg
-    int  dbgPutInFree();
-    void dbgSetupConnection(int con_id);
+    // dbg rx
+    int  dbgRxPutInFree();
+    void dbgRxSetupConnection(int con_id);
+
+    // dbg tx
+    int  dbgTxPutInFree();
+    void dbgTxSetupConnection(int con_id);
 
     QTimer     *rx_timer;
     QTcpSocket  client;
@@ -83,10 +95,14 @@ private:
     QSignalMapper *tx_mapper_data;
     ScTxServer    *tx_server;
 
-    // dbg
-    QSignalMapper  *dbg_mapper_data;
-    QSignalMapper  *dbg_mapper_error;
-    QTcpServer     *dbg_server;
+    // dbg rx
+    QSignalMapper  *dbgrx_mapper_data;
+    QSignalMapper  *dbgrx_mapper_error;
+    QTcpServer     *dbgrx_server;
+
+    // dbg tx
+    QSignalMapper  *dbgtx_mapper_error;
+    QTcpServer     *dbgtx_server;
 };
 
 #endif // SC_APACHE_SE_H

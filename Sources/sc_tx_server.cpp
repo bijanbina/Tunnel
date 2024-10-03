@@ -39,9 +39,9 @@ ScTxServer::~ScTxServer()
     }
 }
 
-void ScTxServer::openPort()
+void ScTxServer::openPort(int port)
 {
-    if( server->listen(QHostAddress::Any, ScSetting::tx_port) )
+    if( server->listen(QHostAddress::Any, port) )
     {
         qDebug() << "created on port "
                  << ScSetting::tx_port;

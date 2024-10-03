@@ -21,7 +21,7 @@ public:
     explicit ScTxServer(QObject *parent = 0);
     ~ScTxServer();
 
-    void openPort();
+    void openPort(int port);
     void reset();
     void resendBuf(int id);
 
@@ -39,7 +39,6 @@ public slots:
 private:
     void addCounter(QByteArray *send_buf);
     int  sendData(QByteArray send_buf);
-
 
     int  txPutInFree();
     void txSetupConnection(int con_id);

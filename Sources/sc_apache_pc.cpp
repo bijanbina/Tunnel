@@ -56,7 +56,7 @@ ScApachePC::ScApachePC(QObject *parent):
 
 
     connect(dbgrx_refresh_timer, SIGNAL(timeout()),
-            this               , SLOT  (dbgrxRefresh()));
+            this               , SLOT  (dbgRefresh()));
     dbgrx_refresh_timer->start(SC_PCSIDE_TIMEOUT);
 
 
@@ -130,7 +130,7 @@ void ScApachePC::init()
     {
         dbg_rx[i] = new QTcpSocket;
         dbg_rx[i]->connectToHost(ScSetting::remote_host,
-                                 ScSetting::rx_port);
+                                 ScSetting::dbg_rx_port);
         dbg_rx[i]->setSocketOption(
                     QAbstractSocket::LowDelayOption, 1);
 
@@ -258,7 +258,8 @@ void ScApachePC::rxRefresh()
     if( count )
     {
         qDebug() << "ScApachePC::rxRefresh"
-                 << rx_clients.length() << cons.length()-count;
+                 << rx_clients.length()
+                 << rx_clients.length()-count;
     }
 }
 
@@ -367,7 +368,7 @@ void ScApachePC::dbgRefresh()
         if( dbg_rx[i]->isOpen()==0 )
         {
             dbg_rx[i]->connectToHost(ScSetting::remote_host,
-                                     ScSetting::rx_port);
+                                     ScSetting::dbg_rx_port);
             count++;
         }
     }
@@ -376,7 +377,7 @@ void ScApachePC::dbgRefresh()
     if( count )
     {
         qDebug() << "ScApachePC::dbgRefresh"
-                 << dbg_rx.length() << cons.length()-count;
+                 << dbg_rx.length() << dbg_rx.length()-count;
     }
 }
 

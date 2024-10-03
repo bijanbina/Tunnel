@@ -16,6 +16,7 @@ public:
     void write(QByteArray data);
     void resendBuf(int id);
 
+    int  curr_id;
     QVector<QTcpSocket *> cons;
 
 private slots:
@@ -28,9 +29,8 @@ private:
     void addCounter(QByteArray *send_buf);
     int  sendData  (QByteArray  send_buf);
 
-    int     counter;
+    int     conn_i;
     int     tx_port;
-    int     curr_id;
     QTimer *refresh_timer;
     QTimer *tx_timer;
     QByteArray  buf;

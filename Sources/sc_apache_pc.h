@@ -43,6 +43,12 @@ public slots:
     void rxRefresh();
     void sendAck();
 
+    // dbg
+    void dbgReadyRead(int id);
+    void dbgError(int id);
+    void dbgDisconnected(int id);
+    void dbgRefresh();
+
 private:
     QByteArray getPack();
     int  putInFree();
@@ -55,7 +61,7 @@ private:
     QTcpServer     *server;
     ScTxClient     *tx_con;
     QByteArray      tx_buf;
-    ScTxClient     *dbg;
+    ScTxClient     *dbg_tx;
     QVector<QByteArray> read_bufs;
 
     // rx
@@ -64,12 +70,18 @@ private:
     QSignalMapper  *rx_mapper_error;
     QVector<QTcpSocket *> rx_clients;
     QVector<QByteArray>   rx_buf;
-    QVector<QTimer *>     rx_timer;
-    QTimer         *refresh_timer;
+    QTimer         *rx_refresh_timer;
     QTimer         *ack_timer;
     int             rx_curr_id;
     int             rc_connected; // remote client connected
-    // if we miss a packet to request resend
+                    // if we miss a packet to request resend
+
+    // dbg rx
+    QSignalMapper  *dbgrx_mapper_data;
+    QSignalMapper  *dbgrx_mapper_disconnect;
+    QSignalMapper  *dbgrx_mapper_error;
+    QVector<QTcpSocket *> dbg_rx;
+    QTimer         *dbgrx_refresh_timer;
 };
 
 #endif // SC_APACHE_PC_H

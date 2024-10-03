@@ -4,8 +4,8 @@ ScTxClient::ScTxClient(int port, QObject *parent):
     QObject(parent)
 {
     tx_port = port;
-    counter = 0;
-    curr_id = 0;
+    curr_id = -1;
+    conn_i  = 0;
     tx_buf.resize(SC_MAX_PACKID);
     refresh_timer = new QTimer;
     tx_timer      = new QTimer;
@@ -36,7 +36,7 @@ ScTxClient::ScTxClient(int port, QObject *parent):
 
 void ScTxClient::reset()
 {
-    counter = 0;
+    curr_id = -1;
     buf.clear();
 }
 
@@ -127,15 +127,15 @@ void ScTxClient::writeBuf()
 
 void ScTxClient::addCounter(QByteArray *send_buf)
 {
-    QString buf_id = QString::number(counter);
+    curr_id++;
+    QString buf_id = QString::number(curr_id);
     buf_id = buf_id.rightJustified(SC_LEN_PACKID, '0');
     send_buf->prepend(buf_id.toStdString().c_str());
-    counter++;
-    if( counter>SC_MAX_PACKID )
+    if( curr_id>SC_MAX_PACKID )
     {
-        counter = 0;
+        curr_id = -1;
     }
-    tx_buf[curr_id] = *send_buf;
+    tx_buf[conn_i] = *send_buf;
 }
 
 void ScTxClient::resendBuf(int id)
@@ -152,15 +152,15 @@ int ScTxClient::sendData(QByteArray send_buf)
     int s = 0;
     for( int count=0 ; count<SC_PC_CONLEN ; count++ )
     {
-        if( cons[curr_id]->isOpen() )
+        if( cons[conn_i]->isOpen() )
         {
-            s = cons[curr_id]->write(send_buf);
-            cons[curr_id]->disconnectFromHost();
-            cons[curr_id]->close();
-            curr_id++;
-            if( curr_id>=SC_PC_CONLEN )
+            s = cons[conn_i]->write(send_buf);
+            cons[conn_i]->disconnectFromHost();
+            cons[conn_i]->close();
+            conn_i++;
+            if( conn_i>=SC_PC_CONLEN )
             {
-                curr_id = 0;
+                conn_i = 0;
             }
 
             if( s!=send_buf.length() )
@@ -172,10 +172,10 @@ int ScTxClient::sendData(QByteArray send_buf)
 
             return 1;
         }
-        curr_id++;
-        if( curr_id>=SC_PC_CONLEN )
+        conn_i++;
+        if( conn_i>=SC_PC_CONLEN )
         {
-            curr_id = 0;
+            conn_i = 0;
         }
     }
 

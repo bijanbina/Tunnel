@@ -339,7 +339,7 @@ void ScApachePC::dbgReadyRead(int id)
                      << ack_id << tx_con->curr_id;
             return;
         }
-        qDebug() << "ScApacheSe::Debug"
+        qDebug() << "ScApachePC::dbgReadyRead"
                  << cmd[i];
     }
 }
@@ -357,9 +357,8 @@ void ScApachePC::dbgError(int id)
 
 void ScApachePC::dbgDisconnected(int id)
 {
-    processBuffer(id);
     dbg_rx[id]->connectToHost(ScSetting::remote_host,
-                              ScSetting::rx_port);
+                              ScSetting::dbg_rx_port);
     dbg_rx[id]->setSocketOption(
                 QAbstractSocket::LowDelayOption, 1);
 }

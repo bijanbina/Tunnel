@@ -50,6 +50,7 @@ private:
     QTcpServer     *server;
     QTimer         *timer;
     int             conn_i;
+    int             tx_port;
 };
 
 #endif // SC_TX_SERVER_H

@@ -474,7 +474,7 @@ void ScApacheTe::dbgReadyRead(int id)
     {
         client.disconnectFromHost();
     }
-    qDebug() << "ScApacheSe::Debug"
+    qDebug() << "ScApacheTe::dbgReadyRead"
              << dbg_buf;
 }
 

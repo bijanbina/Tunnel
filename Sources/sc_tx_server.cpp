@@ -41,10 +41,11 @@ ScTxServer::~ScTxServer()
 
 void ScTxServer::openPort(int port)
 {
-    if( server->listen(QHostAddress::Any, port) )
+    tx_port = port;
+    if( server->listen(QHostAddress::Any, tx_port) )
     {
         qDebug() << "created on port "
-                 << port;
+                 << tx_port;
     }
     else
     {
@@ -106,8 +107,11 @@ void ScTxServer::writeBuf()
             send_buf = buf.mid(0, len);
             addCounter(&send_buf);
 
-            qDebug() << "ScApacheSe::writeBuf curr_id:"
-                     << curr_id << len;
+            if( tx_port!=ScSetting::dbg_tx_port )
+            {
+                qDebug() << "ScTxServer::writeBuf curr_id:"
+                         << curr_id << "len:" << len;
+            }
             if( sendData(send_buf) )
             {
                 buf.remove(0, len);

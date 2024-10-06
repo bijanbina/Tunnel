@@ -364,7 +364,7 @@ void ScApacheSe::dbgRxReadyRead(int id)
                      << ack_id << tx_server->curr_id;
             return;
         }
-        qDebug() << "ScApacheSe::Debug"
+        qDebug() << "ScApacheSe::dbgRxReadyRead"
                  << cmd[i];
     }
 }
@@ -416,7 +416,7 @@ void ScApacheSe::dbgRxSetupConnection(int con_id)
     dbgrx_cons[con_id] = con;
     con->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     quint32 ip_32 = con->peerAddress().toIPv4Address();
-    QString msg = "ApacheSe::dbgSetup";
+    QString msg = "ScApacheSe::dbgRxSetup";
     if( con_id<dbgrx_ipv4.length() )
     { // put in free
         dbgrx_ipv4[con_id] = QHostAddress(ip_32);

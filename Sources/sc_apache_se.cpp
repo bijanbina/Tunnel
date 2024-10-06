@@ -17,8 +17,6 @@ ScApacheSe::ScApacheSe(QObject *parent):
             this        , SLOT(rxConnected()));
     connect(dbg_rx, SIGNAL(newConnection()),
             this        , SLOT(dbgRxConnected()));
-    connect(dbg_tx, SIGNAL(newConnection()),
-            this        , SLOT(dbgTxConnected()));
 
     rx_mapper_data       = new QSignalMapper(this);
     rx_mapper_error      = new QSignalMapper(this);

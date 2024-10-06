@@ -85,7 +85,7 @@ void ScTxClient::conRefresh()
         }
     }
 
-    if( count && tx_port!=ScSetting::dbg_tx_port )
+    if( count>1 && tx_port!=ScSetting::dbg_tx_port )
     {
         qDebug() << "ScTxClient::conRefresh port:"
                  << tx_port << "alive:"
@@ -131,11 +131,11 @@ void ScTxClient::addCounter(QByteArray *send_buf)
     QString buf_id = QString::number(curr_id);
     buf_id = buf_id.rightJustified(SC_LEN_PACKID, '0');
     send_buf->prepend(buf_id.toStdString().c_str());
-    if( curr_id>SC_MAX_PACKID )
+    tx_buf[conn_i] = *send_buf;
+    if( curr_id>SC_MAX_PACKID-1 )
     {
         curr_id = -1;
     }
-    tx_buf[conn_i] = *send_buf;
 }
 
 void ScTxClient::resendBuf(int id)

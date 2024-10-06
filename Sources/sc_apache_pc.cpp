@@ -271,9 +271,10 @@ void ScApachePC::processBuffer(int id)
     }
 
     QString buf_id_s = rx_buf[id].mid(0, SC_LEN_PACKID);
-    int     buf_id       = buf_id_s.toInt();
+    int     buf_id   = buf_id_s.toInt();
     qDebug() << id << "ScApachePC::processBuffer buf_id:"
-             << buf_id << rx_buf[id].length();
+             << buf_id << "data_len:"
+             << rx_buf[id].length();
     rx_buf[id].remove(0, SC_LEN_PACKID);
     read_bufs[buf_id] = rx_buf[id];
     rx_buf[id].clear();
@@ -285,6 +286,10 @@ void ScApachePC::processBuffer(int id)
             if( cons[i]->isOpen() )
             {
                 QByteArray pack = getPack();
+                if( pack.isEmpty() )
+                {
+                    return;
+                }
                 int ret = cons[i]->write(pack);
                 if( ret==0 )
                 {

@@ -44,7 +44,7 @@ void ScTxServer::openPort(int port)
     if( server->listen(QHostAddress::Any, port) )
     {
         qDebug() << "created on port "
-                 << ScSetting::tx_port;
+                 << port;
     }
     else
     {
@@ -141,7 +141,7 @@ void ScTxServer::resendBuf(int id)
         {
             send_buf = tx_buf[id];
 
-            qDebug() << "ScApacheSe::resendBuf curr_id:"
+            qDebug() << "ScTxServer::resendBuf id:"
                      << id;
             sendData(send_buf);
             conn_i++;
@@ -224,12 +224,12 @@ void ScTxServer::addCounter(QByteArray *send_buf)
     curr_id++;
     QString tx_id = QString::number(curr_id);
     tx_id = tx_id.rightJustified(SC_LEN_PACKID, '0');
-    if( curr_id>SC_MAX_PACKID )
-    {
-        curr_id = 0;
-    }
     send_buf->prepend(tx_id.toStdString().c_str());
     tx_buf[curr_id] = *send_buf;
+    if( curr_id>SC_MAX_PACKID-1 )
+    {
+        curr_id = -1;
+    }
 }
 
 // return 1 when sending data is successful

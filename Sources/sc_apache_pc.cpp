@@ -369,14 +369,20 @@ void ScApachePC::dbgRefresh()
     int count = 0;
     for( int i=0 ; i<len ; i++ )
     {
-        if( dbg_rx[i]->isOpen()==0 )
+        if( dbg_rx[i]->isOpen()==0 &&
+            cons[i]->state()!=QTcpSocket::ConnectingState &&
+            cons[i]->state()!=QTcpSocket::ClosingState )
         {
             dbg_rx[i]->connectToHost(ScSetting::remote_host,
                                      ScSetting::dbg_rx_port);
             count++;
         }
+        else if( dbg_rx[i]->state()!=
+                 QAbstractSocket::ConnectedState )
+        {
+            qDebug() << "dbgRefresh" << dbg_rx[i]->state();
+        }
     }
-    //    qDebug() << "dbgRefresh" << count;
 
     if( count )
     {

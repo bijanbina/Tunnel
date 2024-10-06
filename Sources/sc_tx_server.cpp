@@ -139,6 +139,9 @@ void ScTxServer::resendBuf(int id)
 {
     QByteArray send_buf;
     int con_len = cons.length();
+    qDebug() << "ScTxServer::ACK"
+             << id << curr_id
+             << "con_len:" << con_len;
     for( int i=0 ; i<con_len ; i++ )
     {
         if( cons[conn_i]->isOpen() )
@@ -161,6 +164,8 @@ void ScTxServer::resendBuf(int id)
             conn_i = 0;
         }
     }
+    qDebug() << "ScTxServer::resendBuf Failed id:" << id
+             << "conn_i" << conn_i;
 }
 
 void ScTxServer::write(QByteArray data)
@@ -239,13 +244,13 @@ void ScTxServer::addCounter(QByteArray *send_buf)
 // return 1 when sending data is successful
 int ScTxServer::sendData(QByteArray send_buf)
 {
-    int s = cons[conn_i]->write(send_buf);
+    int ret = cons[conn_i]->write(send_buf);
     cons[conn_i]->flush();
     cons[conn_i]->close();
-    if( s!=send_buf.length() )
+    if( ret!=send_buf.length() )
     {
-        qDebug() << "writeBuf: Error"
-                 << send_buf.length() << s;
+        qDebug() << "ScTxServer::sendData Error"
+                 << send_buf.length() << ret;
         return 0;
     }
 

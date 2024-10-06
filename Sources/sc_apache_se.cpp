@@ -92,7 +92,7 @@ void ScApacheSe::connectApp()
     }
 
     if( dbg_rx->listen(QHostAddress::Any,
-                           ScSetting::dbg_rx_port) )
+                       ScSetting::dbg_rx_port) )
     {
         qDebug() << "created on port "
                  << ScSetting::dbg_rx_port;
@@ -360,8 +360,6 @@ void ScApacheSe::dbgRxReadyRead(int id)
                 return;
             }
             tx_server->resendBuf(ack_id);
-            qDebug() << "ScApacheSe::ACK"
-                     << ack_id << tx_server->curr_id;
             return;
         }
         qDebug() << "ScApacheSe::dbgRxReadyRead"
@@ -392,8 +390,8 @@ int  ScApacheSe::dbgRxPutInFree()
     {
         if( dbgrx_cons[i]->isOpen()==0 )
         {
-            //            qDebug() << i << "dbgRxPutFree"
-            //                     << dbgrx_cons[i]->state();
+//            qDebug() << i << "dbgRxPutFree"
+//                     << dbgrx_cons[i]->state();
             dbgrx_mapper_data->removeMappings(dbgrx_cons[i]);
             dbgrx_mapper_error->removeMappings(dbgrx_cons[i]);
             delete dbgrx_cons[i];
@@ -401,9 +399,11 @@ int  ScApacheSe::dbgRxPutInFree()
 
             return 1;
         }
-        else
+        else if( dbgrx_cons[i]->state()!=
+                 QTcpSocket::ConnectedState )
         {
-            //qDebug() << "conn is open" << i;
+            qDebug() << "ScApacheSe::dbgRxPutInFree conn" << i
+                     << "state:" << dbgrx_cons[i]->state();
         }
     }
 

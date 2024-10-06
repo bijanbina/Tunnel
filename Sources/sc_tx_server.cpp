@@ -116,7 +116,7 @@ void ScTxServer::writeBuf()
             if( buf.length()==0 )
             {
                 conn_i++;
-                if( SC_PC_CONLEN<=conn_i )
+                if( con_len<=conn_i )
                 {
                     conn_i = 0;
                 }
@@ -124,7 +124,7 @@ void ScTxServer::writeBuf()
             }
         }
         conn_i++;
-        if( SC_PC_CONLEN<=conn_i )
+        if( con_len<=conn_i )
         {
             conn_i = 0;
         }
@@ -145,14 +145,14 @@ void ScTxServer::resendBuf(int id)
                      << id;
             sendData(send_buf);
             conn_i++;
-            if( SC_PC_CONLEN<=conn_i )
+            if( con_len<=conn_i )
             {
                 conn_i = 0;
             }
             return;
         }
         conn_i++;
-        if( SC_PC_CONLEN<=conn_i )
+        if( con_len<=conn_i )
         {
             conn_i = 0;
         }

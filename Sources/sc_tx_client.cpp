@@ -73,24 +73,36 @@ void ScTxClient::conRefresh()
 {
     int len = cons.length();
     int count = 0;
+    int connecting = 0;
     for( int i=0 ; i<len ; i++ )
     {
         if( cons[i]->isOpen()==0 &&
-            cons[i]->state()!=QTcpSocket::ConnectingState &&
-            cons[i]->state()!=QTcpSocket::ClosingState )
+            cons[i]->state()==QTcpSocket::UnconnectedState )
         {
             cons[i]->connectToHost(ScSetting::remote_host,
                                    tx_port);
             count++;
         }
+        else if( cons[i]->state()!=
+                 QAbstractSocket::ConnectedState )
+        {
+            connecting++;
+            if( cons[i]->state()!=QTcpSocket::ConnectingState &&
+                cons[i]->state()!=QTcpSocket::ClosingState )
+            {
+                qDebug() << i << "ScTxClient::conRefresh"
+                         << cons[i]->state();
+            }
+        }
     }
 
-    if( count>1 && tx_port!=ScSetting::dbg_tx_port )
+    if( ( count>1 || connecting>10 ) &&
+        tx_port!=ScSetting::dbg_tx_port )
     {
         qDebug() << "ScTxClient::conRefresh port:"
                  << tx_port << "alive:"
                  << cons.length()-count << "count:"
-                 << count;
+                 << count << "connecting" << connecting;
     }
 }
 
@@ -149,10 +161,16 @@ void ScTxClient::resendBuf(int id)
 // return 1 when sending data is successful
 int ScTxClient::sendData(QByteArray send_buf)
 {
+    if( send_buf.isEmpty() )
+    {
+        return 0;
+    }
+    qDebug() << "ScTxClient::sendData send_buf:" << send_buf;
     int s = 0;
     for( int count=0 ; count<SC_PC_CONLEN ; count++ )
     {
-        if( cons[conn_i]->isOpen() )
+        if( cons[conn_i]->isOpen() &&
+            cons[conn_i]->state()==QTcpSocket::ConnectedState )
         {
             s = cons[conn_i]->write(send_buf);
             cons[conn_i]->disconnectFromHost();

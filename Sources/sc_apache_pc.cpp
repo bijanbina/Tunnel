@@ -306,10 +306,13 @@ void ScApachePC::processBuffer(int id)
 // check if we need to resend a packet
 void ScApachePC::sendAck()
 {
-    QByteArray msg = SC_CMD_ACK;
-    msg += QString::number(rx_curr_id);
-    msg += SC_CMD_EOP;
-    dbg_tx->write(msg);
+//    if( cons.length() )
+//    {
+        QByteArray msg = SC_CMD_ACK;
+        msg += QString::number(rx_curr_id);
+        msg += SC_CMD_EOP;
+        dbg_tx->write(msg);
+//    }
 }
 
 void ScApachePC::dbgReadyRead(int id)
@@ -357,37 +360,46 @@ void ScApachePC::dbgError(int id)
 
 void ScApachePC::dbgDisconnected(int id)
 {
-    dbg_rx[id]->connectToHost(ScSetting::remote_host,
-                              ScSetting::dbg_rx_port);
+//    dbg_rx[id]->connectToHost(ScSetting::remote_host,
+//                              ScSetting::dbg_rx_port);
     dbg_rx[id]->setSocketOption(
                 QAbstractSocket::LowDelayOption, 1);
 }
 
 void ScApachePC::dbgRefresh()
 {
-    int len = dbg_rx.length();
-    int count = 0;
+    int len        = dbg_rx.length();
+    int count      = 0;
+    int connecting = 0;
     for( int i=0 ; i<len ; i++ )
     {
         if( dbg_rx[i]->isOpen()==0 &&
-            cons[i]->state()!=QTcpSocket::ConnectingState &&
-            cons[i]->state()!=QTcpSocket::ClosingState )
+            dbg_rx[i]->state()==QTcpSocket::UnconnectedState )
         {
             dbg_rx[i]->connectToHost(ScSetting::remote_host,
                                      ScSetting::dbg_rx_port);
             count++;
+//            qDebug() << i << "ScApachePC::dbgRefresh"
+//                     << dbg_rx[i]->state();
         }
         else if( dbg_rx[i]->state()!=
                  QAbstractSocket::ConnectedState )
         {
-            qDebug() << "dbgRefresh" << dbg_rx[i]->state();
+            connecting++;
+            if( dbg_rx[i]->state()!=QTcpSocket::ConnectingState )
+            {
+//                qDebug() << i << "ScApachePC::dbgRefresh"
+//                         << dbg_rx[i]->state()
+//                         << dbg_rx[i]->isOpen();
+            }
         }
     }
 
-    if( count )
+    if( count || connecting>10 )
     {
         qDebug() << "ScApachePC::dbgRefresh"
-                 << dbg_rx.length() << dbg_rx.length()-count;
+                 << dbg_rx.length() << dbg_rx.length()-count
+                 << "connecting:" << connecting;
     }
 }
 

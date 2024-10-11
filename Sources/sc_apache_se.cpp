@@ -7,7 +7,7 @@ ScApacheSe::ScApacheSe(QObject *parent):
     rx_server  = new QTcpServer;
     tx_server  = new ScTxServer;
     dbg_rx     = new QTcpServer;
-    dbg_tx     = new ScTxServer;
+    dbg_tx     = new ScDbgServer;
     ack_timer  = new QTimer;
     rx_curr_id = 0;
     rx_buf.resize(SC_PC_CONLEN);
@@ -153,6 +153,7 @@ void ScApacheSe::rxConnected()
     }
     int new_con_id = rx_cons.length();
     rx_cons.push_back(NULL);
+    rx_buf.push_back("");
     rxSetupConnection(new_con_id);
 }
 
@@ -277,10 +278,6 @@ void ScApacheSe::rxSetupConnection(int con_id)
         msg += " accept connection";
         qDebug() << con_id << msg.toStdString().c_str()
                  << rx_ipv4[con_id].toString();
-    }
-    if( con_id>=rx_buf.length() )
-    {
-        rx_buf.push_back("");
     }
 
     // readyRead

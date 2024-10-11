@@ -50,25 +50,6 @@ void ScTxClient::write(QByteArray data)
     writeBuf();
 }
 
-void ScTxClient::disconnected()
-{
-    buf.clear();
-//    qDebug() << "ScRemoteClient: Disconnected";
-}
-
-void ScTxClient::displayError(QAbstractSocket::SocketError
-                                  socketError)
-{
-//    if( socketError==QTcpSocket::RemoteHostClosedError )
-//    {
-//        return;
-//    }
-
-//    qDebug() << "Network error The following error occurred"
-//             << remote->errorString();
-//    remote->close();
-}
-
 void ScTxClient::conRefresh()
 {
     int len = cons.length();
@@ -158,6 +139,7 @@ void ScTxClient::resendBuf(int id)
              << id;
     sendData(send_buf);
 }
+
 // return 1 when sending data is successful
 int ScTxClient::sendData(QByteArray send_buf)
 {
@@ -165,7 +147,7 @@ int ScTxClient::sendData(QByteArray send_buf)
     {
         return 0;
     }
-    qDebug() << "ScTxClient::sendData send_buf:" << send_buf;
+//    qDebug() << "ScTxClient::sendData send_buf:" << send_buf;
     int s = 0;
     for( int count=0 ; count<SC_PC_CONLEN ; count++ )
     {

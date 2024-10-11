@@ -11,6 +11,7 @@
 #include <QTimer>
 #include <QSignalMapper>
 #include "backend.h"
+#include "sc_dbg_client.h"
 #include "sc_tx_client.h"
 
 class ScApachePC : public QObject
@@ -61,7 +62,7 @@ private:
     QTcpServer     *server;
     ScTxClient     *tx_con;
     QByteArray      tx_buf;
-    ScTxClient     *dbg_tx;
+    ScDbgClient    *dbg_tx;
     QVector<QByteArray> read_bufs;
 
     // rx

@@ -20,8 +20,6 @@ public:
     QVector<QTcpSocket *> cons;
 
 private slots:
-    void disconnected();
-    void displayError(QAbstractSocket::SocketError socketError);
     void conRefresh();
     void writeBuf();
 

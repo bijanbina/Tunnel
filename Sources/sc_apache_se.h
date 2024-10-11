@@ -11,6 +11,7 @@
 #include <QTimer>
 #include <QSignalMapper>
 #include "backend.h"
+#include "sc_dbg_server.h"
 #include "sc_tx_client.h"
 #include "sc_tx_server.h"
 
@@ -91,7 +92,7 @@ private:
     QTcpServer     *dbg_rx;
 
     // dbg tx
-    ScTxServer     *dbg_tx;
+    ScDbgServer    *dbg_tx;
 };
 
 #endif // SC_APACHE_SE_H

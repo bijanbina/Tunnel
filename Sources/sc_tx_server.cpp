@@ -97,7 +97,8 @@ void ScTxServer::writeBuf()
     int con_len = cons.length();
     for( int i=0 ; i<con_len ; i++ )
     {
-        if( cons[conn_i]->isOpen() )
+        if( cons[conn_i]->isOpen() &&
+            cons[conn_i]->state()==QTcpSocket::ConnectedState )
         {
             int len = split_size;
             if( buf.length()<split_size )
@@ -144,7 +145,8 @@ void ScTxServer::resendBuf(int id)
              << "con_len:" << con_len;
     for( int i=0 ; i<con_len ; i++ )
     {
-        if( cons[conn_i]->isOpen() )
+        if( cons[conn_i]->isOpen() &&
+            cons[conn_i]->state()==QTcpSocket::ConnectedState )
         {
             send_buf = tx_buf[id];
 

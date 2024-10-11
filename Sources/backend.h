@@ -15,6 +15,7 @@
 #define SC_PC_CONLEN    20
 #define SC_MAX_PACKID   999
 #define SC_LEN_PACKID   3
+#define SC_MAX_PACK     5
 
 #define SC_MIN_PACKLEN  2000
 #define SC_MXX_PACKLEN  6990

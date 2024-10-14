@@ -48,6 +48,8 @@ public slots:
     void dbgReadyRead(int id);
     void dbgError(int id);
     void dbgDisconnected(int id);
+    void dbgConnected(int id);
+    void dbgTimeout(int id);
     void dbgRefresh();
 
 private:
@@ -80,9 +82,12 @@ private:
     // dbg rx
     QSignalMapper  *dbgrx_mapper_data;
     QSignalMapper  *dbgrx_mapper_disconnect;
+    QSignalMapper  *dbgrx_mapper_connect;
     QSignalMapper  *dbgrx_mapper_error;
+    QSignalMapper  *dbgrx_mapper_timer;
     QVector<QTcpSocket *> dbg_rx;
-    QTimer         *dbgrx_refresh_timer;
+    QVector<QTimer *>     dbgrx_timer;
+    QTimer               *dbgrx_refresh_timer;
 };
 
 #endif // SC_APACHE_PC_H

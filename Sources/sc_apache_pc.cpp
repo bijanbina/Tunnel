@@ -46,6 +46,8 @@ ScApachePC::ScApachePC(QObject *parent):
     dbgrx_mapper_data       = new QSignalMapper(this);
     dbgrx_mapper_error      = new QSignalMapper(this);
     dbgrx_mapper_disconnect = new QSignalMapper(this);
+    dbgrx_mapper_connect    = new QSignalMapper(this);
+    dbgrx_mapper_timer      = new QSignalMapper(this);
 
     connect(dbgrx_mapper_data      , SIGNAL(mapped(int)),
             this                   , SLOT  (dbgReadyRead(int)));
@@ -53,6 +55,10 @@ ScApachePC::ScApachePC(QObject *parent):
             this                   , SLOT  (dbgError(int)));
     connect(dbgrx_mapper_disconnect, SIGNAL(mapped(int)),
             this                   , SLOT  (dbgDisconnected(int)));
+    connect(dbgrx_mapper_connect   , SIGNAL(mapped(int)),
+            this                   , SLOT  (dbgConnected(int)));
+    connect(dbgrx_mapper_timer     , SIGNAL(mapped(int)),
+            this                   , SLOT  (dbgTimeout(int)));
 
 
     connect(dbgrx_refresh_timer, SIGNAL(timeout()),
@@ -67,6 +73,11 @@ ScApachePC::ScApachePC(QObject *parent):
     rx_buf.resize    (SC_PC_CONLEN);
     rx_clients.resize(SC_PC_CONLEN);
     read_bufs .resize(SC_MAX_PACKID+1);
+    dbgrx_timer.resize(SC_PC_CONLEN);
+    for( int i=0; i<SC_PC_CONLEN ; i++ )
+    {
+        dbgrx_timer[i] = new QTimer;
+    }
 
     dbg_rx.resize(SC_PC_CONLEN);
 }
@@ -146,8 +157,18 @@ void ScApachePC::init()
 
         // disconnected
         dbgrx_mapper_disconnect->setMapping(dbg_rx[i], i);
-        connect(dbg_rx[i],        SIGNAL(disconnected()),
+        connect(dbg_rx[i]              , SIGNAL(disconnected()),
                 dbgrx_mapper_disconnect, SLOT(map()));
+
+        // connected
+        dbgrx_mapper_connect->setMapping(dbg_rx[i], i);
+        connect(dbg_rx[i]           , SIGNAL(connected()),
+                dbgrx_mapper_connect, SLOT(map()));
+
+        // timeout
+        dbgrx_mapper_timer->setMapping(dbgrx_timer[i], i);
+        connect(dbgrx_timer[i], SIGNAL(timeout()),
+                dbgrx_mapper_timer    , SLOT(map()));
     }
 }
 
@@ -273,8 +294,8 @@ void ScApachePC::processBuffer(int id)
     QString buf_id_s = rx_buf[id].mid(0, SC_LEN_PACKID);
     int     buf_id   = buf_id_s.toInt();
     qDebug() << id << "ScApachePC::processBuffer buf_id:"
-             << buf_id << "data_len:"
-             << rx_buf[id].length();
+             << buf_id << "data_len:" << rx_buf[id].length()
+             << "start" << rx_curr_id;
     rx_buf[id].remove(0, SC_LEN_PACKID);
     read_bufs[buf_id] = rx_buf[id];
     rx_buf[id].clear();
@@ -356,6 +377,7 @@ void ScApachePC::dbgError(int id)
                  << dbg_rx[id]->state()
                  << dbg_rx[id]->errorString();
     }
+    dbgrx_timer[id]->stop();
 }
 
 void ScApachePC::dbgDisconnected(int id)
@@ -364,6 +386,21 @@ void ScApachePC::dbgDisconnected(int id)
 //                              ScSetting::dbg_rx_port);
     dbg_rx[id]->setSocketOption(
                 QAbstractSocket::LowDelayOption, 1);
+}
+
+void ScApachePC::dbgConnected(int id)
+{
+//    dbg_rx[id]->connectToHost(ScSetting::remote_host,
+//                              ScSetting::dbg_rx_port);
+    dbg_rx[id]->setSocketOption(
+                QAbstractSocket::LowDelayOption, 1);
+    dbgrx_timer[id]->stop();
+}
+
+void ScApachePC::dbgTimeout(int id)
+{
+    dbgrx_timer[id]->stop();
+    dbg_rx[id]->abort();
 }
 
 void ScApachePC::dbgRefresh()
@@ -378,6 +415,7 @@ void ScApachePC::dbgRefresh()
         {
             dbg_rx[i]->connectToHost(ScSetting::remote_host,
                                      ScSetting::dbg_rx_port);
+            dbgrx_timer[i]->start(SC_CONN_TIMEOUT);
             count++;
 //            qDebug() << i << "ScApachePC::dbgRefresh"
 //                     << dbg_rx[i]->state();
@@ -423,10 +461,10 @@ QByteArray ScApachePC::getPack()
         }
     }
 
-    qDebug() << "ScApachePC::getPack start:"
-             << rx_curr_id-count
-             << "count:" << count << "tx_con:"
-             << tx_con->cons.length();
+//    qDebug() << "ScApachePC::getPack start:"
+//             << rx_curr_id-count
+//             << "count:" << count << "tx_con:"
+//             << tx_con->cons.length();
     return pack;
 }
 

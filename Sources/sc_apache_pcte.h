@@ -26,10 +26,6 @@ public:
     QVector<QTcpSocket *> cons;
     QVector<QHostAddress> ipv4;
 
-signals:
-    void connected(int id);
-    void dataReady(int id, QString data);
-
 public slots:
     void txReadyRead(int id);
     void clientConnected();

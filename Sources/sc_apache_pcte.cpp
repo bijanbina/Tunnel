@@ -311,6 +311,4 @@ void ScApachePcTE::setupConnection(int con_id)
     mapper_disconnect->setMapping(con, con_id);
     connect(con, SIGNAL(disconnected()),
             mapper_disconnect, SLOT(map()));
-
-    emit connected(con_id);
 }

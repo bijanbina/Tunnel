@@ -1,4 +1,4 @@
-#include "sc_apache_pc.h"
+﻿#include "sc_apache_pc.h"
 
 ScApachePC::ScApachePC(QObject *parent):
     QObject(parent)
@@ -60,11 +60,9 @@ ScApachePC::ScApachePC(QObject *parent):
     connect(dbgrx_mapper_timer     , SIGNAL(mapped(int)),
             this                   , SLOT  (dbgTimeout(int)));
 
-
     connect(dbgrx_refresh_timer, SIGNAL(timeout()),
             this               , SLOT  (dbgRefresh()));
     dbgrx_refresh_timer->start(SC_PCSIDE_TIMEOUT);
-
 
     connect(ack_timer, SIGNAL(timeout()),
             this     , SLOT  (sendAck()));
@@ -229,9 +227,9 @@ void ScApachePC::txReadyRead(int id)
     }
 }
 
-void ScApachePC::rxReadyRead(int id)
+void ScApachePC::rxReadyRead(QByteArray pack)
 {
-    rx_buf[id] += rx_clients[id]->readAll();
+    rx_buf[pack] += rx_clients[pack]->readAll();
 
     rc_connected = 1;
     if( tx_buf.length() )
@@ -336,9 +334,9 @@ void ScApachePC::sendAck()
 //    }
 }
 
-void ScApachePC::dbgReadyRead(int id)
+void ScApachePC::dbgReadyRead(QByteArray data)
 {
-    QByteArray dbg_buf = dbg_rx[id]->readAll();
+    QByteArray dbg_buf = dbg_rx[data]->readAll();
     if( dbg_buf.isEmpty() )
     {
         return;
@@ -526,6 +524,4 @@ void ScApachePC::setupConnection(int con_id)
     mapper_disconnect->setMapping(con, con_id);
     connect(con, SIGNAL(disconnected()),
             mapper_disconnect, SLOT(map()));
-
-    emit connected(con_id);
 }

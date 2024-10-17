@@ -27,10 +27,6 @@ public:
     QVector<QTcpSocket *> cons;
     QVector<QHostAddress> ipv4;
 
-signals:
-    void connected(int id);
-    void dataReady(int id, QString data);
-
 public slots:
     void txReadyRead(int id);
     void clientConnected();
@@ -38,19 +34,10 @@ public slots:
     void clientDisconnected(int id);
 
     // rx
-    void rxReadyRead(int id);
-    void rxError(int id);
-    void rxDisconnected(int id);
-    void rxRefresh();
-    void sendAck();
+    void rxReadyRead(QByteArray pack);
 
     // dbg
-    void dbgReadyRead(int id);
-    void dbgError(int id);
-    void dbgDisconnected(int id);
-    void dbgConnected(int id);
-    void dbgTimeout(int id);
-    void dbgRefresh();
+    void dbgReadyRead(QByteArray data);
 
 private:
     QByteArray getPack();

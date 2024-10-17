@@ -19,10 +19,12 @@ class ScRxClient : public QObject
     Q_OBJECT
 
 public:
-    explicit ScRxClient(QObject *parent = 0);
+    explicit ScRxClient(int rx_port, QObject *parent = 0);
     ~ScRxClient();
 
-    void init(int rx_port);
+    void init();
+
+    int  curr_id;
 
 signals:
     void dataReady(QByteArray data);
@@ -45,7 +47,6 @@ private:
     QVector<QByteArray>   rx_buf;
     QTimer               *refresh_timer;
     QVector<QTimer *>     conn_timers;
-    int                   curr_id;
     int                   port;
     int                   is_debug;
 

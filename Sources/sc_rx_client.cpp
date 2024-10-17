@@ -1,8 +1,15 @@
 #include "sc_rx_client.h"
 
-ScRxClient::ScRxClient(QObject *parent):
+ScRxClient::ScRxClient(int rx_port, QObject *parent):
     QObject(parent)
 {
+    port     = rx_port;
+    is_debug = 0;
+    if( port==ScSetting::dbg_rx_port )
+    {
+        is_debug = 0;
+    }
+
     curr_id       = 0;
     refresh_timer = new QTimer;
 
@@ -41,15 +48,8 @@ ScRxClient::~ScRxClient()
     ;
 }
 
-void ScRxClient::init(int rx_port)
+void ScRxClient::init()
 {
-    port     = rx_port;
-    is_debug = 0;
-    if( port==ScSetting::dbg_rx_port )
-    {
-        is_debug = 0;
-    }
-
     // dbg
     for( int i=0 ; i<SC_PC_CONLEN ; i++ )
     {
@@ -102,7 +102,7 @@ void ScRxClient::error(int id)
 {
     if( clients[id]->error()!=QTcpSocket::RemoteHostClosedError )
     {
-        qDebug() << id << "ScApachePC::rxError"
+        qDebug() << id << "ScRxClient::error"
                  << clients[id]->state()
                  << clients[id]->errorString();
     }
@@ -129,11 +129,11 @@ void ScRxClient::refresh()
         if( clients[i]->isOpen()==0 )
         {
             clients[i]->connectToHost(ScSetting::remote_host,
-                                         ScSetting::rx_port);
+                                      port);
             count++;
         }
     }
-    //    qDebug() << "rxRefresh" << count;
+    //    qDebug() << "ScRxClient::refresh" << count;
 
     if( count )
     {
@@ -192,7 +192,7 @@ QByteArray ScRxClient::getPack()
         }
     }
 
-//    qDebug() << "ScApachePC::getPack start:"
+//    qDebug() << "ScRxClient::getPack start:"
 //             << rx_curr_id-count
 //             << "count:" << count << "tx_con:"
 //             << tx_con->cons.length();

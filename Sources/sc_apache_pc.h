@@ -12,6 +12,7 @@
 #include <QSignalMapper>
 #include "backend.h"
 #include "sc_dbg_client.h"
+#include "sc_rx_client.h"
 #include "sc_tx_client.h"
 
 class ScApachePC : public QObject
@@ -35,14 +36,13 @@ public slots:
 
     // rx
     void rxReadyRead(QByteArray pack);
+    void sendAck();
 
     // dbg
     void dbgReadyRead(QByteArray data);
 
 private:
-    QByteArray getPack();
     int  putInFree();
-    void processBuffer(int id);
     void setupConnection(int con_id);
 
     QSignalMapper  *mapper_data;
@@ -55,26 +55,14 @@ private:
     QVector<QByteArray> read_bufs;
 
     // rx
-    QSignalMapper  *rx_mapper_data;
-    QSignalMapper  *rx_mapper_disconnect;
-    QSignalMapper  *rx_mapper_error;
-    QVector<QTcpSocket *> rx_clients;
-    QVector<QByteArray>   rx_buf;
-    QTimer         *rx_refresh_timer;
-    QTimer         *ack_timer;
-    int             rx_curr_id;
-    int             rc_connected; // remote client connected
+    ScRxClient *rx_con;
+    QByteArray  rx_buf;
+    QTimer     *ack_timer;
+    int         rc_connected; // remote client connected
                     // if we miss a packet to request resend
 
-    // dbg rx
-    QSignalMapper  *dbgrx_mapper_data;
-    QSignalMapper  *dbgrx_mapper_disconnect;
-    QSignalMapper  *dbgrx_mapper_connect;
-    QSignalMapper  *dbgrx_mapper_error;
-    QSignalMapper  *dbgrx_mapper_timer;
-    QVector<QTcpSocket *> dbg_rx;
-    QVector<QTimer *>     dbgrx_timer;
-    QTimer               *dbgrx_refresh_timer;
+    // dbg
+    ScRxClient *dbg_rx;
 };
 
 #endif // SC_APACHE_PC_H

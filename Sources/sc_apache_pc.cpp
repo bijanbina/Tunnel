@@ -3,13 +3,12 @@
 ScApachePC::ScApachePC(QObject *parent):
     QObject(parent)
 {
-    rx_curr_id       = 0;
-    rc_connected     = 0;
+    rc_connected = 0;
     server = new QTcpServer;
     tx_con = new ScTxClient(ScSetting::tx_port);
+    rx_con = new ScRxClient(ScSetting::rx_port);
     dbg_tx = new ScDbgClient(ScSetting::dbg_tx_port);
-    rx_refresh_timer    = new QTimer;
-    dbgrx_refresh_timer = new QTimer;
+    dbg_rx = new ScRxClient (ScSetting::dbg_rx_port);
     ack_timer     = new QTimer;
     connect(server, SIGNAL(newConnection()),
             this  , SLOT(clientConnected()));
@@ -26,58 +25,18 @@ ScApachePC::ScApachePC(QObject *parent):
             this             , SLOT(clientDisconnected(int)));
 
     // rx
-    rx_mapper_data       = new QSignalMapper(this);
-    rx_mapper_error      = new QSignalMapper(this);
-    rx_mapper_disconnect = new QSignalMapper(this);
-
-    connect(rx_mapper_data      , SIGNAL(mapped(int)),
-            this                , SLOT  (rxReadyRead(int)));
-    connect(rx_mapper_error     , SIGNAL(mapped(int)),
-            this                , SLOT  (rxError(int)));
-    connect(rx_mapper_disconnect, SIGNAL(mapped(int)),
-            this                , SLOT  (rxDisconnected(int)));
-
-    connect(rx_refresh_timer, SIGNAL(timeout()),
-            this            , SLOT  (rxRefresh()));
-    rx_refresh_timer->start(SC_PCSIDE_TIMEOUT);
-
+    connect(rx_con, SIGNAL(dataReady(QByteArray)),
+            this  , SLOT  (rxReadyRead(QByteArray)));
 
     // dbg
-    dbgrx_mapper_data       = new QSignalMapper(this);
-    dbgrx_mapper_error      = new QSignalMapper(this);
-    dbgrx_mapper_disconnect = new QSignalMapper(this);
-    dbgrx_mapper_connect    = new QSignalMapper(this);
-    dbgrx_mapper_timer      = new QSignalMapper(this);
-
-    connect(dbgrx_mapper_data      , SIGNAL(mapped(int)),
-            this                   , SLOT  (dbgReadyRead(int)));
-    connect(dbgrx_mapper_error     , SIGNAL(mapped(int)),
-            this                   , SLOT  (dbgError(int)));
-    connect(dbgrx_mapper_disconnect, SIGNAL(mapped(int)),
-            this                   , SLOT  (dbgDisconnected(int)));
-    connect(dbgrx_mapper_connect   , SIGNAL(mapped(int)),
-            this                   , SLOT  (dbgConnected(int)));
-    connect(dbgrx_mapper_timer     , SIGNAL(mapped(int)),
-            this                   , SLOT  (dbgTimeout(int)));
-
-    connect(dbgrx_refresh_timer, SIGNAL(timeout()),
-            this               , SLOT  (dbgRefresh()));
-    dbgrx_refresh_timer->start(SC_PCSIDE_TIMEOUT);
+    connect(dbg_rx, SIGNAL(dataReady(QByteArray)),
+            this  , SLOT  (dbgReadyRead(QByteArray)));
 
     connect(ack_timer, SIGNAL(timeout()),
             this     , SLOT  (sendAck()));
     ack_timer->start(SC_ACK_TIMEOUT);
 
-    rx_buf.resize    (SC_PC_CONLEN);
-    rx_clients.resize(SC_PC_CONLEN);
     read_bufs .resize(SC_MAX_PACKID+1);
-    dbgrx_timer.resize(SC_PC_CONLEN);
-    for( int i=0; i<SC_PC_CONLEN ; i++ )
-    {
-        dbgrx_timer[i] = new QTimer;
-    }
-
-    dbg_rx.resize(SC_PC_CONLEN);
 }
 
 ScApachePC::~ScApachePC()
@@ -108,66 +67,6 @@ void ScApachePC::init()
         qDebug() << "Server failed, Error message is:"
                  << server->errorString();
     }
-
-    // rx
-    for( int i=0 ; i<SC_PC_CONLEN ; i++ )
-    {
-        rx_clients[i] = new QTcpSocket;
-        rx_clients[i]->connectToHost(ScSetting::remote_host,
-                                     ScSetting::rx_port);
-        rx_clients[i]->setSocketOption(
-                    QAbstractSocket::LowDelayOption, 1);
-
-        // readyRead
-        rx_mapper_data->setMapping(rx_clients[i], i);
-        connect(rx_clients[i] , SIGNAL(readyRead()),
-                rx_mapper_data, SLOT(map()));
-
-        // displayError
-        rx_mapper_error->setMapping(rx_clients[i], i);
-        connect(rx_clients[i],   SIGNAL(error(QAbstractSocket::SocketError)),
-                rx_mapper_error, SLOT(map()));
-
-        // disconnected
-        rx_mapper_disconnect->setMapping(rx_clients[i], i);
-        connect(rx_clients[i],        SIGNAL(disconnected()),
-                rx_mapper_disconnect, SLOT(map()));
-    }
-
-    // dbg
-    for( int i=0 ; i<SC_PC_CONLEN ; i++ )
-    {
-        dbg_rx[i] = new QTcpSocket;
-        dbg_rx[i]->connectToHost(ScSetting::remote_host,
-                                 ScSetting::dbg_rx_port);
-        dbg_rx[i]->setSocketOption(
-                    QAbstractSocket::LowDelayOption, 1);
-
-        // readyRead
-        dbgrx_mapper_data->setMapping(dbg_rx[i], i);
-        connect(dbg_rx[i]        , SIGNAL(readyRead()),
-                dbgrx_mapper_data, SLOT(map()));
-
-        // displayError
-        dbgrx_mapper_error->setMapping(dbg_rx[i], i);
-        connect(dbg_rx[i],   SIGNAL(error(QAbstractSocket::SocketError)),
-                dbgrx_mapper_error, SLOT(map()));
-
-        // disconnected
-        dbgrx_mapper_disconnect->setMapping(dbg_rx[i], i);
-        connect(dbg_rx[i]              , SIGNAL(disconnected()),
-                dbgrx_mapper_disconnect, SLOT(map()));
-
-        // connected
-        dbgrx_mapper_connect->setMapping(dbg_rx[i], i);
-        connect(dbg_rx[i]           , SIGNAL(connected()),
-                dbgrx_mapper_connect, SLOT(map()));
-
-        // timeout
-        dbgrx_mapper_timer->setMapping(dbgrx_timer[i], i);
-        connect(dbgrx_timer[i], SIGNAL(timeout()),
-                dbgrx_mapper_timer    , SLOT(map()));
-    }
 }
 
 void ScApachePC::clientConnected()
@@ -180,11 +79,11 @@ void ScApachePC::clientConnected()
     int new_con_id = cons.length();
     cons.push_back(NULL);
     setupConnection(new_con_id);
-    if( rx_buf[new_con_id].length() )
+    if( rx_buf.length() )
     {
         qDebug() << "saaalam" << new_con_id;
-        cons[0]->write(rx_buf[new_con_id]);
-        rx_buf[new_con_id].clear();
+        cons[0]->write(rx_buf);
+        rx_buf.clear();
     }
 
     dbg_tx->write(SC_CMD_INIT SC_CMD_EOP);
@@ -208,7 +107,7 @@ void ScApachePC::clientDisconnected(int id)
     read_bufs.clear();
     rx_buf.resize    (SC_PC_CONLEN);
     read_bufs .resize(SC_MAX_PACKID+1);
-    rx_curr_id = 0;
+    rx_con->curr_id = 0;
     tx_con->reset();
     rc_connected = 0;
 }
@@ -229,74 +128,7 @@ void ScApachePC::txReadyRead(int id)
 
 void ScApachePC::rxReadyRead(QByteArray pack)
 {
-    rx_buf[pack] += rx_clients[pack]->readAll();
-
-    rc_connected = 1;
-    if( tx_buf.length() )
-    {
-        tx_con->write(tx_buf);
-        tx_buf.clear();
-    }
-}
-
-void ScApachePC::rxError(int id)
-{
-    if( rx_clients[id]->error()!=
-            QTcpSocket::RemoteHostClosedError )
-    {
-        qDebug() << id << "ScApachePC::rxError"
-                 << rx_clients[id]->state()
-                 << rx_clients[id]->errorString();
-    }
-}
-
-void ScApachePC::rxDisconnected(int id)
-{
-    processBuffer(id);
-    rx_clients[id]->connectToHost(ScSetting::remote_host,
-                                  ScSetting::rx_port);
-    rx_clients[id]->setSocketOption(
-                QAbstractSocket::LowDelayOption, 1);
-}
-
-void ScApachePC::rxRefresh()
-{
-    int len = rx_clients.length();
-    int count = 0;
-    for( int i=0 ; i<len ; i++ )
-    {
-        if( rx_clients[i]->isOpen()==0 )
-        {
-            rx_clients[i]->connectToHost(ScSetting::remote_host,
-                                         ScSetting::rx_port);
-            count++;
-        }
-    }
-    //    qDebug() << "rxRefresh" << count;
-
-    if( count )
-    {
-        qDebug() << "ScApachePC::rxRefresh"
-                 << rx_clients.length()
-                 << rx_clients.length()-count;
-    }
-}
-
-void ScApachePC::processBuffer(int id)
-{
-    if( rx_buf[id].isEmpty() )
-    {
-        return;
-    }
-
-    QString buf_id_s = rx_buf[id].mid(0, SC_LEN_PACKID);
-    int     buf_id   = buf_id_s.toInt();
-    qDebug() << id << "ScApachePC::processBuffer buf_id:"
-             << buf_id << "data_len:" << rx_buf[id].length()
-             << "start" << rx_curr_id;
-    rx_buf[id].remove(0, SC_LEN_PACKID);
-    read_bufs[buf_id] = rx_buf[id];
-    rx_buf[id].clear();
+    rx_buf += pack;
     int len = cons.length();
     if( len )
     {
@@ -304,11 +136,6 @@ void ScApachePC::processBuffer(int id)
         {
             if( cons[i]->isOpen() )
             {
-                QByteArray pack = getPack();
-                if( pack.isEmpty() )
-                {
-                    return;
-                }
                 int ret = cons[i]->write(pack);
                 if( ret==0 )
                 {
@@ -319,24 +146,30 @@ void ScApachePC::processBuffer(int id)
             }
         }
     }
-    qDebug() << "rxReadyRead:: Client is closed" << len;
+
+    rc_connected = 1;
+    if( tx_buf.length() )
+    {
+        tx_con->write(tx_buf);
+        tx_buf.clear();
+    }
 }
 
 // check if we need to resend a packet
 void ScApachePC::sendAck()
 {
-//    if( cons.length() )
-//    {
-        QByteArray msg = SC_CMD_ACK;
-        msg += QString::number(rx_curr_id);
-        msg += SC_CMD_EOP;
-        dbg_tx->write(msg);
-//    }
+    //    if( cons.length() )
+    //    {
+    QByteArray msg = SC_CMD_ACK;
+    msg += QString::number(rx_con->curr_id);
+    msg += SC_CMD_EOP;
+    dbg_tx->write(msg);
+    //    }
 }
 
 void ScApachePC::dbgReadyRead(QByteArray data)
 {
-    QByteArray dbg_buf = dbg_rx[data]->readAll();
+    QByteArray dbg_buf = data;
     if( dbg_buf.isEmpty() )
     {
         return;
@@ -364,106 +197,6 @@ void ScApachePC::dbgReadyRead(QByteArray data)
         qDebug() << "ScApachePC::dbgReadyRead"
                  << cmd[i];
     }
-}
-
-void ScApachePC::dbgError(int id)
-{
-    if( dbg_rx[id]->error()!=
-            QTcpSocket::RemoteHostClosedError )
-    {
-        qDebug() << id << "ScApachePC::rxError"
-                 << dbg_rx[id]->state()
-                 << dbg_rx[id]->errorString();
-    }
-    dbgrx_timer[id]->stop();
-}
-
-void ScApachePC::dbgDisconnected(int id)
-{
-//    dbg_rx[id]->connectToHost(ScSetting::remote_host,
-//                              ScSetting::dbg_rx_port);
-    dbg_rx[id]->setSocketOption(
-                QAbstractSocket::LowDelayOption, 1);
-}
-
-void ScApachePC::dbgConnected(int id)
-{
-//    dbg_rx[id]->connectToHost(ScSetting::remote_host,
-//                              ScSetting::dbg_rx_port);
-    dbg_rx[id]->setSocketOption(
-                QAbstractSocket::LowDelayOption, 1);
-    dbgrx_timer[id]->stop();
-}
-
-void ScApachePC::dbgTimeout(int id)
-{
-    dbgrx_timer[id]->stop();
-    dbg_rx[id]->abort();
-}
-
-void ScApachePC::dbgRefresh()
-{
-    int len        = dbg_rx.length();
-    int count      = 0;
-    int connecting = 0;
-    for( int i=0 ; i<len ; i++ )
-    {
-        if( dbg_rx[i]->isOpen()==0 &&
-            dbg_rx[i]->state()==QTcpSocket::UnconnectedState )
-        {
-            dbg_rx[i]->connectToHost(ScSetting::remote_host,
-                                     ScSetting::dbg_rx_port);
-            dbgrx_timer[i]->start(SC_CONN_TIMEOUT);
-            count++;
-//            qDebug() << i << "ScApachePC::dbgRefresh"
-//                     << dbg_rx[i]->state();
-        }
-        else if( dbg_rx[i]->state()!=
-                 QAbstractSocket::ConnectedState )
-        {
-            connecting++;
-            if( dbg_rx[i]->state()!=QTcpSocket::ConnectingState )
-            {
-//                qDebug() << i << "ScApachePC::dbgRefresh"
-//                         << dbg_rx[i]->state()
-//                         << dbg_rx[i]->isOpen();
-            }
-        }
-    }
-
-    if( count || connecting>10 )
-    {
-        qDebug() << "ScApachePC::dbgRefresh"
-                 << dbg_rx.length() << dbg_rx.length()-count
-                 << "connecting:" << connecting;
-    }
-}
-
-QByteArray ScApachePC::getPack()
-{
-    QByteArray pack;
-    int count = 0;
-    while( read_bufs[rx_curr_id].length() )
-    {
-        pack += read_bufs[rx_curr_id];
-        read_bufs[rx_curr_id].clear();
-        rx_curr_id++;
-        count++;
-        if( rx_curr_id>SC_MAX_PACKID )
-        {
-            rx_curr_id = 0;
-        }
-        if( count>SC_MAX_PACKID )
-        {
-            break;
-        }
-    }
-
-//    qDebug() << "ScApachePC::getPack start:"
-//             << rx_curr_id-count
-//             << "count:" << count << "tx_con:"
-//             << tx_con->cons.length();
-    return pack;
 }
 
 // return id in array where connection is free

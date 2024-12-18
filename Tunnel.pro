@@ -15,11 +15,11 @@ HEADERS += \
     Sources/sc_apache_pcte.h \
     Sources/sc_apache_se.h \
     Sources/sc_apache_te.h \
+    Sources/sc_meta_client.h \
+    Sources/sc_meta_server.h \
     Sources/sc_rx_client.h \
     Sources/sc_tx_client.h \
-    Sources/sc_tx_server.h \
-    Sources/sc_dbg_server.h \
-    Sources/sc_dbg_client.h
+    Sources/sc_tx_server.h
 
 win32:HEADERS +=
 
@@ -30,10 +30,10 @@ SOURCES += \
     Sources/sc_apache_pcte.cpp \
     Sources/sc_apache_se.cpp \
     Sources/sc_apache_te.cpp \
+    Sources/sc_meta_client.cpp \
+    Sources/sc_meta_server.cpp \
     Sources/sc_rx_client.cpp \
     Sources/sc_tx_client.cpp \
-    Sources/sc_tx_server.cpp \
-    Sources/sc_dbg_server.cpp \
-    Sources/sc_dbg_client.cpp
+    Sources/sc_tx_server.cpp
 
 win32:SOURCES +=

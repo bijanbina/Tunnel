@@ -1,6 +1,6 @@
-#include "sc_dbg_client.h"
+#include "sc_meta_client.h"
 
-ScDbgClient::ScDbgClient(int port, QObject *parent):
+ScMetaClient::ScMetaClient(int port, QObject *parent):
     QObject(parent)
 {
     tx_port = port;
@@ -35,13 +35,13 @@ ScDbgClient::ScDbgClient(int port, QObject *parent):
     tx_timer->start(SC_TXWRITE_TIMEOUT);
 }
 
-void ScDbgClient::reset()
+void ScMetaClient::reset()
 {
     curr_id = -1;
     buf.clear();
 }
 
-void ScDbgClient::write(QByteArray data)
+void ScMetaClient::write(QByteArray data)
 {
     buf += data;
     if( buf.length()<SC_MIN_PACKLEN )
@@ -51,7 +51,7 @@ void ScDbgClient::write(QByteArray data)
     writeBuf();
 }
 
-void ScDbgClient::conRefresh()
+void ScMetaClient::conRefresh()
 {
     int len = cons.length();
     int count = 0;
@@ -89,7 +89,7 @@ void ScDbgClient::conRefresh()
     }
 }
 
-void ScDbgClient::writeBuf()
+void ScMetaClient::writeBuf()
 {
     if( buf.isEmpty() || cons.isEmpty() )
     {
@@ -120,7 +120,7 @@ void ScDbgClient::writeBuf()
     }
 }
 
-void ScDbgClient::addCounter(QByteArray *send_buf)
+void ScMetaClient::addCounter(QByteArray *send_buf)
 {
     curr_id++;
     QString buf_id = QString::number(curr_id);
@@ -134,7 +134,7 @@ void ScDbgClient::addCounter(QByteArray *send_buf)
 }
 
 // return 1 when sending data is successful
-int ScDbgClient::sendData(QByteArray send_buf)
+int ScMetaClient::sendData(QByteArray send_buf)
 {
     if( send_buf.isEmpty() )
     {

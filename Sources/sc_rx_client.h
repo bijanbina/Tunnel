@@ -11,7 +11,7 @@
 #include <QTimer>
 #include <QSignalMapper>
 #include "backend.h"
-#include "sc_dbg_client.h"
+#include "sc_meta_client.h"
 #include "sc_tx_client.h"
 
 class ScRxClient : public QObject

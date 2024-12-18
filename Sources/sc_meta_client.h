@@ -1,5 +1,5 @@
-#ifndef SC_DBG_CLIENT_H
-#define SC_DBG_CLIENT_H
+#ifndef SC_META_CLIENT_H
+#define SC_META_CLIENT_H
 
 #include <QObject>
 #include <QTcpSocket>
@@ -7,11 +7,11 @@
 #include <QVector>
 #include "backend.h"
 
-class ScDbgClient : public QObject
+class ScMetaClient : public QObject
 {
     Q_OBJECT
 public:
-    explicit ScDbgClient(int port, QObject *parent = nullptr);
+    explicit ScMetaClient(int port, QObject *parent = nullptr);
     void write(QByteArray data);
     void reset();
 
@@ -34,4 +34,4 @@ private:
     QVector<QByteArray> tx_buf;
 };
 
-#endif // SC_DBG_CLIENT_H
+#endif // SC_META_CLIENT_H

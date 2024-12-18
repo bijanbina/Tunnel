@@ -1,5 +1,5 @@
-#ifndef SC_DBG_SERVER_H
-#define SC_DBG_SERVER_H
+#ifndef SC_META_SERVER_H
+#define SC_META_SERVER_H
 
 #include <QTcpServer>
 #include <QTcpSocket>
@@ -13,13 +13,13 @@
 #include "backend.h"
 #include "sc_tx_client.h"
 
-class ScDbgServer : public QObject
+class ScMetaServer: public QObject
 {
     Q_OBJECT
 
 public:
-    explicit ScDbgServer(QObject *parent = 0);
-    ~ScDbgServer();
+    explicit ScMetaServer(QObject *parent = 0);
+    ~ScMetaServer();
 
     void openPort(int port);
     void reset();
@@ -54,4 +54,4 @@ private:
     int             tx_port;
 };
 
-#endif // SC_DBG_SERVER_H
+#endif // SC_META_SERVER_H

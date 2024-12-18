@@ -1,7 +1,7 @@
-#include "sc_dbg_server.h"
+#include "sc_meta_server.h"
 #include <QThread>
 
-ScDbgServer::ScDbgServer(QObject *parent):
+ScMetaServer::ScMetaServer(QObject *parent):
     QObject(parent)
 {
     server  = new QTcpServer;
@@ -23,7 +23,7 @@ ScDbgServer::ScDbgServer(QObject *parent):
     timer->start(SC_TXSERVER_TIMEOUT);
 }
 
-ScDbgServer::~ScDbgServer()
+ScMetaServer::~ScMetaServer()
 {
     int len = cons.size();
     for( int i=0 ; i<len ; i++ )
@@ -39,7 +39,7 @@ ScDbgServer::~ScDbgServer()
     }
 }
 
-void ScDbgServer::openPort(int port)
+void ScMetaServer::openPort(int port)
 {
     tx_port = port;
     if( server->listen(QHostAddress::Any, tx_port) )
@@ -54,14 +54,14 @@ void ScDbgServer::openPort(int port)
     }
 }
 
-void ScDbgServer::reset()
+void ScMetaServer::reset()
 {
     curr_id = -1;
     conn_i  = 0;
     buf.clear();
 }
 
-void ScDbgServer::txConnected()
+void ScMetaServer::txConnected()
 {
 //    qDebug() << tx_cons.length() << "txAccept";
     if( txPutInFree() )
@@ -75,7 +75,7 @@ void ScDbgServer::txConnected()
     write(""); // to send buff data
 }
 
-void ScDbgServer::txError(int id)
+void ScMetaServer::txError(int id)
 {
     if( cons[id]->error()!=QTcpSocket::RemoteHostClosedError )
     {
@@ -86,7 +86,7 @@ void ScDbgServer::txError(int id)
     }
 }
 
-void ScDbgServer::writeBuf()
+void ScMetaServer::writeBuf()
 {
     if( buf.isEmpty() || cons.isEmpty() )
     {
@@ -134,7 +134,7 @@ void ScDbgServer::writeBuf()
     }
 }
 
-void ScDbgServer::resendBuf(int id)
+void ScMetaServer::resendBuf(int id)
 {
     QByteArray send_buf;
     int con_len = cons.length();
@@ -168,7 +168,7 @@ void ScDbgServer::resendBuf(int id)
              << "conn_i" << conn_i;
 }
 
-void ScDbgServer::write(QByteArray data)
+void ScMetaServer::write(QByteArray data)
 {
     buf += data;
     if( buf.length()<SC_MIN_PACKLEN )
@@ -179,7 +179,7 @@ void ScDbgServer::write(QByteArray data)
 }
 
 // return id in array where connection is free
-int  ScDbgServer::txPutInFree()
+int  ScMetaServer::txPutInFree()
 {
     int len = cons.length();
     for( int i=0 ; i<len ; i++ )
@@ -204,7 +204,7 @@ int  ScDbgServer::txPutInFree()
     return 0;
 }
 
-void ScDbgServer::txSetupConnection(int con_id)
+void ScMetaServer::txSetupConnection(int con_id)
 {
     QTcpSocket *con = server->nextPendingConnection();
     cons[con_id] = con;
@@ -229,7 +229,7 @@ void ScDbgServer::txSetupConnection(int con_id)
             mapper_error, SLOT(map()));
 }
 
-void ScDbgServer::addCounter(QByteArray *send_buf)
+void ScMetaServer::addCounter(QByteArray *send_buf)
 {
     curr_id++;
     QString tx_id = QString::number(curr_id);
@@ -243,7 +243,7 @@ void ScDbgServer::addCounter(QByteArray *send_buf)
 }
 
 // return 1 when sending data is successful
-int ScDbgServer::sendData(QByteArray send_buf)
+int ScMetaServer::sendData(QByteArray send_buf)
 {
     int ret = cons[conn_i]->write(send_buf);
     cons[conn_i]->flush();

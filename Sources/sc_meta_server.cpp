@@ -4,13 +4,10 @@
 ScMetaServer::ScMetaServer(QObject *parent):
     QObject(parent)
 {
-    server  = new QTcpServer;
+    server  = new QUdpSocket;
     timer   = new QTimer;
     curr_id = -1;
-    conn_i  = 0;
     tx_buf.resize(SC_MAX_PACKID);
-    connect(server,  SIGNAL(newConnection()),
-            this  ,  SLOT(txConnected()));
 
     mapper_error      = new QSignalMapper(this);
     mapper_disconnect = new QSignalMapper(this);
@@ -25,24 +22,20 @@ ScMetaServer::ScMetaServer(QObject *parent):
 
 ScMetaServer::~ScMetaServer()
 {
-    int len = cons.size();
-    for( int i=0 ; i<len ; i++ )
+    if( server==NULL )
     {
-        if( cons[i]==NULL )
-        {
-            continue;
-        }
-        if( cons[i]->isOpen() )
-        {
-            cons[i]->close();
-        }
+        return;
+    }
+    if( server->isOpen() )
+    {
+        server->close();
     }
 }
 
 void ScMetaServer::openPort(int port)
 {
     tx_port = port;
-    if( server->listen(QHostAddress::Any, tx_port) )
+    if( server->bind(QHostAddress::Any, tx_port) )
     {
         qDebug() << "created on port "
                  << tx_port;
@@ -63,109 +56,74 @@ void ScMetaServer::reset()
 
 void ScMetaServer::txConnected()
 {
-//    qDebug() << tx_cons.length() << "txAccept";
-    if( txPutInFree() )
-    {
-        return;
-    }
-    int new_con_id = cons.length();
-    cons.push_back(NULL);
-    cons_count.push_back(0);
-    txSetupConnection(new_con_id);
+    //    qDebug() << tx_server.length() << "txAccept";
     write(""); // to send buff data
 }
 
-void ScMetaServer::txError(int id)
+void ScMetaServer::txError()
 {
-    if( cons[id]->error()!=QTcpSocket::RemoteHostClosedError )
+    if( server->error()!=QTcpSocket::RemoteHostClosedError )
     {
-        qDebug() << id << "ApacheSe::txError"
-                 << cons[id]->errorString()
-                 << cons[id]->state();
-        cons[id]->close();
+        qDebug() << "ApacheSe::txError"
+                 << server->errorString()
+                 << server->state();
+        server->close();
     }
 }
 
 void ScMetaServer::writeBuf()
 {
-    if( buf.isEmpty() || cons.isEmpty() )
+    if( buf.isEmpty() || ipv4.isNull() )
     {
         return;
     }
 
     QByteArray send_buf;
     int split_size = SC_MXX_PACKLEN;
-    int con_len = cons.length();
-    for( int i=0 ; i<con_len ; i++ )
+    if( server->isOpen() &&
+        server->state()==QTcpSocket::ConnectedState )
     {
-        if( cons[conn_i]->isOpen() &&
-            cons[conn_i]->state()==QTcpSocket::ConnectedState )
+        int len = split_size;
+        if( buf.length()<split_size )
         {
-            int len = split_size;
-            if( buf.length()<split_size )
-            {
-                len = buf.length();
-            }
-            send_buf = buf.mid(0, len);
-            addCounter(&send_buf);
-
-            if( tx_port!=ScSetting::dbg_tx_port )
-            {
-                qDebug() << "ScTxServer::writeBuf curr_id:"
-                         << curr_id << "len:" << len;
-            }
-            if( sendData(send_buf) )
-            {
-                buf.remove(0, len);
-            }
-
-            if( buf.length()==0 )
-            {
-                return;
-            }
-            // conn_i will update in sendData if neccessary
-            continue;
+            len = buf.length();
         }
-        conn_i++;
-        if( con_len<=conn_i )
+        send_buf = buf.mid(0, len);
+        addCounter(&send_buf);
+
+        if( tx_port!=ScSetting::dbg_tx_port )
         {
-            conn_i = 0;
+            qDebug() << "ScTxServer::writeBuf curr_id:"
+                     << curr_id << "len:" << len;
         }
+        if( sendData(send_buf) )
+        {
+            buf.remove(0, len);
+        }
+
+        if( buf.length()==0 )
+        {
+            return;
+        }
+        return;
     }
 }
 
 void ScMetaServer::resendBuf(int id)
 {
     QByteArray send_buf;
-    int con_len = cons.length();
     qDebug() << "ScTxServer::ACK"
-             << id << curr_id
-             << "con_len:" << con_len;
-    for( int i=0 ; i<con_len ; i++ )
+             << id << curr_id;
+    if( server->isOpen() &&
+        server->state()==QTcpSocket::ConnectedState )
     {
-        if( cons[conn_i]->isOpen() &&
-            cons[conn_i]->state()==QTcpSocket::ConnectedState )
-        {
-            send_buf = tx_buf[id];
+        send_buf = tx_buf[id];
 
-            qDebug() << "ScTxServer::resendBuf id:"
-                     << id;
-            sendData(send_buf);
-            conn_i++;
-            if( con_len<=conn_i )
-            {
-                conn_i = 0;
-            }
-            return;
-        }
-        conn_i++;
-        if( con_len<=conn_i )
-        {
-            conn_i = 0;
-        }
+        qDebug() << "ScTxServer::resendBuf";
+        sendData(send_buf);
+        return;
     }
-    qDebug() << "ScTxServer::resendBuf Failed id:" << id
-             << "conn_i" << conn_i;
+    qDebug() << "ScTxServer::resendBuf Failed";
 }
 
 void ScMetaServer::write(QByteArray data)
@@ -176,57 +134,6 @@ void ScMetaServer::write(QByteArray data)
         return;
     }
     writeBuf();
-}
-
-// return id in array where connection is free
-int  ScMetaServer::txPutInFree()
-{
-    int len = cons.length();
-    for( int i=0 ; i<len ; i++ )
-    {
-        if( cons[i]->isOpen()==0 )
-        {
-//            qDebug() << i << "txPutFree"
-//                     << tx_cons[i]->state();
-            mapper_error->removeMappings(cons[i]);
-            delete cons[i];
-            cons_count[i] = 0;
-            txSetupConnection(i);
-
-            return 1;
-        }
-        else
-        {
-            //qDebug() << "conn is open" << i;
-        }
-    }
-
-    return 0;
-}
-
-void ScMetaServer::txSetupConnection(int con_id)
-{
-    QTcpSocket *con = server->nextPendingConnection();
-    cons[con_id] = con;
-    con->setSocketOption(QAbstractSocket::LowDelayOption, 1);
-    quint32 ip_32 = con->peerAddress().toIPv4Address();
-    QString msg = "ApacheSe::txSetup";
-    if( con_id<ipv4.length() )
-    { // put in free
-        ipv4[con_id] = QHostAddress(ip_32);
-        msg += " refreshing connection";
-    }
-    else
-    {
-        ipv4.push_back(QHostAddress(ip_32));
-        msg += " accept connection";
-        qDebug() << con_id << msg.toStdString().c_str();
-    }
-
-    // displayError
-    mapper_error->setMapping(con, con_id);
-    connect(con, SIGNAL(error(QAbstractSocket::SocketError)),
-            mapper_error, SLOT(map()));
 }
 
 void ScMetaServer::addCounter(QByteArray *send_buf)
@@ -245,18 +152,9 @@ void ScMetaServer::addCounter(QByteArray *send_buf)
 // return 1 when sending data is successful
 int ScMetaServer::sendData(QByteArray send_buf)
 {
-    int ret = cons[conn_i]->write(send_buf);
-    cons[conn_i]->flush();
-    cons_count[conn_i]++;
-    if( cons_count[conn_i]>=SC_MAX_PACK )
-    {
-        cons[conn_i]->close();
-        conn_i++;
-        if( cons.length()<=conn_i )
-        {
-            conn_i = 0;
-        }
-    }
+    int ret = server->writeDatagram(send_buf,
+                                    ipv4, tx_port);
+    server->flush();
 
     if( ret!=send_buf.length() )
     {

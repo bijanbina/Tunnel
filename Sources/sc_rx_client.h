@@ -30,32 +30,20 @@ signals:
     void dataReady(QByteArray data);
 
 public slots:
-    void readyRead(int id);
-    void error(int id);
-    void disconnected(int id);
-    void refresh();
-    void timeout(int id);
+    void readyRead();
+    void error();
 
 private:
     QByteArray getPack();
-    void processBuffer(int id);
+    void processBuffer();
 
     QVector<QByteArray> read_bufs;
 
     // rx
-    QVector<QTcpSocket *> clients;
-    QVector<QByteArray>   rx_buf;
-    QTimer               *refresh_timer;
-    QVector<QTimer *>     conn_timers;
-    int                   port;
-    int                   is_debug;
-
-    // dbg rx
-    QSignalMapper  *mapper_data;
-    QSignalMapper  *mapper_disconnect;
-    QSignalMapper  *mapper_connect;
-    QSignalMapper  *mapper_error;
-    QSignalMapper  *mapper_timer;
+    QUdpSocket *client;
+    QByteArray  rx_buf;
+    int         port;
+    int         is_debug;
 };
 
 #endif // SC_APACHE_PC_H

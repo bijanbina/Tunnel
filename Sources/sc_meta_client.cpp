@@ -10,20 +10,13 @@ ScMetaClient::ScMetaClient(int port, QObject *parent):
     refresh_timer = new QTimer;
     tx_timer      = new QTimer;
 
-    cons.resize(SC_PC_CONLEN);
-    cons_count.fill(0, SC_PC_CONLEN);
-    for( int i=0 ; i<SC_PC_CONLEN ; i++ )
+    cons = new QUdpSocket;
+    cons->connectToHost(ScSetting::remote_host,
+                        tx_port);
+    if( cons->isOpen()==0 )
     {
-        cons[i] = new QTcpSocket;
-        cons[i]->connectToHost(ScSetting::remote_host,
-                               tx_port);
-        if( cons[i]->isOpen()==0 )
-        {
-            qDebug() << "init: failed connection not opened";
-            return;
-        }
-        cons[i]->setSocketOption(
-                    QAbstractSocket::LowDelayOption, 1);
+        qDebug() << "init: failed connection not opened";
+        return;
     }
 
     connect(refresh_timer, SIGNAL(timeout()),
@@ -51,47 +44,9 @@ void ScMetaClient::write(QByteArray data)
     writeBuf();
 }
 
-void ScMetaClient::conRefresh()
-{
-    int len = cons.length();
-    int count = 0;
-    int connecting = 0;
-    for( int i=0 ; i<len ; i++ )
-    {
-        if( cons[i]->isOpen()==0 &&
-            cons[i]->state()==QTcpSocket::UnconnectedState )
-        {
-            cons[i]->connectToHost(ScSetting::remote_host,
-                                   tx_port);
-            cons_count[i] = 0;
-            count++;
-        }
-        else if( cons[i]->state()!=
-                 QAbstractSocket::ConnectedState )
-        {
-            connecting++;
-            if( cons[i]->state()!=QTcpSocket::ConnectingState &&
-                cons[i]->state()!=QTcpSocket::ClosingState )
-            {
-                qDebug() << i << "ScDbgClient::conRefresh"
-                         << cons[i]->state();
-            }
-        }
-    }
-
-    if( ( count>1 || connecting>10 ) &&
-        tx_port!=ScSetting::dbg_tx_port )
-    {
-        qDebug() << "ScDbgClient::conRefresh port:"
-                 << tx_port << "alive:"
-                 << cons.length()-count << "count:"
-                 << count << "connecting" << connecting;
-    }
-}
-
 void ScMetaClient::writeBuf()
 {
-    if( buf.isEmpty() || cons.isEmpty() )
+    if( buf.isEmpty() )
     {
         return;
     }
@@ -144,36 +99,18 @@ int ScMetaClient::sendData(QByteArray send_buf)
     int s = 0;
     for( int count=0 ; count<SC_PC_CONLEN ; count++ )
     {
-        if( cons[conn_i]->isOpen() &&
-            cons[conn_i]->state()==QTcpSocket::ConnectedState )
-        {
-            s = cons[conn_i]->write(send_buf);
-            cons_count[conn_i]++;
-            if( cons_count[conn_i]>=SC_MAX_PACK )
-            {
-                cons[conn_i]->disconnectFromHost();
-                cons[conn_i]->close();
-                conn_i++;
-                if( cons.length()<=conn_i )
-                {
-                    conn_i = 0;
-                }
-            }
+        s = cons->writeDatagram(send_buf,
+                   QHostAddress(ScSetting::remote_host),
+                                ScSetting::tx_port);
 
-            if( s!=send_buf.length() )
-            {
-                qDebug() << "writeBuf: Error"
-                         << send_buf.length() << s;
-                return 0;
-            }
-
-            return 1;
-        }
-        conn_i++;
-        if( conn_i>=SC_PC_CONLEN )
+        if( s!=send_buf.length() )
         {
-            conn_i = 0;
+            qDebug() << "writeBuf: Error"
+                     << send_buf.length() << s;
+            return 0;
         }
+
+        return 1;
     }
 
     return 0;

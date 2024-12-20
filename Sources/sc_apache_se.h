@@ -66,10 +66,10 @@ private:
     QTcpSocket  client;
 
     // rx
-    QUdpSocket      *rx_server;
-    QTimer          *ack_timer;
-    int              rx_curr_id;
-    QByteArray       rx_buf;
+    QUdpSocket *rx_server;
+    QTimer     *ack_timer;
+    int         rx_curr_id;
+    QByteArray  rx_buf;
     QVector<QByteArray> read_bufs;
 
     // tx

@@ -51,7 +51,7 @@ private:
     QTcpServer     *server;
     ScTxClient     *tx_con;
     QByteArray      tx_buf;
-    ScMetaClient    *dbg_tx;
+    ScMetaClient   *dbg_tx;
     QVector<QByteArray> read_bufs;
 
     // rx

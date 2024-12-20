@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QTcpSocket>
 #include <QTimer>
+#include <QUdpSocket>
 #include <QVector>
 #include "backend.h"
 
@@ -16,7 +17,6 @@ public:
     void reset();
 
 public slots:
-    void conRefresh();
     void writeBuf();
 
 private:
@@ -28,9 +28,8 @@ private:
     int conn_i;
     QTimer *refresh_timer;
     QTimer *tx_timer;
-    QByteArray buf;
-    QVector<QTcpSocket *> cons;
-    QVector<int>          cons_count;
+    QByteArray  buf;
+    QUdpSocket *cons;
     QVector<QByteArray> tx_buf;
 };
 

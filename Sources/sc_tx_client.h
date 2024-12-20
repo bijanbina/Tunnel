@@ -4,6 +4,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QTimer>
+#include <QUdpSocket>
 #include "backend.h"
 
 class ScTxClient : public QObject
@@ -14,25 +15,22 @@ public:
 
     void reset();
     void write(QByteArray data);
-    void resendBuf(int id);
+    void resendBuf();
 
-    int  curr_id;
-    QVector<QTcpSocket *> cons;
+    int         curr_id;
+    QUdpSocket *cons;
 
 private slots:
-    void conRefresh();
     void writeBuf();
 
 private:
     void addCounter(QByteArray *send_buf);
     int  sendData  (QByteArray  send_buf);
 
-    int     conn_i;
     int     tx_port;
-    QTimer *refresh_timer;
     QTimer *tx_timer;
     QByteArray  buf;
-    QVector<QByteArray>   tx_buf;
+    QByteArray  tx_buf;
 };
 
 #endif // SC_TX_CLIENT_H

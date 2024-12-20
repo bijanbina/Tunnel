@@ -8,7 +8,7 @@ ScApachePC::ScApachePC(QObject *parent):
     tx_con = new ScTxClient(ScSetting::tx_port);
     rx_con = new ScRxClient(ScSetting::rx_port);
     dbg_tx = new ScMetaClient(ScSetting::dbg_tx_port);
-    dbg_rx = new ScRxClient (ScSetting::dbg_rx_port);
+    dbg_rx = new ScRxClient  (ScSetting::dbg_rx_port);
     ack_timer     = new QTimer;
     connect(server, SIGNAL(newConnection()),
             this  , SLOT(clientConnected()));
@@ -57,7 +57,7 @@ ScApachePC::~ScApachePC()
 
 void ScApachePC::init()
 {
-    if( server->listen(QHostAddress::Any, ScSetting::local_port))
+    if( server->listen(QHostAddress::Any, ScSetting::local_port) )
     {
         qDebug() << "created on port "
                  << ScSetting::local_port;
@@ -189,7 +189,7 @@ void ScApachePC::dbgReadyRead(QByteArray data)
             {
                 return;
             }
-            tx_con->resendBuf(ack_id);
+            tx_con->resendBuf();
             qDebug() << "ScApacheSe::ACK"
                      << ack_id << tx_con->curr_id;
             return;

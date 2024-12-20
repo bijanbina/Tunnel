@@ -1,8 +1,6 @@
 #ifndef SC_APACHE_TE_H
 #define SC_APACHE_TE_H
 
-#include <QTcpServer>
-#include <QTcpSocket>
 #include <QString>
 #include <QObject>
 #include <QVector>
@@ -10,6 +8,7 @@
 #include <stdlib.h>
 #include <QTimer>
 #include <QSignalMapper>
+#include <QUdpSocket>
 #include "backend.h"
 #include "sc_tx_client.h"
 
@@ -76,7 +75,7 @@ private:
     void dbgSetupConnection(int con_id);
 
     QTimer     *rx_timer;
-    QTcpSocket  client;
+    QUdpSocket  client;
     QByteArray  tx_buf;
 
     // rx

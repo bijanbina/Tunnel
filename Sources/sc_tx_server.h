@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <QTimer>
 #include <QSignalMapper>
+#include <QUdpSocket>
 #include "backend.h"
 #include "sc_tx_client.h"
 
@@ -25,10 +26,11 @@ public:
     void reset();
     void resendBuf(int id);
 
-    QVector<QTcpSocket *> cons;
-    QVector<QHostAddress> ipv4;
-    QVector<QByteArray>   tx_buf;
-    int                   curr_id;
+    QUdpSocket   *cons;
+    QHostAddress  ipv4;
+    QByteArray    tx_buf;
+    int           curr_id;
+    int           tx_port;
 
 public slots:
     void write(QByteArray data);
@@ -40,9 +42,6 @@ private:
     void addCounter(QByteArray *send_buf);
     int  sendData(QByteArray send_buf);
 
-    int  txPutInFree();
-    void txSetupConnection(int con_id);
-
     QByteArray  buf;
 
     QSignalMapper  *mapper_disconnect;
@@ -50,7 +49,6 @@ private:
     QTcpServer     *server;
     QTimer         *timer;
     int             conn_i;
-    int             tx_port;
 };
 
 #endif // SC_TX_SERVER_H

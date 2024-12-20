@@ -66,65 +66,18 @@ ScApacheTe::~ScApacheTe()
 
 void ScApacheTe::connectApp()
 {
-    client.connectToHost(QHostAddress::LocalHost,
-                         ScSetting::local_port);
-    client.waitForConnected();
-    if( client.isOpen()==0 )
-    {
-        qDebug() << "client: failed connection not opened";
-        return;
-    }
     client.setSocketOption(QAbstractSocket::LowDelayOption, 1);
 
-    // readyRead
-    connect(&client, SIGNAL(readyRead()),
-            this,   SLOT(txReadyRead()));
-
-    // connected
-    connect(&client, SIGNAL(error(QAbstractSocket::SocketError)),
-            this,    SLOT(clientError()));
-
-    // connected
-    connect(&client, SIGNAL(connected()),
-            this,    SLOT(clientConnected()));
-
-    // disconnected
-    connect(&client, SIGNAL(disconnected()),
-            this,    SLOT(clientDisconnected()));
-
-    if( rx_server->listen(QHostAddress::Any, ScSetting::rx_port) )
+    for( int i=0 ; i<50000 ; i++ )
     {
-        qDebug() << "created on port "
-                 << ScSetting::rx_port;
+        QByteArray msg = "<";
+        msg += QString::number(i) + ">";
+        client.writeDatagram(msg,
+                             QHostAddress(ScSetting::remote_host),
+                             5030);
     }
-    else
-    {
-        qDebug() << "RxServer failed, Error message is:"
-                 << rx_server->errorString();
-    }
+    qDebug() << "Ehsan say hello";
 
-    if( tx_server->listen(QHostAddress::Any, ScSetting::tx_port) )
-    {
-        qDebug() << "created on port "
-                 << ScSetting::tx_port;
-    }
-    else
-    {
-        qDebug() << "TxServer failed, Error message is:"
-                 << tx_server->errorString();
-    }
-
-    if( rxdbg_server->listen(QHostAddress::Any,
-                           ScSetting::dbg_rx_port) )
-    {
-        qDebug() << "created on port "
-                 << ScSetting::dbg_rx_port;
-    }
-    else
-    {
-        qDebug() << "DbgServer failed, Error message is:"
-                 << rxdbg_server->errorString();
-    }
 }
 
 void ScApacheTe::reset()

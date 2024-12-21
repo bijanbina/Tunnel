@@ -20,14 +20,7 @@ ScApacheSe::ScApacheSe(QObject *parent):
 
 ScApacheSe::~ScApacheSe()
 {
-    if( rx_cons==NULL )
-    {
-        return;
-    }
-    if( rx_cons->isOpen() )
-    {
-        rx_cons->close();
-    }
+    ;
 }
 
 void ScApacheSe::connectApp()
@@ -52,7 +45,7 @@ void ScApacheSe::connectApp()
 
     if( rx_cons->bind(QHostAddress::Any, ScSetting::rx_port) )
     {
-        qDebug() << "created on port "
+        qDebug() << "RX created on port "
                  << ScSetting::rx_port;
         connect(rx_cons, SIGNAL(readyRead()),
                 this   , SLOT(rxReadyRead()));
@@ -63,13 +56,13 @@ void ScApacheSe::connectApp()
     else
     {
         qDebug() << "RxServer failed, Error message is:"
-                 << rx_server->errorString();
+                 << rx_cons->errorString();
     }
 
     if( dbg_rx->bind(QHostAddress::Any,
                      ScSetting::dbg_rx_port) )
     {
-        qDebug() << "created on port "
+        qDebug() << "DR created on port "
                  << ScSetting::dbg_rx_port;
         connect(dbg_rx, SIGNAL(readyRead()),
                 this  , SLOT(dbgRxReadyRead()));
@@ -137,6 +130,8 @@ void ScApacheSe::rxError()
 void ScApacheSe::rxReadyRead()
 {
     rx_buf += rx_cons->readAll();
+    qDebug() << "ScApacheSe::rxReadyRead:"
+             << rx_buf << ScSetting::rx_port;
 
     //    QByteArray data;
     //    data.resize(rx_cons->pendingDatagramSize());

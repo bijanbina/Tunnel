@@ -41,7 +41,6 @@ public slots:
 
     // rx
     void rxReadyRead();
-    void rxDisconnected();;
     void rxError();
     void sendAck();
 

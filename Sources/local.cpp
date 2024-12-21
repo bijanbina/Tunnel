@@ -18,6 +18,7 @@ ScLocal::ScLocal(QObject *parent):
 {
     if( ScSetting::state==SC_STATE_SERVER )
     {
+        qDebug() << "Starting Server Mode";
         ScApacheSe *server = new ScApacheSe;
         server->connectApp();
     }

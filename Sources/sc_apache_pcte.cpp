@@ -284,7 +284,7 @@ void ScApachePcTE::setupConnection(int con_id)
     cons[con_id] = con;
     con->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     quint32 ip_32 = con->peerAddress().toIPv4Address();
-    QString msg = "setupConnection:: ";
+    QString msg = "ScApachePcTE::setupConnection ";
     if( con_id<ipv4.length() )
     { // put in free
         ipv4[con_id] = QHostAddress(ip_32);

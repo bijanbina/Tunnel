@@ -90,7 +90,8 @@ int ScTxClient::sendData(QByteArray send_buf)
     {
         return 0;
     }
-    //    qDebug() << "ScTxClient::sendData send_buf:" << send_buf;
+    qDebug() << "ScTxClient::sendData send_buf:" << send_buf
+             << tx_port;
     int s = 0;
     s = cons->writeDatagram(send_buf,
                             QHostAddress(ScSetting::remote_host),

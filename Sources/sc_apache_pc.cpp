@@ -1,4 +1,4 @@
-﻿#include "sc_apache_pc.h"
+#include "sc_apache_pc.h"
 
 ScApachePC::ScApachePC(QObject *parent):
     QObject(parent)
@@ -115,15 +115,8 @@ void ScApachePC::clientDisconnected(int id)
 void ScApachePC::txReadyRead(int id)
 {
     QByteArray data = cons[id]->readAll();
-    if( rc_connected )
-    {
-        //    qDebug() << "read_buf::" << data.length();
-        tx_con->write(data);
-    }
-    else
-    {
-        tx_buf += data;
-    }
+//    qDebug() << "read_buf::" << data;
+    tx_con->write(data);
 }
 
 void ScApachePC::rxReadyRead(QByteArray pack)
@@ -145,13 +138,6 @@ void ScApachePC::rxReadyRead(QByteArray pack)
                 return;
             }
         }
-    }
-
-    rc_connected = 1;
-    if( tx_buf.length() )
-    {
-        tx_con->write(tx_buf);
-        tx_buf.clear();
     }
 }
 
@@ -230,7 +216,7 @@ void ScApachePC::setupConnection(int con_id)
     cons[con_id] = con;
     con->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     quint32 ip_32 = con->peerAddress().toIPv4Address();
-    QString msg = "setupConnection:: ";
+    QString msg = "ScApachePC::setupConnection ";
     if( con_id<ipv4.length() )
     { // put in free
         ipv4[con_id] = QHostAddress(ip_32);
@@ -246,7 +232,8 @@ void ScApachePC::setupConnection(int con_id)
 
     // readyRead
     mapper_data->setMapping(con, con_id);
-    connect(con, SIGNAL(readyRead()), mapper_data, SLOT(map()));
+    connect(con        , SIGNAL(readyRead()),
+            mapper_data, SLOT(map()));
 
     // displayError
     mapper_error->setMapping(con, con_id);

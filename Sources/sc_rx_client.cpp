@@ -32,13 +32,20 @@ ScRxClient::~ScRxClient()
 
 void ScRxClient::readyRead()
 {
+    QByteArray data;
+    data.resize(client->pendingDatagramSize());
+    QHostAddress sender_ip;
+    quint16 sender_port;
+
+    client->readDatagram(data.data(), data.size(),
+                         &sender_ip, &sender_port);
     if( is_debug )
     {
-        dataReady(client->readAll());
+        dataReady(data);
     }
     else
     {
-        rx_buf += client->readAll();
+        rx_buf += data;
     }
 }
 

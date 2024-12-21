@@ -10,7 +10,6 @@ ScApacheSe::ScApacheSe(QObject *parent):
     dbg_tx     = new ScMetaServer;
     ack_timer  = new QTimer;
     rx_curr_id = 0;
-    rx_buf.resize(SC_PC_CONLEN);
     read_bufs.resize(SC_MAX_PACKID+1);
 
     connect(ack_timer, SIGNAL(timeout()),
@@ -128,22 +127,20 @@ void ScApacheSe::rxError()
 }
 
 void ScApacheSe::rxReadyRead()
-{
-    rx_buf += rx_cons->readAll();
+{ 
+    QByteArray data;
+    data.resize(rx_cons->pendingDatagramSize());
+    QHostAddress sender_ip;
+    quint16 sender_port;
+
+    rx_cons->readDatagram(data.data(),
+                          data.size(),
+                          &sender_ip, &sender_port);
+
     qDebug() << "ScApacheSe::rxReadyRead:"
-             << rx_buf << ScSetting::rx_port;
-
-    //    QByteArray data;
-    //    data.resize(rx_cons->pendingDatagramSize());
-    //    QHostAddress sender_ip;
-    //    quint16 sender_port;
-
-    //    rx_cons->readDatagram(data.data(),
-    //                            data.size(),
-    //                            &sender_ip, &sender_port);
-
-    //    tx_server->tx_port = sender_port;
-    //    pc_ip = sender_ip;
+             << data << ScSetting::rx_port;
+//    pc_ip = sender_ip;
+    rx_buf += data;
 }
 
 QByteArray ScApacheSe::getPack()
@@ -172,37 +169,6 @@ QByteArray ScApacheSe::getPack()
     return pack;
 }
 
-void ScApacheSe::rxDisconnected()
-{
-    if( rx_buf.length()==0 )
-    {
-        return;
-    }
-
-    QString buf_id_s = rx_buf.mid(0, SC_LEN_PACKID);
-    int     buf_id   = buf_id_s.toInt();
-    rx_buf.remove(0, SC_LEN_PACKID);
-    read_bufs[buf_id] = rx_buf;
-    rx_buf.clear();
-    rx_buf.clear();
-
-    if( client.isOpen() )
-    {
-        QByteArray pack = getPack();
-        int w = client.write(pack);
-        qDebug() <<"rxDisconnected"
-                 << pack.length()
-                 << "buf_id:" << buf_id
-                 << "rx_curr_id:" << rx_curr_id;
-        rx_buf.clear();
-    }
-    else
-    {
-        qDebug() << "ScApacheSe::rxDisconnected"
-                 << "client is not open" << rx_buf.length();
-    }
-}
-
 void ScApacheSe::txReadyRead()
 {
     QByteArray data = client.readAll();
@@ -211,7 +177,15 @@ void ScApacheSe::txReadyRead()
 
 void ScApacheSe::dbgRxReadyRead()
 {
-    QByteArray dbg_buf = dbg_rx->readAll();
+    QByteArray dbg_buf;
+    dbg_buf.resize(rx_cons->pendingDatagramSize());
+    QHostAddress sender_ip;
+    quint16 sender_port;
+
+    rx_cons->readDatagram(dbg_buf.data(),
+                          dbg_buf.size(),
+                          &sender_ip, &sender_port);
+
     if( dbg_buf.isEmpty() )
     {
         return;

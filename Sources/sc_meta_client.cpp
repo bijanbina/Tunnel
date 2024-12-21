@@ -9,13 +9,6 @@ ScMetaClient::ScMetaClient(int port, QObject *parent):
     tx_timer      = new QTimer;
 
     cons = new QUdpSocket;
-    cons->connectToHost(ScSetting::remote_host,
-                        tx_port);
-    if( cons->isOpen()==0 )
-    {
-        qDebug() << "init: failed connection not opened";
-        return;
-    }
 
     connect(tx_timer, SIGNAL(timeout()),
             this    , SLOT  (writeBuf()));

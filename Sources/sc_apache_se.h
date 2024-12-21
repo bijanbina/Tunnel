@@ -28,12 +28,8 @@ public:
     void connectApp();
 
     // rx
-    QTcpSocket   *rx_cons;
+    QUdpSocket   *rx_cons;
     QHostAddress  rx_ipv4;
-
-    // dbg rx
-    QTcpSocket   *dbgrx_cons;
-    QHostAddress  dbgrx_ipv4;
 
     QHostAddress  pc_ip;
 
@@ -66,7 +62,6 @@ private:
     QTcpSocket  client;
 
     // rx
-    QUdpSocket *rx_server;
     QTimer     *ack_timer;
     int         rx_curr_id;
     QByteArray  rx_buf;

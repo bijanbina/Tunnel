@@ -4,19 +4,10 @@
 ScTxServer::ScTxServer(QObject *parent):
     QObject(parent)
 {
-    server  = new QTcpServer;
+    server  = new QUdpSocket;
     timer   = new QTimer;
     curr_id = -1;
-    conn_i  = 0;
     tx_buf.resize(SC_MAX_PACKID);
-    connect(server,  SIGNAL(newConnection()),
-            this  ,  SLOT(txConnected()));
-
-    mapper_error      = new QSignalMapper(this);
-    mapper_disconnect = new QSignalMapper(this);
-
-    connect(mapper_error, SIGNAL(mapped(int)),
-            this        , SLOT(txError(int)));
 
     connect(timer, SIGNAL(timeout()),
             this , SLOT  (writeBuf()));
@@ -25,20 +16,13 @@ ScTxServer::ScTxServer(QObject *parent):
 
 ScTxServer::~ScTxServer()
 {
-    if( cons==NULL )
-    {
-        return;
-    }
-    if( cons->isOpen() )
-    {
-        cons->close();
-    }
+
 }
 
 void ScTxServer::openPort(int port)
 {
     tx_port = port;
-    if( server->listen(QHostAddress::Any, tx_port) )
+    if( server->bind(QHostAddress::Any, tx_port) )
     {
         qDebug() << "created on port "
                  << tx_port;
@@ -53,7 +37,6 @@ void ScTxServer::openPort(int port)
 void ScTxServer::reset()
 {
     curr_id = -1;
-    conn_i  = 0;
     buf.clear();
 }
 
@@ -62,14 +45,14 @@ void ScTxServer::txConnected()
     write(""); // to send buff data
 }
 
-void ScTxServer::txError(int id)
+void ScTxServer::txError()
 {
-    if( cons->error()!=QTcpSocket::RemoteHostClosedError )
+    if( server->error()!=QTcpSocket::RemoteHostClosedError )
     {
-        qDebug() << id << "ApacheSe::txError"
-                 << cons->errorString()
-                 << cons->state();
-        cons->close();
+        qDebug() << "ApacheSe::txError"
+                 << server->errorString()
+                 << server->state();
+        server->close();
     }
 }
 
@@ -101,19 +84,14 @@ void ScTxServer::writeBuf()
     }
 }
 
-void ScTxServer::resendBuf(int id)
+void ScTxServer::resendBuf()
 {
     QByteArray send_buf;
     qDebug() << "ScTxServer::ACK"
-             << id << curr_id;
-    if( cons->isOpen() &&
-        cons->state()==QTcpSocket::ConnectedState )
-    {
-        send_buf = tx_buf;
-        qDebug() << "ScTxServer::resendBuf";
-        return;
-    }
-    qDebug() << "ScTxServer::resendBuf Failed";
+             << curr_id;
+
+    send_buf = tx_buf;
+    sendData(send_buf);
 }
 
 void ScTxServer::write(QByteArray data)
@@ -142,10 +120,9 @@ void ScTxServer::addCounter(QByteArray *send_buf)
 // return 1 when sending data is successful
 int ScTxServer::sendData(QByteArray send_buf)
 {
-    int ret = cons->writeDatagram(send_buf, ipv4,
-                                  tx_port);
-    cons->flush();
-    cons->close();
+    int ret = server->writeDatagram(send_buf, ipv4,
+                                    tx_port);
+    server->flush();
     if( ret!=send_buf.length() )
     {
         qDebug() << "ScTxServer::sendData Error"

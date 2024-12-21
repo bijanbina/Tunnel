@@ -4,7 +4,7 @@
 ScApacheSe::ScApacheSe(QObject *parent):
     QObject(parent)
 {
-    rx_server  = new QUdpSocket;
+    rx_cons    = new QUdpSocket;
     tx_server  = new ScTxServer;
     dbg_rx     = new QUdpSocket;
     dbg_tx     = new ScMetaServer;
@@ -50,15 +50,15 @@ void ScApacheSe::connectApp()
     connect(&client, SIGNAL(disconnected()),
             this,    SLOT(clientDisconnected()));
 
-    if( rx_server->bind(QHostAddress::Any, ScSetting::rx_port) )
+    if( rx_cons->bind(QHostAddress::Any, ScSetting::rx_port) )
     {
         qDebug() << "created on port "
                  << ScSetting::rx_port;
-        connect(rx_server, SIGNAL(readyRead()),
-                this     , SLOT(rxReadyRead()));
-        connect(rx_server,
+        connect(rx_cons, SIGNAL(readyRead()),
+                this   , SLOT(rxReadyRead()));
+        connect(rx_cons,
                 SIGNAL(error(QAbstractSocket::SocketError)),
-                this     , SLOT(rxError()));
+                this   , SLOT(rxError()));
     }
     else
     {
@@ -71,11 +71,11 @@ void ScApacheSe::connectApp()
     {
         qDebug() << "created on port "
                  << ScSetting::dbg_rx_port;
-        connect(rx_server, SIGNAL(readyRead()),
-                this     , SLOT(dbgRxReadyRead()));
-        connect(rx_server,
+        connect(dbg_rx, SIGNAL(readyRead()),
+                this  , SLOT(dbgRxReadyRead()));
+        connect(dbg_rx,
                 SIGNAL(error(QAbstractSocket::SocketError)),
-                this     , SLOT(dbgRxError()));
+                this  , SLOT(dbgRxError()));
     }
     else
     {
@@ -139,11 +139,11 @@ void ScApacheSe::rxReadyRead()
     rx_buf += rx_cons->readAll();
 
     //    QByteArray data;
-    //    data.resize(rx_server->pendingDatagramSize());
+    //    data.resize(rx_cons->pendingDatagramSize());
     //    QHostAddress sender_ip;
     //    quint16 sender_port;
 
-    //    rx_server->readDatagram(data.data(),
+    //    rx_cons->readDatagram(data.data(),
     //                            data.size(),
     //                            &sender_ip, &sender_port);
 
@@ -257,7 +257,7 @@ void ScApacheSe::dbgRxReadyRead()
             {
                 return;
             }
-            tx_server->resendBuf(ack_id);
+            tx_server->resendBuf();
             return;
         }
         qDebug() << "ScApacheSe::dbgRxReadyRead"

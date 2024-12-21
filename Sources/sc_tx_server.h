@@ -24,18 +24,17 @@ public:
 
     void openPort(int port);
     void reset();
-    void resendBuf(int id);
+    void resendBuf();
 
-    QUdpSocket   *cons;
-    QHostAddress  ipv4;
-    QByteArray    tx_buf;
-    int           curr_id;
-    int           tx_port;
+    QHostAddress ipv4;
+    QByteArray   tx_buf;
+    int          curr_id;
+    int          tx_port;
 
 public slots:
     void write(QByteArray data);
     void txConnected();
-    void txError(int id);
+    void txError();
     void writeBuf();
 
 private:
@@ -43,12 +42,8 @@ private:
     int  sendData(QByteArray send_buf);
 
     QByteArray  buf;
-
-    QSignalMapper  *mapper_disconnect;
-    QSignalMapper  *mapper_error;
-    QTcpServer     *server;
-    QTimer         *timer;
-    int             conn_i;
+    QUdpSocket *server;
+    QTimer     *timer;
 };
 
 #endif // SC_TX_SERVER_H

@@ -41,13 +41,10 @@ private:
     int  sendData(QByteArray send_buf);
 
     QByteArray  buf;
-
-    QSignalMapper  *mapper_disconnect;
-    QSignalMapper  *mapper_error;
-    QUdpSocket     *server;
-    QTimer         *timer;
-    int             conn_i;
-    int             tx_port;
+    QUdpSocket *server;
+    QTimer     *timer;
+    int         conn_i;
+    int         tx_port;
 };
 
 #endif // SC_META_SERVER_H

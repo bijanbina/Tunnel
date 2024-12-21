@@ -13,16 +13,6 @@ ScApacheSe::ScApacheSe(QObject *parent):
     rx_buf.resize(SC_PC_CONLEN);
     read_bufs.resize(SC_MAX_PACKID+1);
 
-
-    rx_server->bind(QHostAddress::Any, ScSetting::rx_port);
-    connect(rx_server, SIGNAL(newConnection()),
-            this     , SLOT(rxConnected()));
-    connect(dbg_rx   , SIGNAL(newConnection()),
-            this     , SLOT(dbgRxConnected()));
-
-
-    tx_mapper_data     = new QSignalMapper(this);
-
     connect(ack_timer, SIGNAL(timeout()),
             this     , SLOT  (sendAck()));
     ack_timer->start(SC_ACK_TIMEOUT);

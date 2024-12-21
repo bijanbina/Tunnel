@@ -73,7 +73,6 @@ private:
     QVector<QByteArray> read_bufs;
 
     // tx
-    QSignalMapper *tx_mapper_data;
     ScTxServer    *tx_server;
 
     // dbg rx

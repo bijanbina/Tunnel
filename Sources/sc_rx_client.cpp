@@ -12,25 +12,22 @@ ScRxClient::ScRxClient(int rx_port, QObject *parent):
 
     curr_id       = 0;
 
+    rx_buf.resize (SC_PC_CONLEN);
+    read_bufs.resize(SC_MAX_PACKID+1);
+
+    // dbg
+    client = new QUdpSocket;
+    client->bind(port);
+
     connect(client, SIGNAL(readyRead()),
             this  , SLOT  (readyRead()));
     connect(client, SIGNAL(error(QAbstractSocket::SocketError)),
             this  , SLOT  (error()));
-
-    rx_buf.resize (SC_PC_CONLEN);
-    read_bufs.resize(SC_MAX_PACKID+1);
 }
 
 ScRxClient::~ScRxClient()
 {
     ;
-}
-
-void ScRxClient::init()
-{
-    // dbg
-    client = new QUdpSocket;
-    client->bind(port);
 }
 
 void ScRxClient::readyRead()

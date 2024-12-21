@@ -5,9 +5,7 @@ ScMetaClient::ScMetaClient(int port, QObject *parent):
 {
     tx_port = port;
     curr_id = -1;
-    conn_i  = 0;
     tx_buf.resize(SC_MAX_PACKID);
-    refresh_timer = new QTimer;
     tx_timer      = new QTimer;
 
     cons = new QUdpSocket;
@@ -18,10 +16,6 @@ ScMetaClient::ScMetaClient(int port, QObject *parent):
         qDebug() << "init: failed connection not opened";
         return;
     }
-
-    connect(refresh_timer, SIGNAL(timeout()),
-            this         , SLOT  (conRefresh()));
-    refresh_timer->start(SC_TXCLIENT_TIMEOUT);
 
     connect(tx_timer, SIGNAL(timeout()),
             this    , SLOT  (writeBuf()));
@@ -81,7 +75,7 @@ void ScMetaClient::addCounter(QByteArray *send_buf)
     QString buf_id = QString::number(curr_id);
     buf_id = buf_id.rightJustified(SC_LEN_PACKID, '0');
     send_buf->prepend(buf_id.toStdString().c_str());
-    tx_buf[conn_i] = *send_buf;
+    tx_buf = *send_buf;
     if( curr_id>SC_MAX_PACKID-1 )
     {
         curr_id = -1;

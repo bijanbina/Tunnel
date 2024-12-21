@@ -9,11 +9,8 @@ ScMetaServer::ScMetaServer(QObject *parent):
     curr_id = -1;
     tx_buf.resize(SC_MAX_PACKID);
 
-    mapper_error      = new QSignalMapper(this);
-    mapper_disconnect = new QSignalMapper(this);
-
-    connect(mapper_error, SIGNAL(mapped(int)),
-            this        , SLOT(txError(int)));
+    connect(server, SIGNAL(error(QAbstractSocket::SocketError)),
+            this  , SLOT(txError()));
 
     connect(timer, SIGNAL(timeout()),
             this , SLOT  (writeBuf()));

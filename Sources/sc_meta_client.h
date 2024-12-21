@@ -23,14 +23,12 @@ private:
     void addCounter(QByteArray *send_buf);
     int  sendData(QByteArray send_buf);
 
-    int tx_port;
-    int curr_id;
-    int conn_i;
-    QTimer *refresh_timer;
-    QTimer *tx_timer;
+    int         tx_port;
+    int         curr_id;
+    QTimer     *tx_timer;
     QByteArray  buf;
     QUdpSocket *cons;
-    QVector<QByteArray> tx_buf;
+    QByteArray  tx_buf;
 };
 
 #endif // SC_META_CLIENT_H

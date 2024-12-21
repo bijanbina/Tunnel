@@ -22,8 +22,6 @@ public:
     explicit ScRxClient(int rx_port, QObject *parent = 0);
     ~ScRxClient();
 
-    void init();
-
     int  curr_id;
 
 signals:

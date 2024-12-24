@@ -20,7 +20,6 @@ public slots:
     void writeBuf();
 
 private:
-    void addCounter(QByteArray *send_buf);
     int  sendData(QByteArray send_buf);
 
     int         tx_port;
@@ -28,7 +27,7 @@ private:
     QTimer     *tx_timer;
     QByteArray  buf;
     QUdpSocket *cons;
-    QByteArray  tx_buf;
+    QVector<QByteArray> tx_buf;
 };
 
 #endif // SC_META_CLIENT_H

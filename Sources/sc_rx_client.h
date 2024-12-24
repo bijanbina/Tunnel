@@ -33,7 +33,7 @@ public slots:
 
 private:
     QByteArray getPack();
-    void processBuffer();
+    void processBuf();
 
     QVector<QByteArray> read_bufs;
 

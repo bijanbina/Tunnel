@@ -48,8 +48,8 @@ void ScTxClient::writeBuf()
             len = buf.length();
         }
         send_buf = buf.mid(0, len);
+        tx_buf[curr_id] = sc_mkPacket(&send_buf, &curr_id);
 
-        addCounter(&send_buf);
         if( sendData(send_buf) )
         {
             buf.remove(0, len);
@@ -62,25 +62,10 @@ void ScTxClient::writeBuf()
     }
 }
 
-void ScTxClient::addCounter(QByteArray *send_buf)
+void ScTxClient::resendBuf(int id)
 {
-    curr_id++;
-    QString buf_id = QString::number(curr_id);
-    buf_id = buf_id.rightJustified(SC_LEN_PACKID, '0');
-    send_buf->prepend(buf_id.toStdString().c_str());
-    tx_buf = *send_buf;
-    if( curr_id>SC_MAX_PACKID-1 )
-    {
-        curr_id = -1;
-    }
-}
-
-void ScTxClient::resendBuf()
-{
-    QByteArray send_buf = tx_buf;
-
     qDebug() << "ScApacheSe::resendBuf";
-    sendData(send_buf);
+    sendData(tx_buf[id]);
 }
 
 // return 1 when sending data is successful

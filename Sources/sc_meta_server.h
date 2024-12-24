@@ -37,7 +37,7 @@ public slots:
     void writeBuf();
 
 private:
-    void addCounter(QByteArray *send_buf);
+    void mkPacket(QByteArray *send_buf);
     int  sendData(QByteArray send_buf);
 
     QByteArray  buf;

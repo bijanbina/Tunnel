@@ -19,14 +19,6 @@ ScMetaServer::ScMetaServer(QObject *parent):
 
 ScMetaServer::~ScMetaServer()
 {
-    if( server==NULL )
-    {
-        return;
-    }
-    if( server->isOpen() )
-    {
-        server->close();
-    }
 }
 
 void ScMetaServer::openPort(int port)
@@ -34,7 +26,7 @@ void ScMetaServer::openPort(int port)
     tx_port = port;
     if( server->bind(QHostAddress::Any, tx_port) )
     {
-        qDebug() << "created on port "
+        qDebug() << "TD created on port "
                  << tx_port;
     }
     else
@@ -86,7 +78,7 @@ void ScMetaServer::writeBuf()
             len = buf.length();
         }
         send_buf = buf.mid(0, len);
-        addCounter(&send_buf);
+        mkPacket(&send_buf);
 
         if( tx_port!=ScSetting::dbg_tx_port )
         {
@@ -133,12 +125,13 @@ void ScMetaServer::write(QByteArray data)
     writeBuf();
 }
 
-void ScMetaServer::addCounter(QByteArray *send_buf)
+void ScMetaServer::mkPacket(QByteArray *send_buf)
 {
     curr_id++;
     QString tx_id = QString::number(curr_id);
     tx_id = tx_id.rightJustified(SC_LEN_PACKID, '0');
     send_buf->prepend(tx_id.toStdString().c_str());
+    *send_buf += SC_DATA_EOP;
     tx_buf[curr_id] = *send_buf;
     if( curr_id>SC_MAX_PACKID-1 )
     {

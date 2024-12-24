@@ -24,6 +24,7 @@ HEADERS += \
 win32:HEADERS +=
 
 SOURCES += \
+    Sources/backend.cpp \
     Sources/local.cpp \
     Sources/main.cpp \
     Sources/sc_apache_pc.cpp \

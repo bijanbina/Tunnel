@@ -71,7 +71,7 @@ void ScTxServer::writeBuf()
         len = buf.length();
     }
     send_buf = buf.mid(0, len);
-    addCounter(&send_buf);
+    tx_buf[curr_id] = sc_mkPacket(&send_buf, &curr_id);
 
     if( tx_port!=ScSetting::dbg_tx_port )
     {
@@ -84,14 +84,13 @@ void ScTxServer::writeBuf()
     }
 }
 
-void ScTxServer::resendBuf()
+void ScTxServer::resendBuf(int id)
 {
     QByteArray send_buf;
     qDebug() << "ScTxServer::ACK"
              << curr_id;
 
-    send_buf = tx_buf;
-    sendData(send_buf);
+    sendData(tx_buf[id]);
 }
 
 void ScTxServer::write(QByteArray data)
@@ -102,19 +101,6 @@ void ScTxServer::write(QByteArray data)
         return;
     }
     writeBuf();
-}
-
-void ScTxServer::addCounter(QByteArray *send_buf)
-{
-    curr_id++;
-    QString tx_id = QString::number(curr_id);
-    tx_id = tx_id.rightJustified(SC_LEN_PACKID, '0');
-    send_buf->prepend(tx_id.toStdString().c_str());
-    tx_buf = *send_buf;
-    if( curr_id>SC_MAX_PACKID-1 )
-    {
-        curr_id = -1;
-    }
 }
 
 // return 1 when sending data is successful

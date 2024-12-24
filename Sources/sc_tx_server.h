@@ -24,12 +24,12 @@ public:
 
     void openPort(int port);
     void reset();
-    void resendBuf();
+    void resendBuf(int id);
 
     QHostAddress ipv4;
-    QByteArray   tx_buf;
     int          curr_id;
     int          tx_port;
+    QVector<QByteArray> tx_buf;
 
 public slots:
     void write(QByteArray data);
@@ -38,7 +38,6 @@ public slots:
     void writeBuf();
 
 private:
-    void addCounter(QByteArray *send_buf);
     int  sendData(QByteArray send_buf);
 
     QByteArray  buf;

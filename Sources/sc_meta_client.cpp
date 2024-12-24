@@ -87,8 +87,7 @@ int ScMetaClient::sendData(QByteArray send_buf)
     for( int count=0 ; count<SC_PC_CONLEN ; count++ )
     {
         s = cons->writeDatagram(send_buf,
-                   QHostAddress(ScSetting::remote_host),
-                                ScSetting::tx_port);
+                   QHostAddress(ScSetting::remote_host), tx_port);
 
         if( s!=send_buf.length() )
         {

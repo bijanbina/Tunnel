@@ -178,13 +178,13 @@ void ScApacheSe::txReadyRead()
 void ScApacheSe::dbgRxReadyRead()
 {
     QByteArray dbg_buf;
-    dbg_buf.resize(rx_cons->pendingDatagramSize());
+    dbg_buf.resize(dbg_rx->pendingDatagramSize());
     QHostAddress sender_ip;
     quint16 sender_port;
 
-    rx_cons->readDatagram(dbg_buf.data(),
-                          dbg_buf.size(),
-                          &sender_ip, &sender_port);
+    dbg_rx->readDatagram(dbg_buf.data(),
+                         dbg_buf.size(),
+                         &sender_ip, &sender_port);
 
     if( dbg_buf.isEmpty() )
     {
@@ -195,6 +195,8 @@ void ScApacheSe::dbgRxReadyRead()
     QByteArrayList cmd = dbg_buf.split(SC_CMD_EOP_CHAR);
     for( int i=0 ; i<cmd.length() ; i++ )
     {
+        qDebug() << "ScApacheSe::dbgRxReadyRead:"
+                 << "cmd" << cmd[i];
         if( cmd[i]==SC_CMD_DISCONNECT )
         {
             // connect and reset automatically
@@ -236,7 +238,6 @@ void ScApacheSe::dbgRxReadyRead()
 
 void ScApacheSe::dbgRxError()
 {
-    dbg_rx->close();
     if( dbg_rx->error()!=QTcpSocket::RemoteHostClosedError )
     {
         qDebug() << "ScApacheSe::dbgError"

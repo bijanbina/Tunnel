@@ -25,11 +25,6 @@ ScRxClient::ScRxClient(int rx_port, QObject *parent):
             this  , SLOT  (error()));
 }
 
-ScRxClient::~ScRxClient()
-{
-    ;
-}
-
 void ScRxClient::readyRead()
 {
     QByteArray data;
@@ -39,6 +34,7 @@ void ScRxClient::readyRead()
 
     client->readDatagram(data.data(), data.size(),
                          &sender_ip, &sender_port);
+    qDebug() << "ScRxClient::readyRead" << data;
     if( is_debug )
     {
         dataReady(data);
@@ -96,7 +92,7 @@ void ScRxClient::processBuf()
         int     end      = rx_buf.indexOf(SC_DATA_EOP);
 
         // Extract the packet including the EOP marker
-        read_bufs[buf_id] = rx_buf.mid(SC_LEN_PACKID, end);
+        read_bufs[buf_id] = rx_buf.mid(SC_LEN_PACKID, end-SC_LEN_PACKID);
         QByteArray pack = getPack();
         qDebug() << "ScRxClient::rxReadyRead"
                  << pack.length()

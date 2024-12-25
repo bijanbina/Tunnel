@@ -20,9 +20,7 @@ class ScTxServer : public QObject
 
 public:
     explicit ScTxServer(QObject *parent = 0);
-    ~ScTxServer();
 
-    void openPort(int port);
     void reset();
     void resendBuf(int id);
 

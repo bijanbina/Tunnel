@@ -20,7 +20,6 @@ class ScRxClient : public QObject
 
 public:
     explicit ScRxClient(int rx_port, QObject *parent = 0);
-    ~ScRxClient();
 
     int  curr_id;
 

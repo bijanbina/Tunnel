@@ -31,8 +31,6 @@ public:
     QUdpSocket   *rx_cons;
     QHostAddress  rx_ipv4;
 
-    QHostAddress  pc_ip;
-
 public slots:
     // client
     void clientConnected();

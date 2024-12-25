@@ -14,26 +14,6 @@ ScTxServer::ScTxServer(QObject *parent):
     timer->start(SC_TXSERVER_TIMEOUT);
 }
 
-ScTxServer::~ScTxServer()
-{
-
-}
-
-void ScTxServer::openPort(int port)
-{
-    tx_port = port;
-    if( server->bind(QHostAddress::Any, tx_port) )
-    {
-        qDebug() << "created on port "
-                 << tx_port;
-    }
-    else
-    {
-        qDebug() << "TxServer failed, Error message is:"
-                 << server->errorString();
-    }
-}
-
 void ScTxServer::reset()
 {
     curr_id = -1;
@@ -87,7 +67,7 @@ void ScTxServer::writeBuf()
 void ScTxServer::resendBuf(int id)
 {
     QByteArray send_buf;
-    qDebug() << "ScTxServer::ACK"
+    qDebug() << "ScTxServer::resendBuf"
              << curr_id;
 
     sendData(tx_buf[id]);
@@ -108,6 +88,8 @@ int ScTxServer::sendData(QByteArray send_buf)
 {
     int ret = server->writeDatagram(send_buf, ipv4,
                                     tx_port);
+    qDebug() << "ScTxServer::sendData"
+             << send_buf << ipv4 << tx_port;
     server->flush();
     if( ret!=send_buf.length() )
     {

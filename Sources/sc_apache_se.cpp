@@ -75,7 +75,7 @@ void ScApacheSe::connectApp()
                  << dbg_rx->errorString();
     }
 
-    tx_server->openPort(ScSetting::tx_port);
+    tx_server->tx_port = ScSetting::tx_port;
     dbg_tx->openPort(ScSetting::dbg_tx_port);
 }
 
@@ -139,7 +139,7 @@ void ScApacheSe::rxReadyRead()
 
     qDebug() << "ScApacheSe::rxReadyRead:"
              << data << ScSetting::rx_port;
-//    pc_ip = sender_ip;
+    tx_server->ipv4 = sender_ip;
     rx_buf += data;
 
     processBuf();
@@ -154,7 +154,8 @@ void ScApacheSe::processBuf()
         int     end      = rx_buf.indexOf(SC_DATA_EOP);
 
         // Extract the packet including the EOP marker
-        read_bufs[buf_id] = rx_buf.mid(SC_LEN_PACKID, end);
+        read_bufs[buf_id] = rx_buf.mid(SC_LEN_PACKID,
+                                       end-SC_LEN_PACKID);
         if( client.isOpen() )
         {
             QByteArray pack = getPack();

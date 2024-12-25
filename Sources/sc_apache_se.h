@@ -52,6 +52,7 @@ public slots:
     void dbgRxError();
 
 private:
+    void processBuf();
     void reset();
 
     // rx

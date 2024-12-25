@@ -175,7 +175,7 @@ void ScApachePC::dbgReadyRead(QByteArray data)
             {
                 return;
             }
-            tx_con->resendBuf();
+            tx_con->resendBuf(ack_id);
             qDebug() << "ScApacheSe::ACK"
                      << ack_id << tx_con->curr_id;
             return;

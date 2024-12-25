@@ -48,8 +48,8 @@ void ScMetaClient::writeBuf()
             len = buf.length();
         }
         send_buf = buf.mid(0, len);
+        tx_buf[curr_id] = sc_mkPacket(&send_buf, &curr_id);
 
-        addCounter(&send_buf);
         if( sendData(send_buf) )
         {
             buf.remove(0, len);
@@ -59,19 +59,6 @@ void ScMetaClient::writeBuf()
             qDebug() << "-----SC_TX_CLIENT ERROR: DATA LOST-----";
             break;
         }
-    }
-}
-
-void ScMetaClient::addCounter(QByteArray *send_buf)
-{
-    curr_id++;
-    QString buf_id = QString::number(curr_id);
-    buf_id = buf_id.rightJustified(SC_LEN_PACKID, '0');
-    send_buf->prepend(buf_id.toStdString().c_str());
-    tx_buf = *send_buf;
-    if( curr_id>SC_MAX_PACKID-1 )
-    {
-        curr_id = -1;
     }
 }
 

@@ -35,6 +35,7 @@
 #define SC_CMD_DISCONNECT    "client_disconnected"
 #define SC_CMD_EOP           "\n"  // End of packet
 #define SC_CMD_EOP_CHAR      '\n'  // End of packet
+#define SC_DATA_EOP          "<EOP>\n"
 
 class ScSetting
 {
@@ -48,5 +49,7 @@ public:
     static QString password;
     static QString remote_host;
 };
+
+QByteArray sc_mkPacket(QByteArray *send_buf, int *count);
 
 #endif // SC_BACKEND_H

@@ -141,6 +141,38 @@ void ScApacheSe::rxReadyRead()
              << data << ScSetting::rx_port;
 //    pc_ip = sender_ip;
     rx_buf += data;
+
+    processBuf();
+}
+
+void ScApacheSe::processBuf()
+{
+    while( rx_buf.contains(SC_DATA_EOP) )
+    {
+        QString buf_id_s = rx_buf.mid(0, SC_LEN_PACKID);
+        int     buf_id   = buf_id_s.toInt();
+        int     end      = rx_buf.indexOf(SC_DATA_EOP);
+
+        // Extract the packet including the EOP marker
+        read_bufs[buf_id] = rx_buf.mid(SC_LEN_PACKID, end);
+        if( client.isOpen() )
+        {
+            QByteArray pack = getPack();
+            int w = client.write(pack);
+            qDebug() << "rxReadyRead"
+                     << pack.length()
+                     << "buf_id:" << buf_id
+                     << "rx_curr_id:" << rx_curr_id;
+        }
+        else
+        {
+            qDebug() << "ScApacheSe::rxDisconnected"
+                     << "client is not open"
+                     << read_bufs[buf_id].length();
+        }
+        // Remove the processed packet from the buffer
+        rx_buf.remove(0, end + strlen(SC_DATA_EOP));
+    }
 }
 
 QByteArray ScApacheSe::getPack()
@@ -195,8 +227,8 @@ void ScApacheSe::dbgRxReadyRead()
     QByteArrayList cmd = dbg_buf.split(SC_CMD_EOP_CHAR);
     for( int i=0 ; i<cmd.length() ; i++ )
     {
-        qDebug() << "ScApacheSe::dbgRxReadyRead:"
-                 << "cmd" << cmd[i];
+//        qDebug() << "ScApacheSe::dbgRxReadyRead:"
+//                 << "cmd" << cmd[i];
         if( cmd[i]==SC_CMD_DISCONNECT )
         {
             // connect and reset automatically
@@ -228,7 +260,7 @@ void ScApacheSe::dbgRxReadyRead()
             {
                 return;
             }
-            tx_server->resendBuf();
+            tx_server->resendBuf(ack_id);
             return;
         }
         qDebug() << "ScApacheSe::dbgRxReadyRead"

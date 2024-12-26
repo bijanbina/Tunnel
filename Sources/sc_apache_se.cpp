@@ -5,7 +5,7 @@ ScApacheSe::ScApacheSe(QObject *parent):
     QObject(parent)
 {
     rx_cons    = new QUdpSocket;
-    tx_server  = new ScTxServer;
+    tx_server  = new ScTxServer(ScSetting::tx_port);
     dbg_rx     = new QUdpSocket;
     dbg_tx     = new ScMetaServer;
     ack_timer  = new QTimer;
@@ -138,8 +138,7 @@ void ScApacheSe::rxReadyRead()
                           &sender_ip, &sender_port);
 
     qDebug() << "ScApacheSe::rxReadyRead:"
-             << data << ScSetting::rx_port;
-    tx_server->ipv4 = sender_ip;
+             << data << ScSetting::rx_port << sender_port;
     rx_buf += data;
 
     processBuf();

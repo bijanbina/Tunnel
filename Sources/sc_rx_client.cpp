@@ -17,7 +17,8 @@ ScRxClient::ScRxClient(int rx_port, QObject *parent):
 
     // dbg
     client = new QUdpSocket;
-    client->bind(port);
+    client->writeDatagram("a", 1, QHostAddress(
+                          ScSetting::remote_host), port);
 
     connect(client, SIGNAL(readyRead()),
             this  , SLOT  (readyRead()));

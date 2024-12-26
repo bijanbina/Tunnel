@@ -19,20 +19,21 @@ class ScTxServer : public QObject
     Q_OBJECT
 
 public:
-    explicit ScTxServer(QObject *parent = 0);
+    explicit ScTxServer(int port, QObject *parent = 0);
 
     void reset();
     void resendBuf(int id);
 
     QHostAddress ipv4;
     int          curr_id;
-    int          tx_port;
+    quint16      tx_port;
     QVector<QByteArray> tx_buf;
 
 public slots:
     void write(QByteArray data);
     void txConnected();
     void txError();
+    void readyRead();
     void writeBuf();
 
 private:

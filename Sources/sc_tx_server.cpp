@@ -1,7 +1,7 @@
 #include "sc_tx_server.h"
 #include <QThread>
 
-ScTxServer::ScTxServer(QObject *parent):
+ScTxServer::ScTxServer(int port, QObject *parent):
     QObject(parent)
 {
     server  = new QUdpSocket;
@@ -12,6 +12,11 @@ ScTxServer::ScTxServer(QObject *parent):
     connect(timer, SIGNAL(timeout()),
             this , SLOT  (writeBuf()));
     timer->start(SC_TXSERVER_TIMEOUT);
+
+    // because of NAT we don't know the port!
+    server->bind(port);
+    connect(server, SIGNAL(readyRead()),
+            this  , SLOT  (readyRead()));
 }
 
 void ScTxServer::reset()
@@ -89,7 +94,7 @@ int ScTxServer::sendData(QByteArray send_buf)
     int ret = server->writeDatagram(send_buf, ipv4,
                                     tx_port);
     qDebug() << "ScTxServer::sendData"
-             << send_buf << ipv4 << tx_port;
+             << send_buf << ipv4.toString() << tx_port;
     server->flush();
     if( ret!=send_buf.length() )
     {
@@ -101,3 +106,11 @@ int ScTxServer::sendData(QByteArray send_buf)
     return 1;
 }
 
+void ScTxServer::readyRead()
+{
+    // Just to update client address
+    QByteArray data;
+    data.resize(server->pendingDatagramSize());
+    server->readDatagram(data.data(), data.size(),
+                         &ipv4, &tx_port);
+}

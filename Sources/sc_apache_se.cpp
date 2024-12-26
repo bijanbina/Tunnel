@@ -12,6 +12,9 @@ ScApacheSe::ScApacheSe(QObject *parent):
     rx_curr_id = 0;
     read_bufs.resize(SC_MAX_PACKID+1);
 
+    connect(tx_server, SIGNAL(init()),
+            this     , SLOT(init()));
+
     connect(ack_timer, SIGNAL(timeout()),
             this     , SLOT  (sendAck()));
     ack_timer->start(SC_ACK_TIMEOUT);
@@ -234,22 +237,6 @@ void ScApacheSe::dbgRxReadyRead()
             // connect and reset automatically
             client.disconnectFromHost();
         }
-        else if( cmd[i]==SC_CMD_INIT )
-        {
-            reset();
-            if( client.isOpen() )
-            {
-                client.disconnectFromHost();
-                client.waitForDisconnected();
-                client.connectToHost(QHostAddress::LocalHost,
-                                     ScSetting::local_port);
-            }
-            else
-            {
-                client.connectToHost(QHostAddress::LocalHost,
-                                     ScSetting::local_port);
-            }
-        }
         else if( cmd[i].contains(SC_CMD_ACK) )
         {
             int cmd_len = strlen(SC_CMD_ACK);
@@ -285,4 +272,21 @@ void ScApacheSe::sendAck()
     msg += QString::number(rx_curr_id);
     msg += SC_CMD_EOP;
     dbg_tx->write(msg);
+}
+
+void ScApacheSe::init()
+{
+    reset();
+    if( client.isOpen() )
+    {
+        client.disconnectFromHost();
+        client.waitForDisconnected();
+        client.connectToHost(QHostAddress::LocalHost,
+                             ScSetting::local_port);
+    }
+    else
+    {
+        client.connectToHost(QHostAddress::LocalHost,
+                             ScSetting::local_port);
+    }
 }

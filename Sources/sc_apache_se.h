@@ -32,6 +32,8 @@ public:
     QHostAddress  rx_ipv4;
 
 public slots:
+    void init();
+
     // client
     void clientConnected();
     void clientError();

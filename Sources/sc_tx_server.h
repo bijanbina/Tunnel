@@ -36,6 +36,10 @@ public slots:
     void readyRead();
     void writeBuf();
 
+signals:
+    void init();
+
+
 private:
     int  sendData(QByteArray send_buf);
 

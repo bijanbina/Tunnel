@@ -116,4 +116,5 @@ void ScTxServer::readyRead()
 
     qDebug() << "ScTxServer::dummy load start:"
              << tx_port;
+    emit init();
 }

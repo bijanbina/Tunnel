@@ -24,6 +24,7 @@ public:
     ~ScApachePC();
 
     void init();
+    void reset();
 
     QVector<QTcpSocket *> cons;
     QVector<QHostAddress> ipv4;

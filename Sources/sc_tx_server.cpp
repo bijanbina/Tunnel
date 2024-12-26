@@ -113,4 +113,7 @@ void ScTxServer::readyRead()
     data.resize(server->pendingDatagramSize());
     server->readDatagram(data.data(), data.size(),
                          &ipv4, &tx_port);
+
+    qDebug() << "ScTxServer::dummy load start:"
+             << tx_port;
 }

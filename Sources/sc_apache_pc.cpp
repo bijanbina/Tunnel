@@ -74,6 +74,7 @@ void ScApachePC::clientConnected()
     if( putInFree() )
     {
         dbg_tx->write(SC_CMD_INIT SC_CMD_EOP);
+        rx_con->sendDummy();
         return;
     }
     int new_con_id = cons.length();
@@ -87,6 +88,7 @@ void ScApachePC::clientConnected()
     }
 
     dbg_tx->write(SC_CMD_INIT SC_CMD_EOP);
+    rx_con->sendDummy();
 }
 
 void ScApachePC::clientError(int id)

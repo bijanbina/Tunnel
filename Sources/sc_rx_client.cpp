@@ -11,19 +11,21 @@ ScRxClient::ScRxClient(int rx_port, QObject *parent):
     }
 
     curr_id       = 0;
-
-    rx_buf.resize (SC_PC_CONLEN);
     read_bufs.resize(SC_MAX_PACKID+1);
 
     // dbg
     client = new QUdpSocket;
-    client->writeDatagram("a", 1, QHostAddress(
-                          ScSetting::remote_host), port);
 
     connect(client, SIGNAL(readyRead()),
             this  , SLOT  (readyRead()));
     connect(client, SIGNAL(error(QAbstractSocket::SocketError)),
             this  , SLOT  (error()));
+}
+
+void ScRxClient::reset()
+{
+    curr_id = 0;
+    rx_buf.clear();
 }
 
 void ScRxClient::readyRead()
@@ -35,7 +37,6 @@ void ScRxClient::readyRead()
 
     client->readDatagram(data.data(), data.size(),
                          &sender_ip, &sender_port);
-    qDebug() << "ScRxClient::readyRead" << data;
     if( is_debug )
     {
         dataReady(data);
@@ -93,15 +94,23 @@ void ScRxClient::processBuf()
         int     end      = rx_buf.indexOf(SC_DATA_EOP);
 
         // Extract the packet including the EOP marker
-        read_bufs[buf_id] = rx_buf.mid(SC_LEN_PACKID, end-SC_LEN_PACKID);
-        QByteArray pack = getPack();
+        read_bufs[buf_id] = rx_buf.mid(SC_LEN_PACKID,
+                                       end-SC_LEN_PACKID);
         qDebug() << "ScRxClient::rxReadyRead"
-                 << pack.length()
+                 << read_bufs[buf_id]
                  << "buf_id:" << buf_id
                  << "curr_id:" << curr_id;
+        QByteArray pack = getPack();
         emit dataReady(pack);
 
         // Remove the processed packet from the buffer
         rx_buf.remove(0, end + strlen(SC_DATA_EOP));
     }
+}
+
+void ScRxClient::sendDummy()
+{
+    client->writeDatagram("a", 1, QHostAddress(
+                          ScSetting::remote_host), port);
+    qDebug() << "dummy sent";
 }

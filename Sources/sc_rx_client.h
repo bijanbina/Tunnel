@@ -20,6 +20,8 @@ class ScRxClient : public QObject
 
 public:
     explicit ScRxClient(int rx_port, QObject *parent = 0);
+    void     sendDummy();
+    void     reset();
 
     int  curr_id;
 
@@ -32,7 +34,7 @@ public slots:
 
 private:
     QByteArray getPack();
-    void processBuf();
+    void       processBuf();
 
     QVector<QByteArray> read_bufs;
 

@@ -64,7 +64,8 @@ void ScTxClient::writeBuf()
 
 void ScTxClient::resendBuf(int id)
 {
-    qDebug() << "ScApacheSe::resendBuf";
+    qDebug() << "ScTxClient::resendBuf curr_id:" << curr_id
+             << "id:" << id;
     sendData(tx_buf[id]);
 }
 
@@ -75,8 +76,8 @@ int ScTxClient::sendData(QByteArray send_buf)
     {
         return 0;
     }
-    qDebug() << "ScTxClient::sendData send_buf:" << send_buf
-             << tx_port;
+    qDebug() << "ScTxClient::sendData send_buf:" << send_buf.length()
+             << tx_port <<curr_id;
     int s = 0;
     s = cons->writeDatagram(send_buf,
                             QHostAddress(ScSetting::remote_host),
@@ -84,7 +85,7 @@ int ScTxClient::sendData(QByteArray send_buf)
 
     if( s!=send_buf.length() )
     {
-        qDebug() << "writeBuf: Error"
+        qDebug() << "ScTxClient::sendData Error:"
                  << send_buf.length() << s;
         return 0;
     }

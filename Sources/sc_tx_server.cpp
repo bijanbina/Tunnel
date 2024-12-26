@@ -72,8 +72,8 @@ void ScTxServer::writeBuf()
 void ScTxServer::resendBuf(int id)
 {
     QByteArray send_buf;
-    qDebug() << "ScTxServer::resendBuf"
-             << curr_id;
+    qDebug() << "ScTxServer::resendBuf curr_id:"
+             << curr_id << "id:" << id << tx_port;
 
     sendData(tx_buf[id]);
 }
@@ -93,8 +93,6 @@ int ScTxServer::sendData(QByteArray send_buf)
 {
     int ret = server->writeDatagram(send_buf, ipv4,
                                     tx_port);
-    qDebug() << "ScTxServer::sendData"
-             << send_buf << ipv4.toString() << tx_port;
     server->flush();
     if( ret!=send_buf.length() )
     {

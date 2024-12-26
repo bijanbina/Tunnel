@@ -130,7 +130,7 @@ void ScApacheSe::rxError()
 }
 
 void ScApacheSe::rxReadyRead()
-{ 
+{
     QByteArray data;
     data.resize(rx_cons->pendingDatagramSize());
     QHostAddress sender_ip;
@@ -139,9 +139,6 @@ void ScApacheSe::rxReadyRead()
     rx_cons->readDatagram(data.data(),
                           data.size(),
                           &sender_ip, &sender_port);
-
-    qDebug() << "ScApacheSe::rxReadyRead:"
-             << data << ScSetting::rx_port << sender_port;
     rx_buf += data;
 
     processBuf();

@@ -80,11 +80,6 @@ void ScMetaServer::writeBuf()
         send_buf = buf.mid(0, len);
         mkPacket(&send_buf);
 
-        if( tx_port!=ScSetting::dbg_tx_port )
-        {
-            qDebug() << "ScTxServer::writeBuf curr_id:"
-                     << curr_id << "len:" << len;
-        }
         if( sendData(send_buf) )
         {
             buf.remove(0, len);
@@ -101,18 +96,18 @@ void ScMetaServer::writeBuf()
 void ScMetaServer::resendBuf(int id)
 {
     QByteArray send_buf;
-    qDebug() << "ScTxServer::ACK"
-             << id << curr_id;
+
     if( server->isOpen() &&
         server->state()==QTcpSocket::ConnectedState )
     {
         send_buf = tx_buf[id];
 
-        qDebug() << "ScTxServer::resendBuf";
+        qDebug() << "ScMetaServer::resendBuf"
+                 << id << curr_id;
         sendData(send_buf);
         return;
     }
-    qDebug() << "ScTxServer::resendBuf Failed";
+    qDebug() << "ScMetaServer::resendBuf Failed";
 }
 
 void ScMetaServer::write(QByteArray data)
@@ -155,4 +150,5 @@ int ScMetaServer::sendData(QByteArray send_buf)
 
     return 1;
 }
+
 

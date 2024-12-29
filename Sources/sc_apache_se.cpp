@@ -7,7 +7,7 @@ ScApacheSe::ScApacheSe(QObject *parent):
     rx_cons    = new QUdpSocket;
     tx_server  = new ScTxServer(ScSetting::tx_port);
     dbg_rx     = new QUdpSocket;
-    dbg_tx     = new ScMetaServer;
+    dbg_tx     = new ScTxServer(ScSetting::dbg_tx_port);
     ack_timer  = new QTimer;
     rx_curr_id = 0;
     read_bufs.resize(SC_MAX_PACKID+1);
@@ -79,7 +79,23 @@ void ScApacheSe::connectApp()
     }
 
     tx_server->tx_port = ScSetting::tx_port;
-    dbg_tx->openPort(ScSetting::dbg_tx_port);
+}
+
+void ScApacheSe::init()
+{
+    reset();
+    if( client.isOpen() )
+    {
+        client.disconnectFromHost();
+        client.waitForDisconnected();
+        client.connectToHost(QHostAddress::LocalHost,
+                             ScSetting::local_port);
+    }
+    else
+    {
+        client.connectToHost(QHostAddress::LocalHost,
+                             ScSetting::local_port);
+    }
 }
 
 void ScApacheSe::reset()
@@ -159,7 +175,7 @@ void ScApacheSe::processBuf()
         {
             QByteArray pack = getPack();
             int w = client.write(pack);
-            qDebug() << "ScApacheSe::processBuf pack_len:"
+            qDebug() << "ScApacheSe::processBuf data_len:"
                      << pack.length()
                      << "buf_id:" << buf_id
                      << "rx_curr_id:" << rx_curr_id;
@@ -196,7 +212,8 @@ QByteArray ScApacheSe::getPack()
     }
 
     qDebug() << "ScApacheSe::getPack start:"
-             << rx_curr_id-count << count;
+             << rx_curr_id-count << "curr_id"
+             << rx_curr_id << count;
 
     return pack;
 }
@@ -240,7 +257,7 @@ void ScApacheSe::dbgRxReadyRead()
             cmd[i].remove(0, cmd_len);
             int     ack_id   = cmd[i].toInt();
 
-            if( ack_id>tx_server->curr_id )
+            if( ack_id>=tx_server->curr_id )
             {
                 return;
             }
@@ -269,21 +286,4 @@ void ScApacheSe::sendAck()
     msg += QString::number(rx_curr_id);
     msg += SC_CMD_EOP;
     dbg_tx->write(msg);
-}
-
-void ScApacheSe::init()
-{
-    reset();
-    if( client.isOpen() )
-    {
-        client.disconnectFromHost();
-        client.waitForDisconnected();
-        client.connectToHost(QHostAddress::LocalHost,
-                             ScSetting::local_port);
-    }
-    else
-    {
-        client.connectToHost(QHostAddress::LocalHost,
-                             ScSetting::local_port);
-    }
 }

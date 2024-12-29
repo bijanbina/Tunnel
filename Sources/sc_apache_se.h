@@ -10,7 +10,6 @@
 #include <QSignalMapper>
 #include <QUdpSocket>
 #include "backend.h"
-#include "sc_meta_server.h"
 #include "sc_tx_client.h"
 #include "sc_tx_server.h"
 
@@ -74,7 +73,7 @@ private:
     QUdpSocket    *dbg_rx;
 
     // dbg tx
-    ScMetaServer  *dbg_tx;
+    ScTxServer    *dbg_tx;
 };
 
 #endif // SC_APACHE_SE_H

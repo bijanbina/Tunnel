@@ -52,7 +52,7 @@ private:
     QTcpServer     *server;
     ScTxClient     *tx_con;
     QByteArray      tx_buf;
-    ScMetaClient   *dbg_tx;
+    ScMetaClient   *tx_dbg;
     QVector<QByteArray> read_bufs;
 
     // rx
@@ -63,7 +63,7 @@ private:
                     // if we miss a packet to request resend
 
     // dbg
-    ScRxClient *dbg_rx;
+    ScRxClient *rx_dbg;
 };
 
 #endif // SC_APACHE_PC_H

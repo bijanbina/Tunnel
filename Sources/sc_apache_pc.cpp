@@ -7,8 +7,8 @@ ScApachePC::ScApachePC(QObject *parent):
     server = new QTcpServer;
     tx_con = new ScTxClient(ScSetting::tx_port);
     rx_con = new ScRxClient(ScSetting::rx_port);
-    dbg_tx = new ScMetaClient(ScSetting::dbg_tx_port);
-    dbg_rx = new ScRxClient  (ScSetting::dbg_rx_port);
+    tx_dbg = new ScMetaClient(ScSetting::dbg_tx_port);
+    rx_dbg = new ScRxClient  (ScSetting::dbg_rx_port);
     ack_timer     = new QTimer;
     connect(server, SIGNAL(newConnection()),
             this  , SLOT(clientConnected()));
@@ -29,7 +29,7 @@ ScApachePC::ScApachePC(QObject *parent):
             this  , SLOT  (rxReadyRead(QByteArray)));
 
     // dbg
-    connect(dbg_rx, SIGNAL(dataReady(QByteArray)),
+    connect(rx_dbg, SIGNAL(dataReady(QByteArray)),
             this  , SLOT  (dbgReadyRead(QByteArray)));
 
     connect(ack_timer, SIGNAL(timeout()),
@@ -69,12 +69,21 @@ void ScApachePC::init()
     }
 }
 
+void ScApachePC::reset()
+{
+    rx_con->reset();
+    tx_con->reset();
+    rx_dbg->reset();
+    rx_con->sendDummy();
+    rx_dbg->sendDummy();
+    tx_dbg->write(SC_CMD_INIT SC_CMD_EOP);
+}
+
 void ScApachePC::clientConnected()
 {
     if( putInFree() )
     {
-        dbg_tx->write(SC_CMD_INIT SC_CMD_EOP);
-        rx_con->sendDummy();
+        reset();
         return;
     }
     int new_con_id = cons.length();
@@ -86,9 +95,7 @@ void ScApachePC::clientConnected()
         cons[0]->write(rx_buf);
         rx_buf.clear();
     }
-
-    dbg_tx->write(SC_CMD_INIT SC_CMD_EOP);
-    rx_con->sendDummy();
+    reset();
 }
 
 void ScApachePC::clientError(int id)
@@ -104,7 +111,7 @@ void ScApachePC::clientError(int id)
 void ScApachePC::clientDisconnected(int id)
 {
     qDebug() << id << "clientDisconnected";
-    dbg_tx->write(SC_CMD_DISCONNECT SC_CMD_EOP);
+    tx_dbg->write(SC_CMD_DISCONNECT SC_CMD_EOP);
     rx_buf.clear();
     read_bufs.clear();
     rx_buf.resize    (SC_PC_CONLEN);
@@ -146,13 +153,10 @@ void ScApachePC::rxReadyRead(QByteArray pack)
 // check if we need to resend a packet
 void ScApachePC::sendAck()
 {
-    //    if( cons.length() )
-    //    {
     QByteArray msg = SC_CMD_ACK;
     msg += QString::number(rx_con->curr_id);
     msg += SC_CMD_EOP;
-    dbg_tx->write(msg);
-    //    }
+    tx_dbg->write(msg);
 }
 
 void ScApachePC::dbgReadyRead(QByteArray data)

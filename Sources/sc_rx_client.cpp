@@ -97,7 +97,7 @@ void ScRxClient::processBuf()
         read_bufs[buf_id] = rx_buf.mid(SC_LEN_PACKID,
                                        end-SC_LEN_PACKID);
         qDebug() << "ScRxClient::rxReadyRead"
-                 << read_bufs[buf_id]
+                 << read_bufs[buf_id].length()
                  << "buf_id:" << buf_id
                  << "curr_id:" << curr_id;
         QByteArray pack = getPack();

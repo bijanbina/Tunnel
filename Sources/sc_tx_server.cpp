@@ -17,12 +17,16 @@ ScTxServer::ScTxServer(int port, QObject *parent):
     server->bind(port);
     connect(server, SIGNAL(readyRead()),
             this  , SLOT  (readyRead()));
+    connect(server, SIGNAL(error(QAbstractSocket::SocketError)),
+            this  , SLOT(txError()));
 }
 
 void ScTxServer::reset()
 {
     curr_id = -1;
     buf.clear();
+    tx_buf.clear();
+    tx_buf.resize(SC_MAX_PACKID+1);
 }
 
 void ScTxServer::txConnected()
@@ -34,7 +38,7 @@ void ScTxServer::txError()
 {
     if( server->error()!=QTcpSocket::RemoteHostClosedError )
     {
-        qDebug() << "ApacheSe::txError"
+        qDebug() << "ScTxServer::txError"
                  << server->errorString()
                  << server->state();
         server->close();
@@ -73,7 +77,8 @@ void ScTxServer::resendBuf(int id)
 {
     QByteArray send_buf;
     qDebug() << "ScTxServer::resendBuf curr_id:"
-             << curr_id << "id:" << id << tx_port;
+             << curr_id << "id:" << id << "tx_port:"
+             << tx_port;
 
     sendData(tx_buf[id]);
 }

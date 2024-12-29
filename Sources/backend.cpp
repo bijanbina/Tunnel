@@ -3,7 +3,7 @@
 QByteArray sc_mkPacket(QByteArray *send_buf, int *count)
 {
     (*count)++;
-    if( (*count)>SC_MAX_PACKID-1 )
+    if( (*count)>SC_MAX_PACKID )
     {
         (*count) = 0;
     }

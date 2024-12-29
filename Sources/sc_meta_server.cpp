@@ -7,7 +7,7 @@ ScMetaServer::ScMetaServer(QObject *parent):
     server  = new QUdpSocket;
     timer   = new QTimer;
     curr_id = -1;
-    tx_buf.resize(SC_MAX_PACKID);
+    tx_buf.resize(SC_MAX_PACKID+1);
 
     connect(server, SIGNAL(error(QAbstractSocket::SocketError)),
             this  , SLOT(txError()));
@@ -128,7 +128,7 @@ void ScMetaServer::mkPacket(QByteArray *send_buf)
     send_buf->prepend(tx_id.toStdString().c_str());
     *send_buf += SC_DATA_EOP;
     tx_buf[curr_id] = *send_buf;
-    if( curr_id>SC_MAX_PACKID-1 )
+    if( curr_id>SC_MAX_PACKID )
     {
         curr_id = -1;
     }

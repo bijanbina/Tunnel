@@ -159,7 +159,7 @@ void ScApacheSe::processBuf()
         {
             QByteArray pack = getPack();
             int w = client.write(pack);
-            qDebug() << "rxReadyRead"
+            qDebug() << "ScApacheSe::processBuf pack_len:"
                      << pack.length()
                      << "buf_id:" << buf_id
                      << "rx_curr_id:" << rx_curr_id;

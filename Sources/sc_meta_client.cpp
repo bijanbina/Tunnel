@@ -5,7 +5,7 @@ ScMetaClient::ScMetaClient(int port, QObject *parent):
 {
     tx_port = port;
     curr_id = -1;
-    tx_buf.resize(SC_MAX_PACKID);
+    tx_buf.resize(SC_MAX_PACKID+1);
     tx_timer      = new QTimer;
 
     cons = new QUdpSocket;

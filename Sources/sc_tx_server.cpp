@@ -7,7 +7,7 @@ ScTxServer::ScTxServer(int port, QObject *parent):
     server  = new QUdpSocket;
     timer   = new QTimer;
     curr_id = -1;
-    tx_buf.resize(SC_MAX_PACKID);
+    tx_buf.resize(SC_MAX_PACKID+1);
 
     connect(timer, SIGNAL(timeout()),
             this , SLOT  (writeBuf()));

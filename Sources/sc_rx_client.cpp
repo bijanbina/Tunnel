@@ -4,11 +4,6 @@ ScRxClient::ScRxClient(int rx_port, QObject *parent):
     QObject(parent)
 {
     port     = rx_port;
-    is_debug = 0;
-    if( port==ScSetting::dbg_rx_port )
-    {
-        is_debug = 0;
-    }
 
     curr_id       = 0;
     read_bufs.resize(SC_MAX_PACKID+1);
@@ -28,6 +23,16 @@ void ScRxClient::reset()
     rx_buf.clear();
 }
 
+void ScRxClient::error()
+{
+    if( client->error()!=QUdpSocket::RemoteHostClosedError )
+    {
+        qDebug() << "ScRxClient::error"
+                 << client->state()
+                 << client->errorString();
+    }
+}
+
 void ScRxClient::readyRead()
 {
     QByteArray data;
@@ -37,25 +42,8 @@ void ScRxClient::readyRead()
 
     client->readDatagram(data.data(), data.size(),
                          &sender_ip, &sender_port);
-    if( is_debug )
-    {
-        dataReady(data);
-    }
-    else
-    {
-        rx_buf += data;
-        processBuf();
-    }
-}
-
-void ScRxClient::error()
-{
-    if( client->error()!=QUdpSocket::RemoteHostClosedError )
-    {
-        qDebug() << "ScRxClient::error"
-                 << client->state()
-                 << client->errorString();
-    }
+    rx_buf += data;
+    processBuf();
 }
 
 QByteArray ScRxClient::getPack()
@@ -96,15 +84,20 @@ void ScRxClient::processBuf()
         // Extract the packet including the EOP marker
         read_bufs[buf_id] = rx_buf.mid(SC_LEN_PACKID,
                                        end-SC_LEN_PACKID);
-        if( port!=ScSetting::dbg_rx_port )
+        if( port==ScSetting::dbg_rx_port )
         {
-            qDebug() << "ScRxClient::processBuf"
-                     << read_bufs[buf_id].length()
-                     << "buf_id:" << buf_id
-                     << "curr_id:" << curr_id;
+            emit dataReady(read_bufs[buf_id]);
+            return;
         }
+        qDebug() << "ScRxClient::processBuf"
+                 << read_bufs[buf_id].length()
+                 << "buf_id:" << buf_id
+                 << "curr_id:" << curr_id;
         QByteArray pack = getPack();
-        emit dataReady(pack);
+        if( pack.length() )
+        {
+            emit dataReady(pack);
+        }
 
         // Remove the processed packet from the buffer
         rx_buf.remove(0, end + strlen(SC_DATA_EOP));

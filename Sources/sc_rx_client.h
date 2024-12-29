@@ -42,7 +42,6 @@ private:
     QUdpSocket *client;
     QByteArray  rx_buf;
     int         port;
-    int         is_debug;
 };
 
 #endif // SC_APACHE_PC_H

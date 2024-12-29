@@ -59,8 +59,6 @@ private:
     ScRxClient *rx_con;
     QByteArray  rx_buf;
     QTimer     *ack_timer;
-    int         rc_connected; // remote client connected
-                    // if we miss a packet to request resend
 
     // dbg
     ScRxClient *rx_dbg;

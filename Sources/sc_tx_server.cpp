@@ -51,34 +51,6 @@ void ScTxServer::txError()
     }
 }
 
-void ScTxServer::writeBuf()
-{
-    if( buf.isEmpty() || ipv4.isNull() )
-    {
-        return;
-    }
-
-    QByteArray send_buf;
-    int split_size = SC_MXX_PACKLEN;
-    int len = split_size;
-    if( buf.length()<split_size )
-    {
-        len = buf.length();
-    }
-    send_buf = buf.mid(0, len);
-    tx_buf[curr_id] = sc_mkPacket(&send_buf, &curr_id);
-
-    if( is_dbg==0 )
-    {
-        qDebug() << "ScTxServer::writeBuf curr_id:"
-                 << curr_id << "len:" << len;
-    }
-    if( sendData(send_buf) )
-    {
-        buf.remove(0, len);
-    }
-}
-
 void ScTxServer::resendBuf(int id)
 {
     QByteArray send_buf;
@@ -97,6 +69,33 @@ void ScTxServer::write(QByteArray data)
         return;
     }
     writeBuf();
+}
+
+void ScTxServer::writeBuf()
+{
+    if( buf.isEmpty() || ipv4.isNull() )
+    {
+        return;
+    }
+
+    QByteArray send_buf;
+    int len = SC_MXX_PACKLEN;
+    if( buf.length()<SC_MXX_PACKLEN )
+    {
+        len = buf.length();
+    }
+    send_buf = buf.mid(0, len);
+    tx_buf[curr_id] = sc_mkPacket(&send_buf, &curr_id);
+
+    if( is_dbg==0 )
+    {
+        qDebug() << "ScTxServer::writeBuf curr_id:"
+                 << curr_id << "len:" << len;
+    }
+    if( sendData(send_buf) )
+    {
+        buf.remove(0, len);
+    }
 }
 
 // return 1 when sending data is successful

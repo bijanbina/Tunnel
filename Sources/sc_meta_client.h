@@ -27,7 +27,6 @@ private:
     QTimer     *tx_timer;
     QByteArray  buf;
     QUdpSocket *cons;
-    QVector<QByteArray> tx_buf;
 };
 
 #endif // SC_META_CLIENT_H

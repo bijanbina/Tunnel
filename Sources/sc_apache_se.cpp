@@ -246,12 +246,8 @@ void ScApacheSe::dbgRxReadyRead()
     {
 //        qDebug() << "ScApacheSe::dbgRxReadyRead:"
 //                 << "cmd" << cmd[i];
-        if( cmd[i]==SC_CMD_DISCONNECT )
-        {
-            // connect and reset automatically
-            client.disconnectFromHost();
-        }
-        else if( cmd[i].contains(SC_CMD_ACK) )
+
+        if( cmd[i].contains(SC_CMD_ACK) )
         {
             int cmd_len = strlen(SC_CMD_ACK);
             cmd[i].remove(0, cmd_len);
@@ -284,6 +280,5 @@ void ScApacheSe::sendAck()
 {
     QByteArray msg = SC_CMD_ACK;
     msg += QString::number(rx_curr_id);
-    msg += SC_CMD_EOP;
     dbg_tx->write(msg);
 }

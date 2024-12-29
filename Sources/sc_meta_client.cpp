@@ -3,10 +3,9 @@
 ScMetaClient::ScMetaClient(int port, QObject *parent):
     QObject(parent)
 {
-    tx_port = port;
-    curr_id = -1;
-    tx_buf.resize(SC_MAX_PACKID+1);
-    tx_timer      = new QTimer;
+    tx_port  = port;
+    curr_id  = -1;
+    tx_timer = new QTimer;
 
     cons = new QUdpSocket;
 
@@ -48,7 +47,7 @@ void ScMetaClient::writeBuf()
             len = buf.length();
         }
         send_buf = buf.mid(0, len);
-        tx_buf[curr_id] = sc_mkPacket(&send_buf, &curr_id);
+        sc_mkPacket(&send_buf, &curr_id);
 
         if( sendData(send_buf) )
         {
@@ -70,21 +69,15 @@ int ScMetaClient::sendData(QByteArray send_buf)
         return 0;
     }
 //    qDebug() << "ScDbgClient::sendData send_buf:" << send_buf;
-    int s = 0;
-    for( int count=0 ; count<SC_PC_CONLEN ; count++ )
+    int s = cons->writeDatagram(send_buf,
+               QHostAddress(ScSetting::remote_host), tx_port);
+
+    if( s!=send_buf.length() )
     {
-        s = cons->writeDatagram(send_buf,
-                   QHostAddress(ScSetting::remote_host), tx_port);
-
-        if( s!=send_buf.length() )
-        {
-            qDebug() << "writeBuf: Error"
-                     << send_buf.length() << s;
-            return 0;
-        }
-
-        return 1;
+        qDebug() << "writeBuf: Error"
+                 << send_buf.length() << s;
+        return 0;
     }
 
-    return 0;
+    return 1;
 }

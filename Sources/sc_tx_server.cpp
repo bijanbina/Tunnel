@@ -7,6 +7,7 @@ ScTxServer::ScTxServer(int port, QObject *parent):
     server  = new QUdpSocket;
     timer   = new QTimer;
     curr_id = -1;
+    is_dbg  = 0;
     tx_buf.resize(SC_MAX_PACKID+1);
 
     connect(timer, SIGNAL(timeout()),
@@ -19,6 +20,11 @@ ScTxServer::ScTxServer(int port, QObject *parent):
             this  , SLOT  (readyRead()));
     connect(server, SIGNAL(error(QAbstractSocket::SocketError)),
             this  , SLOT(txError()));
+
+    if( port==ScSetting::dbg_tx_port )
+    {
+        is_dbg = 1;
+    }
 }
 
 void ScTxServer::reset()
@@ -62,7 +68,7 @@ void ScTxServer::writeBuf()
     send_buf = buf.mid(0, len);
     tx_buf[curr_id] = sc_mkPacket(&send_buf, &curr_id);
 
-    if( tx_port!=ScSetting::dbg_tx_port )
+    if( is_dbg==0 )
     {
         qDebug() << "ScTxServer::writeBuf curr_id:"
                  << curr_id << "len:" << len;

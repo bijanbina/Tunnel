@@ -46,6 +46,7 @@ private:
     QByteArray  buf;
     QUdpSocket *server;
     QTimer     *timer;
+    int         is_dbg;
 };
 
 #endif // SC_TX_SERVER_H

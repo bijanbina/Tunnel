@@ -144,10 +144,12 @@ void ScApachePC::rxReadyRead(QByteArray pack)
 // check if we need to resend a packet
 void ScApachePC::sendAck()
 {
-    QByteArray msg = SC_CMD_ACK;
-    msg += QString::number(rx_con->curr_id);
-    msg += SC_CMD_EOP;
-    tx_dbg->write(msg);
+    if( rx_con->curr_id>0 )
+    {
+        QByteArray msg = SC_CMD_ACK;
+        msg += QString::number(rx_con->curr_id);
+        tx_dbg->write(msg);
+    }
 }
 
 void ScApachePC::dbgReadyRead(QByteArray data)
@@ -156,8 +158,8 @@ void ScApachePC::dbgReadyRead(QByteArray data)
     {
         return;
     }
-    qDebug() << "ScApachePC::dbgReadyRead"
-             << data;
+//    qDebug() << "ScApachePC::dbgReadyRead"
+//             << data;
     if( data.contains(SC_CMD_ACK) )
     {
         int cmd_len = strlen(SC_CMD_ACK);
@@ -167,7 +169,7 @@ void ScApachePC::dbgReadyRead(QByteArray data)
         if( sc_needResend(ack_id, tx_con->curr_id) )
         {
             tx_con->resendBuf(ack_id);
-            qDebug() << "ScApachePC::dbgReadyRead"
+            qDebug() << "ScApachePC::dbgReadyRead ACK_ID:"
                      << ack_id << tx_con->curr_id;
         }
         return;

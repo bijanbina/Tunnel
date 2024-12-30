@@ -3,9 +3,9 @@
 ScRxClient::ScRxClient(int rx_port, QObject *parent):
     QObject(parent)
 {
-    port     = rx_port;
+    port    = rx_port;
 
-    curr_id       = 0;
+    curr_id = -1;
     read_bufs.resize(SC_MAX_PACKID+1);
 
     // dbg
@@ -19,7 +19,7 @@ ScRxClient::ScRxClient(int rx_port, QObject *parent):
 
 void ScRxClient::reset()
 {
-    curr_id = 0;
+    curr_id = -1;
     rx_buf.clear();
 }
 
@@ -50,16 +50,16 @@ QByteArray ScRxClient::getPack()
 {
     QByteArray pack;
     int count = 0;
-    while( read_bufs[curr_id].length() )
+    while( sc_hasPacket(&read_bufs, curr_id) )
     {
-        pack += read_bufs[curr_id];
-        read_bufs[curr_id].clear();
         curr_id++;
-        count++;
         if( curr_id>SC_MAX_PACKID )
         {
             curr_id = 0;
         }
+        pack += read_bufs[curr_id];
+        read_bufs[curr_id].clear();
+        count++;
         if( count>SC_MAX_PACKID )
         {
             break;
@@ -92,7 +92,7 @@ void ScRxClient::processBuf()
         {
             qDebug() << "ScRxClient::processBuf"
                      << read_bufs[buf_id].length()
-                     << "buf_id:" << buf_id
+                     << "buf_id:"  << buf_id
                      << "curr_id:" << curr_id;
             QByteArray pack = getPack();
             if( pack.length() )

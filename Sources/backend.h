@@ -6,6 +6,8 @@
 #endif
 
 #include <QString>
+#include <QVector>
+#include <QByteArray>
 
 #define SC_STATE_CLIENT   0
 #define SC_STATE_SERVER   1
@@ -51,5 +53,6 @@ public:
 
 QByteArray sc_mkPacket(QByteArray *send_buf, int *count);
 int        sc_needResend(int ack, int curr_index);
+int        sc_hasPacket(QVector<QByteArray> *buf, int id);
 
 #endif // SC_BACKEND_H

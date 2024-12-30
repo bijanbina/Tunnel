@@ -53,12 +53,13 @@ void ScTxServer::txError()
 
 void ScTxServer::resendBuf(int id)
 {
-    QByteArray send_buf;
-    qDebug() << "ScTxServer::resendBuf curr_id:"
-             << curr_id << "id:" << id << "tx_port:"
-             << tx_port;
-
-    sendData(tx_buf[id]);
+    if( tx_buf[id].length() )
+    {
+        qDebug() << "ScTxServer::resendBuf curr_id:"
+                 << curr_id << "id:" << id << "tx_port:"
+                 << tx_port;
+        sendData(tx_buf[id]);
+    }
 }
 
 void ScTxServer::write(QByteArray data)
@@ -106,7 +107,7 @@ int ScTxServer::sendData(QByteArray send_buf)
     server->flush();
     if( ret!=send_buf.length() )
     {
-        qDebug() << "ScTxServer::sendData Error"
+        qDebug() << "ScTxServer::sendData Error, data_len:"
                  << send_buf.length() << ret;
         return 0;
     }

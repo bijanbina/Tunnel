@@ -9,7 +9,7 @@ ScApacheSe::ScApacheSe(QObject *parent):
     dbg_rx     = new QUdpSocket;
     dbg_tx     = new ScTxServer(ScSetting::dbg_tx_port);
     ack_timer  = new QTimer;
-    rx_curr_id = 0;
+    rx_curr_id = -1;
     read_bufs.resize(SC_MAX_PACKID+1);
 
     connect(tx_server, SIGNAL(init()),
@@ -100,7 +100,7 @@ void ScApacheSe::init()
 
 void ScApacheSe::reset()
 {
-    rx_curr_id = 0;
+    rx_curr_id = -1;
     tx_server->reset();
     dbg_tx->reset();
     rx_buf.clear();
@@ -196,16 +196,16 @@ QByteArray ScApacheSe::getPack()
 {
     QByteArray pack;
     int count = 0;
-    while( read_bufs[rx_curr_id].length() )
+    while( sc_hasPacket(&read_bufs, rx_curr_id) )
     {
-        pack += read_bufs[rx_curr_id];
-        read_bufs[rx_curr_id].clear();
         rx_curr_id++;
-        count++;
         if( rx_curr_id>SC_MAX_PACKID )
         {
             rx_curr_id = 0;
         }
+        pack += read_bufs[rx_curr_id];
+        read_bufs[rx_curr_id].clear();
+        count++;
         if( count>SC_MAX_PACKID )
         {
             break;
@@ -278,7 +278,10 @@ void ScApacheSe::dbgRxError()
 // check if we need to resend a packet
 void ScApacheSe::sendAck()
 {
-    QByteArray msg = SC_CMD_ACK;
-    msg += QString::number(rx_curr_id);
-    dbg_tx->write(msg);
+    if( rx_curr_id>0 )
+    {
+        QByteArray msg = SC_CMD_ACK;
+        msg += QString::number(rx_curr_id);
+        dbg_tx->write(msg);
+    }
 }

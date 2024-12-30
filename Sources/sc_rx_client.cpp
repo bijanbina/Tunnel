@@ -87,16 +87,18 @@ void ScRxClient::processBuf()
         if( port==ScSetting::dbg_rx_port )
         {
             emit dataReady(read_bufs[buf_id]);
-            return;
         }
-        qDebug() << "ScRxClient::processBuf"
-                 << read_bufs[buf_id].length()
-                 << "buf_id:" << buf_id
-                 << "curr_id:" << curr_id;
-        QByteArray pack = getPack();
-        if( pack.length() )
+        else
         {
-            emit dataReady(pack);
+            qDebug() << "ScRxClient::processBuf"
+                     << read_bufs[buf_id].length()
+                     << "buf_id:" << buf_id
+                     << "curr_id:" << curr_id;
+            QByteArray pack = getPack();
+            if( pack.length() )
+            {
+                emit dataReady(pack);
+            }
         }
 
         // Remove the processed packet from the buffer

@@ -14,3 +14,16 @@ QByteArray sc_mkPacket(QByteArray *send_buf, int *count)
     *send_buf += SC_DATA_EOP;
     return *send_buf;
 }
+
+int sc_needResend(int ack, int curr_index)
+{
+    int diff1    = abs(ack-curr_index);
+    int diff2    = abs(curr_index-ack);
+
+    int min_diff = qMin(diff1, diff2);
+    if( min_diff )
+    {
+        return 1;
+    }
+    return 0;
+}

@@ -50,5 +50,6 @@ public:
 };
 
 QByteArray sc_mkPacket(QByteArray *send_buf, int *count);
+int        sc_needResend(int ack, int curr_index);
 
 #endif // SC_BACKEND_H

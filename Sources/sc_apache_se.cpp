@@ -177,12 +177,13 @@ void ScApacheSe::processBuf()
             int w = client.write(pack);
             qDebug() << "ScApacheSe::processBuf data_len:"
                      << pack.length()
-                     << "buf_id:" << buf_id
+                     << "buf_id:" << buf_id << rx_buf
                      << "rx_curr_id:" << rx_curr_id;
         }
         else
         {
-            qDebug() << "ScApacheSe::rxDisconnected"
+            init();
+            qDebug() << "ScApacheSe::processBuf"
                      << "client is not open"
                      << read_bufs[buf_id].length();
         }
@@ -251,13 +252,12 @@ void ScApacheSe::dbgRxReadyRead()
         {
             int cmd_len = strlen(SC_CMD_ACK);
             cmd[i].remove(0, cmd_len);
-            int     ack_id   = cmd[i].toInt();
+            int ack_id  = cmd[i].toInt();
 
-            if( ack_id>=tx_server->curr_id )
+            if( sc_needResend(ack_id, tx_server->curr_id) )
             {
-                return;
+                tx_server->resendBuf(ack_id);
             }
-            tx_server->resendBuf(ack_id);
             return;
         }
         qDebug() << "ScApacheSe::dbgRxReadyRead"

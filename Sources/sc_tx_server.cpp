@@ -44,9 +44,6 @@ void ScTxServer::txError()
 {
     if( server->error()!=QTcpSocket::RemoteHostClosedError )
     {
-        qDebug() << "ScTxServer::txError"
-                 << server->errorString()
-                 << server->state();
         server->close();
     }
 }
@@ -55,9 +52,6 @@ void ScTxServer::resendBuf(int id)
 {
     if( tx_buf[id].length() )
     {
-        qDebug() << "ScTxServer::resendBuf curr_id:"
-                 << curr_id << "id:" << id << "tx_port:"
-                 << tx_port;
         sendData(tx_buf[id]);
     }
 }

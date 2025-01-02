@@ -16,15 +16,11 @@ public:
     void write(QByteArray data);
     void reset();
 
-public slots:
-    void writeBuf();
-
 private:
     int  sendData(QByteArray send_buf);
 
     int         tx_port;
     int         curr_id;
-    QTimer     *tx_timer;
     QByteArray  buf;
     QUdpSocket *cons;
 };

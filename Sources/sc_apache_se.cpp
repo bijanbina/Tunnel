@@ -244,12 +244,10 @@ void ScApacheSe::dbgRxReadyRead()
         return;
     }
 
-    dbg_buf.remove(0, SC_LEN_PACKID);
     QByteArrayList cmd = dbg_buf.split(SC_CMD_EOP_CHAR);
     for( int i=0 ; i<cmd.length() ; i++ )
     {
-        //        qDebug() << "ScApacheSe::dbgRxReadyRead:"
-        //                 << "cmd" << cmd[i];
+        dbg_buf.remove(0, SC_LEN_PACKID);
 
         if( cmd[i].contains(SC_CMD_ACK) )
         {
@@ -259,11 +257,15 @@ void ScApacheSe::dbgRxReadyRead()
 
             if( sc_needResend(ack_id, tx_server->curr_id) )
             {
+                qDebug() << "ScApacheSe::dbgRxReadyRead curr_id:"
+                         << tx_server->curr_id
+                         << "id:" << ack_id
+                         << "dbg_buf:" << dbg_buf;
                 tx_server->resendBuf(ack_id);
             }
             return;
         }
-        qDebug() << "ScApacheSe::dbgRxReadyRead"
+        qDebug() << "ScApacheSe::dbgRxReadyRead cmd:"
                  << cmd[i];
     }
 }

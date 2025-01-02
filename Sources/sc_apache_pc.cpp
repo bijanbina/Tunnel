@@ -78,7 +78,6 @@ void ScApachePC::reset()
     rx_dbg->reset();
     rx_con->sendDummy();
     rx_dbg->sendDummy();
-    tx_dbg->write(SC_CMD_INIT SC_CMD_EOP);
 }
 
 void ScApachePC::clientConnected()

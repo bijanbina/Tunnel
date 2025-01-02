@@ -5,13 +5,7 @@ ScMetaClient::ScMetaClient(int port, QObject *parent):
 {
     tx_port  = port;
     curr_id  = -1;
-    tx_timer = new QTimer;
-
     cons = new QUdpSocket;
-
-    connect(tx_timer, SIGNAL(timeout()),
-            this    , SLOT  (writeBuf()));
-    tx_timer->start(SC_TXWRITE_TIMEOUT);
 }
 
 void ScMetaClient::reset()
@@ -22,42 +16,11 @@ void ScMetaClient::reset()
 
 void ScMetaClient::write(QByteArray data)
 {
-    buf += data;
-    if( buf.length()<SC_MIN_PACKLEN )
-    {
-        return;
-    }
-    writeBuf();
-}
+    sc_mkPacket(&data, &curr_id);
 
-void ScMetaClient::writeBuf()
-{
-    if( buf.isEmpty() )
+    if( sendData(data)==0 )
     {
-        return;
-    }
-
-    QByteArray send_buf;
-    int split_size = SC_MAX_PACKLEN;
-    while( buf.length() )
-    {
-        int len = split_size;
-        if( buf.length()<split_size )
-        {
-            len = buf.length();
-        }
-        send_buf = buf.mid(0, len);
-        sc_mkPacket(&send_buf, &curr_id);
-
-        if( sendData(send_buf) )
-        {
-            buf.remove(0, len);
-        }
-        else
-        {
-            qDebug() << "-----SC_TX_CLIENT ERROR: DATA LOST-----";
-            break;
-        }
+        qDebug() << "-----SC_TX_CLIENT ERROR: DATA LOST-----";
     }
 }
 
@@ -68,9 +31,9 @@ int ScMetaClient::sendData(QByteArray send_buf)
     {
         return 0;
     }
-//    qDebug() << "ScDbgClient::sendData send_buf:" << send_buf;
+    //    qDebug() << "ScDbgClient::sendData send_buf:" << send_buf;
     int s = cons->writeDatagram(send_buf,
-               QHostAddress(ScSetting::remote_host), tx_port);
+                                QHostAddress(ScSetting::remote_host), tx_port);
 
     if( s!=send_buf.length() )
     {

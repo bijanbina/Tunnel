@@ -8,6 +8,7 @@
 #include <QString>
 #include <QVector>
 #include <QByteArray>
+#include <QByteArrayList>
 
 #define SC_STATE_CLIENT   0
 #define SC_STATE_SERVER   1
@@ -34,8 +35,6 @@
 
 #define SC_CMD_ACK           "ack"
 #define SC_CMD_INIT          "init"
-#define SC_CMD_EOP           "\n"  // End of packet
-#define SC_CMD_EOP_CHAR      '\n'  // End of packet
 #define SC_DATA_EOP          "<EOP>\n"
 
 class ScSetting
@@ -51,8 +50,10 @@ public:
     static QString remote_host;
 };
 
-QByteArray sc_mkPacket(QByteArray *send_buf, int *count);
-int        sc_needResend(int ack, int curr_index);
-int        sc_hasPacket(QVector<QByteArray> *buf, int id);
+QByteArray     sc_mkPacket(QByteArray *send_buf, int *count);
+int            sc_needResend(int ack, int curr_index);
+int            sc_hasPacket(QVector<QByteArray> *buf, int id);
+QByteArrayList sc_splitPacket(QByteArray  data,
+                              const char *separator);
 
 #endif // SC_BACKEND_H

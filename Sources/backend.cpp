@@ -53,3 +53,23 @@ int sc_hasPacket(QVector<QByteArray> *buf, int id)
     }
     return 0;
 }
+
+QByteArrayList sc_splitPacket(QByteArray  data,
+                              const char *separator)
+{
+    QString sep =  separator;
+    QByteArrayList ret;
+    int start = 0;
+    int index = data.indexOf(separator, start);
+
+    while( index!=-1 )
+    {
+        ret.append(data.mid(start, index-start));
+        start = index + sep.length();
+        index = data.indexOf(separator, start);
+    }
+
+    // Add the last part
+    ret.append(data.mid(start));
+    return ret;
+}

@@ -39,7 +39,7 @@ void ScTxClient::writeBuf()
     }
 
     QByteArray send_buf;
-    int split_size = SC_MXX_PACKLEN;
+    int split_size = SC_MAX_PACKLEN;
     while( buf.length() )
     {
         int len = split_size;
@@ -76,8 +76,8 @@ int ScTxClient::sendData(QByteArray send_buf)
     {
         return 0;
     }
-    qDebug() << "ScTxClient::sendData send_buf:" << send_buf.length()
-             << tx_port <<curr_id;
+    qDebug() << "ScTxClient::sendData curr_id:" << curr_id
+             << "buf_len:" << send_buf.length();
     int s = 0;
     s = cons->writeDatagram(send_buf,
                             QHostAddress(ScSetting::remote_host),

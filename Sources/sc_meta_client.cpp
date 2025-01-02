@@ -38,7 +38,7 @@ void ScMetaClient::writeBuf()
     }
 
     QByteArray send_buf;
-    int split_size = SC_MXX_PACKLEN;
+    int split_size = SC_MAX_PACKLEN;
     while( buf.length() )
     {
         int len = split_size;

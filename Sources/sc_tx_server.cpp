@@ -80,22 +80,23 @@ void ScTxServer::writeBuf()
     }
 
     QByteArray send_buf;
-    int len = SC_MXX_PACKLEN;
-    if( buf.length()<SC_MXX_PACKLEN )
+    int len = SC_MAX_PACKLEN;
+    if( buf.length()<SC_MAX_PACKLEN )
     {
         len = buf.length();
     }
     send_buf = buf.mid(0, len);
     tx_buf[curr_id] = sc_mkPacket(&send_buf, &curr_id);
 
-    if( is_dbg==0 )
-    {
-        qDebug() << "ScTxServer::writeBuf curr_id:"
-                 << curr_id << "len:" << len;
-    }
     if( sendData(send_buf) )
     {
         buf.remove(0, len);
+        if( is_dbg==0 )
+        {
+            qDebug() << "ScTxServer::writeBuf curr_id:"
+                     << curr_id << "len:" << len
+                     << "rem:" << buf.length();
+        }
     }
 }
 

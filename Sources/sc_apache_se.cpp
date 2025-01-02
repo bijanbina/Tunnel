@@ -177,7 +177,7 @@ void ScApacheSe::processBuf()
             int w = client.write(pack);
             qDebug() << "ScApacheSe::processBuf data_len:"
                      << pack.length()
-                     << "buf_id:" << buf_id << rx_buf
+                     << "buf_id:" << buf_id
                      << "rx_curr_id:" << rx_curr_id;
         }
         else
@@ -212,9 +212,12 @@ QByteArray ScApacheSe::getPack()
         }
     }
 
-    qDebug() << "ScApacheSe::getPack start:"
-             << rx_curr_id-count << "curr_id"
-             << rx_curr_id << count;
+    if( count )
+    {
+        qDebug() << "ScApacheSe::getPack start:"
+                 << rx_curr_id-count << "curr_id:"
+                 << rx_curr_id << "count:" << count;
+    }
 
     return pack;
 }
@@ -245,8 +248,8 @@ void ScApacheSe::dbgRxReadyRead()
     QByteArrayList cmd = dbg_buf.split(SC_CMD_EOP_CHAR);
     for( int i=0 ; i<cmd.length() ; i++ )
     {
-//        qDebug() << "ScApacheSe::dbgRxReadyRead:"
-//                 << "cmd" << cmd[i];
+        //        qDebug() << "ScApacheSe::dbgRxReadyRead:"
+        //                 << "cmd" << cmd[i];
 
         if( cmd[i].contains(SC_CMD_ACK) )
         {

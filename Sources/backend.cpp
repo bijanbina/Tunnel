@@ -17,19 +17,24 @@ QByteArray sc_mkPacket(QByteArray *send_buf, int *count)
 
 int sc_needResend(int ack, int curr_index)
 {
-    int diff = ack-curr_index;
+    int diff = curr_index-ack;
 
-    if( qAbs(diff)>SC_LEN_PACKID/2 )
+    if( qAbs(diff)>SC_MAX_PACKID/2 )
     {
-        if( ack>SC_LEN_PACKID/2 && curr_index<SC_LEN_PACKID/2 )
+        if( ack>SC_MAX_PACKID/2 && curr_index<SC_MAX_PACKID/2 )
         {
-            diff = SC_LEN_PACKID-ack+curr_index;
+            diff = SC_MAX_PACKID-ack+curr_index;
         }
-        else if( ack<SC_LEN_PACKID/2 &&
-                 curr_index>SC_LEN_PACKID/2 )
+        else if( ack<SC_MAX_PACKID/2 &&
+                 curr_index>SC_MAX_PACKID/2 )
         {
-            diff = SC_LEN_PACKID-curr_index+ack-1;
+            diff = SC_MAX_PACKID-curr_index+ack-1;
         }
+    }
+
+    if( diff>0 )
+    {
+        return 1;
     }
     return 0;
 }

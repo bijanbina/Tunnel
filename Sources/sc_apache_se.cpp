@@ -247,21 +247,22 @@ void ScApacheSe::dbgRxReadyRead()
     QByteArrayList cmd = sc_splitPacket(dbg_buf, SC_DATA_EOP);
     for( int i=0 ; i<cmd.length() ; i++ )
     {
-        dbg_buf.remove(0, SC_LEN_PACKID);
+        cmd[i].remove(0, SC_LEN_PACKID);
 
         if( cmd[i].contains(SC_CMD_ACK) )
         {
             int cmd_len = strlen(SC_CMD_ACK);
             cmd[i].remove(0, cmd_len);
             int ack_id  = cmd[i].toInt();
+            int resend = sc_resendID(ack_id, tx_server->curr_id);
 
-            if( sc_needResend(ack_id, tx_server->curr_id) )
+            if( resend!=-1 )
             {
                 qDebug() << "ScApacheSe::dbgRxReadyRead resend"
                          << "curr_id:" << tx_server->curr_id
-                         << "id:" << ack_id
+                         << "id:" << resend
                          << "dbg_buf:" << dbg_buf;
-                tx_server->resendBuf(ack_id);
+                tx_server->resendBuf(resend);
             }
             return;
         }

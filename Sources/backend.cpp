@@ -15,8 +15,10 @@ QByteArray sc_mkPacket(QByteArray *send_buf, int *count)
     return *send_buf;
 }
 
-int sc_needResend(int ack, int curr_index)
+// return -1 if no packet should be send
+int sc_resendID(int ack, int curr_index)
 {
+    int ret = -1;
     int diff = curr_index-ack;
 
     if( qAbs(diff)>SC_MAX_PACKID/2 )
@@ -34,9 +36,14 @@ int sc_needResend(int ack, int curr_index)
 
     if( diff>0 )
     {
-        return 1;
+        ret = ack + 1;
+        if( ret>SC_MAX_PACKID )
+        {
+            ret = 0;
+        }
     }
-    return 0;
+
+    return ret;
 }
 
 int sc_hasPacket(QVector<QByteArray> *buf, int id)

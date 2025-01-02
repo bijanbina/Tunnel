@@ -64,8 +64,6 @@ void ScTxClient::writeBuf()
 
 void ScTxClient::resendBuf(int id)
 {
-    qDebug() << "ScTxClient::resendBuf curr_id:" << curr_id
-             << "id:" << id;
     sendData(tx_buf[id]);
 }
 

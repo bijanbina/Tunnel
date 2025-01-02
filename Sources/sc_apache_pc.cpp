@@ -163,13 +163,14 @@ void ScApachePC::dbgReadyRead(QByteArray data)
     {
         int cmd_len = strlen(SC_CMD_ACK);
         data.remove(0, cmd_len);
-        int ack_id  = data.toInt();
+        int ack_id = data.toInt();
+        int resend = sc_resendID(ack_id, tx_con->curr_id);
 
-        if( sc_needResend(ack_id, tx_con->curr_id) )
+        if( resend!=-1 )
         {
-            tx_con->resendBuf(ack_id);
-            qDebug() << "ScApachePC::dbgReadyRead ACK_ID:"
-                     << ack_id << tx_con->curr_id;
+            tx_con->resendBuf(resend);
+            qDebug() << "ScApachePC::dbgReadyRead RESEND_ID:"
+                     << resend << "curr_id:" << tx_con->curr_id;
         }
         return;
     }

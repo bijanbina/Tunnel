@@ -168,6 +168,20 @@ void ScApacheSe::processBuf()
         int     buf_id   = buf_id_s.toInt();
         int     end      = rx_buf.indexOf(SC_DATA_EOP);
 
+        // skip already received packages
+        int diff = rx_curr_id - buf_id;
+        if( qAbs(diff)<SC_MAX_PACKID/2 )
+        {
+            if( buf_id<rx_curr_id )
+            {
+                return;
+            }
+        }
+        else if( buf_id>SC_MAX_PACKID/2 )
+        {
+            return;
+        }
+
         // Extract the packet including the EOP marker
         read_bufs[buf_id] = rx_buf.mid(SC_LEN_PACKID,
                                        end-SC_LEN_PACKID);

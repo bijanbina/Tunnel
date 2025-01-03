@@ -19,7 +19,7 @@ QByteArray sc_mkPacket(QByteArray *send_buf, int *count)
 int sc_resendID(int ack, int curr_index)
 {
     int ret = -1;
-    int diff = curr_index-ack;
+    int diff = curr_index - ack;
 
     if( qAbs(diff)>SC_MAX_PACKID/2 )
     {

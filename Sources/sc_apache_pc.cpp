@@ -159,7 +159,7 @@ void ScApachePC::dbgReadyRead(QByteArray data)
     }
 //    qDebug() << "ScApachePC::dbgReadyRead"
 //             << data;
-    if( data.contains(SC_CMD_ACK) )
+    if( data.startsWith(SC_CMD_ACK) )
     {
         int cmd_len = strlen(SC_CMD_ACK);
         data.remove(0, cmd_len);
@@ -172,7 +172,11 @@ void ScApachePC::dbgReadyRead(QByteArray data)
             qDebug() << "ScApachePC::dbgReadyRead RESEND_ID:"
                      << resend << "curr_id:" << tx_con->curr_id;
         }
-        return;
+    }
+    else
+    {
+        qDebug() << "ScApachePC::dbgReadyRead cmd:"
+                 << data;
     }
 }
 

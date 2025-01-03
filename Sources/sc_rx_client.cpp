@@ -85,14 +85,18 @@ void ScRxClient::processBuf()
         int diff = curr_id - buf_id;
         if( qAbs(diff)<SC_MAX_PACKID/2 )
         {
-            if( buf_id<curr_id )
+            if( buf_id<=curr_id )
             {
-                return;
+                // Remove the processed packet from the buffer
+                rx_buf.remove(0, end + strlen(SC_DATA_EOP));
+                continue;
             }
         }
         else if( buf_id>SC_MAX_PACKID/2 )
         {
-            return;
+            // Remove the processed packet from the buffer
+            rx_buf.remove(0, end + strlen(SC_DATA_EOP));
+            continue;
         }
 
         // Extract the packet including the EOP marker

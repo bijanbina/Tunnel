@@ -14,3 +14,7 @@ Makefile
 *.Debug
 
 *.Release
+
+*.dll
+
+release/

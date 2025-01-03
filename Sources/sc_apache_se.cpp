@@ -172,14 +172,18 @@ void ScApacheSe::processBuf()
         int diff = rx_curr_id - buf_id;
         if( qAbs(diff)<SC_MAX_PACKID/2 )
         {
-            if( buf_id<rx_curr_id )
+            if( buf_id<=rx_curr_id )
             {
-                return;
+                // Remove the processed packet from the buffer
+                rx_buf.remove(0, end + strlen(SC_DATA_EOP));
+                continue;
             }
         }
         else if( buf_id>SC_MAX_PACKID/2 )
         {
-            return;
+            // Remove the processed packet from the buffer
+            rx_buf.remove(0, end + strlen(SC_DATA_EOP));
+            continue;
         }
 
         // Extract the packet including the EOP marker
@@ -244,30 +248,34 @@ void ScApacheSe::txReadyRead()
 
 void ScApacheSe::dbgRxReadyRead()
 {
-    QByteArray dbg_buf;
-    dbg_buf.resize(dbg_rx->pendingDatagramSize());
+    QByteArray buf;
+    buf.resize(dbg_rx->pendingDatagramSize());
     QHostAddress sender_ip;
     quint16 sender_port;
 
-    dbg_rx->readDatagram(dbg_buf.data(),
-                         dbg_buf.size(),
+    dbg_rx->readDatagram(buf.data(), buf.size(),
                          &sender_ip, &sender_port);
 
-    if( dbg_buf.isEmpty() )
+    if( buf.isEmpty() )
     {
         return;
     }
 
-    QByteArrayList cmd = sc_splitPacket(dbg_buf, SC_DATA_EOP);
-    for( int i=0 ; i<cmd.length() ; i++ )
+    dbg_buf += buf;
+    while( dbg_buf.contains(SC_DATA_EOP) )
     {
-        cmd[i].remove(0, SC_LEN_PACKID);
+        QString buf_id_s = dbg_buf.mid(0, SC_LEN_PACKID);
+        int     end      = dbg_buf.indexOf(SC_DATA_EOP);
 
-        if( cmd[i].contains(SC_CMD_ACK) )
+        QByteArray cmd;
+        // Extract the packet including the EOP marker
+        cmd = dbg_buf.mid(SC_LEN_PACKID, end-SC_LEN_PACKID);
+
+        if( cmd.startsWith(SC_CMD_ACK) )
         {
             int cmd_len = strlen(SC_CMD_ACK);
-            cmd[i].remove(0, cmd_len);
-            int ack_id  = cmd[i].toInt();
+            cmd.remove(0, cmd_len);
+            int ack_id  = cmd.toInt();
             int resend = sc_resendID(ack_id, tx_server->curr_id);
 
             if( resend!=-1 )
@@ -278,10 +286,14 @@ void ScApacheSe::dbgRxReadyRead()
                          << "dbg_buf:" << dbg_buf;
                 tx_server->resendBuf(resend);
             }
-            return;
         }
-        qDebug() << "ScApacheSe::dbgRxReadyRead cmd:"
-                 << cmd[i];
+        else
+        {
+            qDebug() << "ScApacheSe::dbgRxReadyRead cmd:"
+                     << cmd;
+        }
+        // Remove the processed packet from the buffer
+        dbg_buf.remove(0, end + strlen(SC_DATA_EOP));
     }
 }
 

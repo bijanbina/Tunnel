@@ -31,7 +31,6 @@ public:
 
 public slots:
     void write(QByteArray data);
-    void txConnected();
     void txError();
     void readyRead();
     void writeBuf();

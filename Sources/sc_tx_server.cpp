@@ -35,17 +35,11 @@ void ScTxServer::reset()
     tx_buf.resize(SC_MAX_PACKID+1);
 }
 
-void ScTxServer::txConnected()
-{
-    write(""); // to send buff data
-}
-
 void ScTxServer::txError()
 {
-    if( server->error()!=QTcpSocket::RemoteHostClosedError )
-    {
-        server->close();
-    }
+    qDebug() << "ScTxServer::txError"
+             << server->errorString()
+             << server->state();
 }
 
 void ScTxServer::resendBuf(int id)
@@ -117,6 +111,6 @@ void ScTxServer::readyRead()
                          &ipv4, &tx_port);
 
     qDebug() << "ScTxServer::dummy load start:"
-             << tx_port;
+             << tx_port << "is_dbg" << is_dbg;
     emit init();
 }

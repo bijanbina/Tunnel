@@ -147,15 +147,19 @@ void ScApacheSe::rxError()
 
 void ScApacheSe::rxReadyRead()
 {
-    QByteArray data;
-    data.resize(rx_cons->pendingDatagramSize());
-    QHostAddress sender_ip;
-    quint16 sender_port;
+    while( rx_cons->hasPendingDatagrams() )
+    {
+        QByteArray data;
+        data.resize(rx_cons->pendingDatagramSize());
 
-    rx_cons->readDatagram(data.data(),
-                          data.size(),
-                          &sender_ip, &sender_port);
-    rx_buf += data;
+        QHostAddress sender;
+        quint16 sender_port;
+
+        rx_cons->readDatagram(data.data(), data.size(),
+                             &sender, &sender_port);
+
+        rx_buf += data;
+    }
 
     processBuf();
 }
@@ -248,20 +252,20 @@ void ScApacheSe::txReadyRead()
 
 void ScApacheSe::dbgRxReadyRead()
 {
-    QByteArray buf;
-    buf.resize(dbg_rx->pendingDatagramSize());
-    QHostAddress sender_ip;
-    quint16 sender_port;
-
-    dbg_rx->readDatagram(buf.data(), buf.size(),
-                         &sender_ip, &sender_port);
-
-    if( buf.isEmpty() )
+    while( dbg_rx->hasPendingDatagrams() )
     {
-        return;
+        QByteArray data;
+        data.resize(dbg_rx->pendingDatagramSize());
+
+        QHostAddress sender;
+        quint16 sender_port;
+
+        dbg_rx->readDatagram(data.data(), data.size(),
+                             &sender, &sender_port);
+
+        dbg_buf += data;
     }
 
-    dbg_buf += buf;
     while( dbg_buf.contains(SC_DATA_EOP) )
     {
         QString buf_id_s = dbg_buf.mid(0, SC_LEN_PACKID);

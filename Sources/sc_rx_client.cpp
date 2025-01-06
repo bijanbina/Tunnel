@@ -35,42 +35,21 @@ void ScRxClient::error()
 
 void ScRxClient::readyRead()
 {
-    QByteArray data;
-    data.resize(client->pendingDatagramSize());
-    QHostAddress sender_ip;
-    quint16 sender_port;
-
-    client->readDatagram(data.data(), data.size(),
-                         &sender_ip, &sender_port);
-    rx_buf += data;
-    processBuf();
-}
-
-QByteArray ScRxClient::getPack()
-{
-    QByteArray pack;
-    int count = 0;
-    while( sc_hasPacket(&read_bufs, curr_id) )
+    while( client->hasPendingDatagrams() )
     {
-        curr_id++;
-        if( curr_id>SC_MAX_PACKID )
-        {
-            curr_id = 0;
-        }
-        pack += read_bufs[curr_id];
-        read_bufs[curr_id].clear();
-        count++;
-        if( count>SC_MAX_PACKID )
-        {
-            break;
-        }
+        QByteArray data;
+        data.resize(client->pendingDatagramSize());
+
+        QHostAddress sender;
+        quint16 sender_port;
+
+        client->readDatagram(data.data(), data.size(),
+                             &sender, &sender_port);
+
+        rx_buf += data;
     }
 
-    //    qDebug() << "ScRxClient::getPack start:"
-    //             << rx_curr_id-count
-    //             << "count:" << count << "tx_con:"
-    //             << tx_con->cons.length();
-    return pack;
+    processBuf();
 }
 
 void ScRxClient::processBuf()
@@ -80,6 +59,11 @@ void ScRxClient::processBuf()
         QString buf_id_s = rx_buf.mid(0, SC_LEN_PACKID);
         int     buf_id   = buf_id_s.toInt();
         int     end      = rx_buf.indexOf(SC_DATA_EOP);
+
+        if( port!=ScSetting::dbg_rx_port )
+        {
+            qDebug() << "b";
+        }
 
         // skip already received packages
         int diff = curr_id - buf_id;
@@ -125,9 +109,44 @@ void ScRxClient::processBuf()
     }
 }
 
+
+QByteArray ScRxClient::getPack()
+{
+    QByteArray pack;
+    int count = 0;
+    while( sc_hasPacket(&read_bufs, curr_id) )
+    {
+        curr_id++;
+        if( curr_id>SC_MAX_PACKID )
+        {
+            curr_id = 0;
+        }
+        pack += read_bufs[curr_id];
+        read_bufs[curr_id].clear();
+        count++;
+        if( count>SC_MAX_PACKID )
+        {
+            break;
+        }
+    }
+
+    //    qDebug() << "ScRxClient::getPack start:"
+    //             << rx_curr_id-count
+    //             << "count:" << count << "tx_con:"
+    //             << tx_con->cons.length();
+    return pack;
+}
+
 void ScRxClient::sendDummy()
 {
-    client->writeDatagram("a", 1, QHostAddress(
+    int ret = client->writeDatagram("a", 1, QHostAddress(
                           ScSetting::remote_host), port);
-    qDebug() << "dummy sent";
+    if( ret!=1 )
+    {
+        qDebug() << "ScRxClient::sendDummy Error:"
+                 << client->errorString();
+        return;
+    }
+    client->flush();
+    qDebug() << "dummy sent" << port;
 }

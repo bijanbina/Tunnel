@@ -59,37 +59,35 @@ void ScTxServer::resendBuf(int id)
 void ScTxServer::write(QByteArray data)
 {
     buf += data;
-    if( buf.length()<SC_MIN_PACKLEN )
-    {
-        return;
-    }
     writeBuf();
 }
 
 void ScTxServer::writeBuf()
 {
-    if( buf.isEmpty() || ipv4.isNull() )
+    if( ipv4.isNull() )
     {
         return;
     }
 
     QByteArray send_buf;
-    int len = SC_MAX_PACKLEN;
-    if( buf.length()<SC_MAX_PACKLEN )
+    while( buf.length() )
     {
-        len = buf.length();
-    }
-    send_buf = buf.mid(0, len);
-    tx_buf[curr_id] = sc_mkPacket(&send_buf, &curr_id);
-
-    if( sendData(send_buf) )
-    {
-        buf.remove(0, len);
-        if( is_dbg==0 )
+        int len = SC_MAX_PACKLEN;
+        if( buf.length()<SC_MAX_PACKLEN )
         {
-            qDebug() << "ScTxServer::writeBuf curr_id:"
-                     << curr_id << "len:" << len
-                     << "rem:" << buf.length();
+            len = buf.length();
+        }
+        send_buf = buf.mid(0, len);
+        tx_buf[curr_id] = sc_mkPacket(&send_buf, &curr_id);
+
+        if( sendData(send_buf) )
+        {
+            buf.remove(0, len);
+        }
+        else
+        {
+            qDebug() << "-----ScTxServer ERROR: DATA LOST-----";
+            break;
         }
     }
 }

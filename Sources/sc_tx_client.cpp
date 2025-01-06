@@ -24,26 +24,16 @@ void ScTxClient::reset()
 void ScTxClient::write(QByteArray data)
 {
     buf += data;
-    if( buf.length()<SC_MIN_PACKLEN )
-    {
-        return;
-    }
     writeBuf();
 }
 
 void ScTxClient::writeBuf()
 {
-    if( buf.isEmpty() )
-    {
-        return;
-    }
-
     QByteArray send_buf;
-    int split_size = SC_MAX_PACKLEN;
     while( buf.length() )
     {
-        int len = split_size;
-        if( buf.length()<split_size )
+        int len = SC_MAX_PACKLEN;
+        if( buf.length()<SC_MAX_PACKLEN )
         {
             len = buf.length();
         }
@@ -56,7 +46,7 @@ void ScTxClient::writeBuf()
         }
         else
         {
-            qDebug() << "-----SC_TX_CLIENT ERROR: DATA LOST-----";
+            qDebug() << "-----ScTxClient ERROR: DATA LOST-----";
             break;
         }
     }

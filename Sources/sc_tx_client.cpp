@@ -44,11 +44,6 @@ void ScTxClient::writeBuf()
         {
             buf.remove(0, len);
         }
-        else
-        {
-            qDebug() << "-----ScTxClient ERROR: DATA LOST-----";
-            break;
-        }
     }
 }
 
@@ -64,12 +59,9 @@ int ScTxClient::sendData(QByteArray send_buf)
     {
         return 0;
     }
-    qDebug() << "ScTxClient::sendData curr_id:" << curr_id
-             << "buf_len:" << send_buf.length();
-    int s = 0;
-    s = cons->writeDatagram(send_buf,
-                            QHostAddress(ScSetting::remote_host),
-                            tx_port);
+    int s = cons->writeDatagram(send_buf, ScSetting::remote_host,
+                                tx_port);
+    cons->waitForBytesWritten();
 
     if( s!=send_buf.length() )
     {

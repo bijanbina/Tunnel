@@ -1,14 +1,14 @@
 #include <QCoreApplication>
 #include "local.h"
 
-int     ScSetting::state       = SC_STATE_CLIENT;
-int     ScSetting::local_port  = 1088;
-int     ScSetting::tx_port     = 5510;
-int     ScSetting::rx_port     = 5511;
-int     ScSetting::dbg_tx_port = 5512;
-int     ScSetting::dbg_rx_port = 5513;
-QString ScSetting::password    = "pass";
-QString ScSetting::remote_host = "5.255.113.20";
+int          ScSetting::state       = SC_STATE_CLIENT;
+int          ScSetting::local_port  = 1088;
+int          ScSetting::tx_port     = 5510;
+int          ScSetting::rx_port     = 5511;
+int          ScSetting::dbg_tx_port = 5512;
+int          ScSetting::dbg_rx_port = 5513;
+QString      ScSetting::password    = "pass";
+QHostAddress ScSetting::remote_host = QHostAddress("5.255.113.20");
 
 // tunnel <local_port> <is_server=s>
 int main(int argc, char *argv[])

@@ -57,12 +57,19 @@ void ScRxClient::processBuf()
     while( rx_buf.contains(SC_DATA_EOP) )
     {
         QString buf_id_s = rx_buf.mid(0, SC_LEN_PACKID);
-        int     buf_id   = buf_id_s.toInt();
+        bool    int_ok   = 0;
+        int     buf_id   = buf_id_s.toInt(&int_ok);
         int     end      = rx_buf.indexOf(SC_DATA_EOP);
 
+        if( int_ok==0 )
+        {
+            qDebug() << "ScRxClient::processBuf shit has happened"
+                     << buf_id_s << "should be int";
+            exit(1);
+        }
         if( port!=ScSetting::dbg_rx_port )
         {
-            qDebug() << "b";
+//            qDebug() << "b";
         }
 
         // skip already received packages
@@ -139,8 +146,8 @@ QByteArray ScRxClient::getPack()
 
 void ScRxClient::sendDummy()
 {
-    int ret = client->writeDatagram("a", 1, QHostAddress(
-                          ScSetting::remote_host), port);
+    int ret = client->writeDatagram("a", 1,
+                                    ScSetting::remote_host, port);
     if( ret!=1 )
     {
         qDebug() << "ScRxClient::sendDummy Error:"

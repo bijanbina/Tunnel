@@ -8,6 +8,7 @@
 #include <QString>
 #include <QVector>
 #include <QByteArray>
+#include <QHostAddress>
 #include <QByteArrayList>
 
 #define SC_STATE_CLIENT   0
@@ -20,8 +21,8 @@
 #define SC_LEN_PACKID   3
 #define SC_MAX_PACK     5
 
-#define SC_MIN_PACKLEN  2000
-#define SC_MAX_PACKLEN  6990
+#define SC_MIN_PACKLEN  1000
+#define SC_MAX_PACKLEN  2990
 
 #define SC_TXSERVER_TIMEOUT  100   //ms
 #define SC_TXCLIENT_TIMEOUT  SC_TXSERVER_TIMEOUT
@@ -40,14 +41,14 @@
 class ScSetting
 {
 public:
-    static int     state;
-    static int     local_port;
-    static int     tx_port;
-    static int     rx_port;
-    static int     dbg_rx_port;
-    static int     dbg_tx_port;
-    static QString password;
-    static QString remote_host;
+    static int          state;
+    static int          local_port;
+    static int          tx_port;
+    static int          rx_port;
+    static int          dbg_rx_port;
+    static int          dbg_tx_port;
+    static QString      password;
+    static QHostAddress remote_host;
 };
 
 QByteArray     sc_mkPacket(QByteArray *send_buf, int *count);

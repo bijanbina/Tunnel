@@ -78,11 +78,6 @@ void ScTxServer::writeBuf()
         {
             buf.remove(0, len);
         }
-        else
-        {
-            qDebug() << "-----ScTxServer ERROR: DATA LOST-----";
-            break;
-        }
     }
 }
 
@@ -92,10 +87,21 @@ int ScTxServer::sendData(QByteArray send_buf)
     int ret = server->writeDatagram(send_buf, ipv4,
                                     tx_port);
     server->flush();
+    server->waitForBytesWritten();
     if( ret!=send_buf.length() )
     {
+        if( server->error()==QAbstractSocket::TemporaryError )
+        {
+            QThread::msleep(10);
+            qDebug() << "ScTxServer::sendData Temp Error:"
+                     << "Slowing down for a bit, data+len:"
+                     << send_buf.length();
+            return 0;
+        }
         qDebug() << "ScTxServer::sendData Error, data_len:"
-                 << send_buf.length() << ret;
+                 << send_buf.length() << ret
+                 << server->errorString()
+                 << server->error();
         return 0;
     }
 

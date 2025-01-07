@@ -32,8 +32,8 @@ int ScMetaClient::sendData(QByteArray send_buf)
         return 0;
     }
     //    qDebug() << "ScDbgClient::sendData send_buf:" << send_buf;
-    int s = cons->writeDatagram(send_buf,
-                                QHostAddress(ScSetting::remote_host), tx_port);
+    int s = cons->writeDatagram(send_buf, ScSetting::remote_host,
+                                tx_port);
 
     if( s!=send_buf.length() )
     {

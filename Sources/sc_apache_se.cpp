@@ -169,9 +169,16 @@ void ScApacheSe::processBuf()
     while( rx_buf.contains(SC_DATA_EOP) )
     {
         QString buf_id_s = rx_buf.mid(0, SC_LEN_PACKID);
-        int     buf_id   = buf_id_s.toInt();
+        bool    int_ok   = 0;
+        int     buf_id   = buf_id_s.toInt(&int_ok);
         int     end      = rx_buf.indexOf(SC_DATA_EOP);
 
+        if( int_ok==0 )
+        {
+            qDebug() << "ScApacheSe::processBuf shit has happened"
+                     << buf_id_s << "should be int";
+            exit(1);
+        }
         // skip already received packages
         int diff = rx_curr_id - buf_id;
         if( qAbs(diff)<SC_MAX_PACKID/2 )
@@ -268,7 +275,6 @@ void ScApacheSe::dbgRxReadyRead()
 
     while( dbg_buf.contains(SC_DATA_EOP) )
     {
-        QString buf_id_s = dbg_buf.mid(0, SC_LEN_PACKID);
         int     end      = dbg_buf.indexOf(SC_DATA_EOP);
 
         QByteArray cmd;

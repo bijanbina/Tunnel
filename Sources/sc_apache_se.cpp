@@ -252,11 +252,12 @@ void ScApacheSe::dbgRxReadyRead()
 
     while( dbg_buf.contains(SC_DATA_EOP) )
     {
-        int     end      = dbg_buf.indexOf(SC_DATA_EOP);
+        int start = SC_LEN_PACKID + SC_LEN_PACKLEN;
+        int end   = dbg_buf.indexOf(SC_DATA_EOP);
 
         QByteArray cmd;
         // Extract the packet including the EOP marker
-        cmd = dbg_buf.mid(SC_LEN_PACKID, end-SC_LEN_PACKID);
+        cmd = dbg_buf.mid(start, end-start);
 
         if( cmd.startsWith(SC_CMD_ACK) )
         {
@@ -269,9 +270,16 @@ void ScApacheSe::dbgRxReadyRead()
             {
                 qDebug() << "ScApacheSe::dbgRxReadyRead resend"
                          << "curr_id:" << tx_server->curr_id
-                         << "id:" << resend
-                         << "dbg_buf:" << dbg_buf;
+                         << "id:" << resend;
+//                         << "dbg_buf:" << dbg_buf;
                 tx_server->resendBuf(resend);
+            }
+            else
+            {
+                qDebug() << "ScApacheSe::dbgRxReady res_failed:"
+                         << "curr_id:" << tx_server->curr_id
+                         << "id:" << resend
+                         << "ack_id:" << ack_id;
             }
         }
         else

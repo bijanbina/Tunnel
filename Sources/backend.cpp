@@ -132,9 +132,12 @@ ScPacket sc_processPacket(QByteArray *buf, int curr_id)
         exit(1);
     }
 
-    ret.data = buf->mid(start, end-SC_LEN_PACKID);
+    ret.data = buf->mid(start, end-start);
     if( ret.len!=ret.data.length() )
     {
+        qDebug() << "sc_processPacket len_error:"
+                 << "expected:" << ret.len
+                 << "rx"        << ret.data.length();
         ret.skip = 1;
     }
 

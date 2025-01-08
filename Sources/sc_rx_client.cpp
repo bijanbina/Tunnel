@@ -56,32 +56,34 @@ void ScRxClient::processBuf()
 {
     while( rx_buf.contains(SC_DATA_EOP) )
     {
-        ScPacket pack = sc_processPacket(&rx_buf, curr_id);
+        ScPacket p = sc_processPacket(&rx_buf, curr_id);
         if( port!=ScSetting::dbg_rx_port )
         {
 //            qDebug() << "b";
         }
 
-        if( pack.skip )
+        if( p.skip )
         {
             // skip already received packet
+            qDebug() << "SKIP" << curr_id << p.id;
             continue;
         }
 
         // Save data to buffer
-        read_bufs[pack.id] = pack.data;
+        read_bufs[p.id] = p.data;
 
         if( port==ScSetting::dbg_rx_port )
         {
-            emit dataReady(pack.data);
+            emit dataReady(p.data);
         }
         else
         {
-            qDebug() << "ScRxClient::processBuf"
-                     << pack.data.length()
-                     << "buf_id:"  << pack.id
-                     << "curr_id:" << curr_id;
             QByteArray pack = getPack();
+            qDebug() << "ScRxClient::processBuf"
+                     << p.data.length()
+                     << "buf_id:"  << p.id
+                     << "curr_id:" << curr_id
+                     << "pack_len" << pack.length();
             if( pack.length() )
             {
                 emit dataReady(pack);
@@ -89,7 +91,6 @@ void ScRxClient::processBuf()
         }
     }
 }
-
 
 QByteArray ScRxClient::getPack()
 {

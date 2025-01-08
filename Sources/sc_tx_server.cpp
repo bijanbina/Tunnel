@@ -37,9 +37,9 @@ void ScTxServer::reset()
 
 void ScTxServer::txError()
 {
-    qDebug() << "ScTxServer::txError"
-             << server->errorString()
-             << server->state();
+//    qDebug() << "ScTxServer::txError"
+//             << server->errorString()
+//             << server->state();
 }
 
 void ScTxServer::resendBuf(int id)
@@ -95,7 +95,7 @@ int ScTxServer::sendData(QByteArray send_buf)
             QThread::msleep(10);
             qDebug() << "ScTxServer::sendData Temp Error:"
                      << "Slowing down for a bit, data+len:"
-                     << send_buf.length();
+                     << send_buf.length() << ret;
             return 0;
         }
         qDebug() << "ScTxServer::sendData Error, data_len:"

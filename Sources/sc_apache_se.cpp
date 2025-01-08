@@ -117,7 +117,10 @@ void ScApacheSe::clientDisconnected()
 void ScApacheSe::clientConnected()
 {
     client.setSocketOption(QAbstractSocket::LowDelayOption, 1);
-    qDebug() << "ScApacheSe::Client Connected############";
+    QByteArray pack = getPack();
+    int w = client.write(pack);
+    qDebug() << "ScApacheSe::Client Connected#########"
+             << w;
 }
 
 void ScApacheSe::clientError()
@@ -168,56 +171,30 @@ void ScApacheSe::processBuf()
 {
     while( rx_buf.contains(SC_DATA_EOP) )
     {
-        QString buf_id_s = rx_buf.mid(0, SC_LEN_PACKID);
-        bool    int_ok   = 0;
-        int     buf_id   = buf_id_s.toInt(&int_ok);
-        int     end      = rx_buf.indexOf(SC_DATA_EOP);
-
-        if( int_ok==0 )
+        ScPacket p = sc_processPacket(&rx_buf, rx_curr_id);
+        if( p.skip )
         {
-            qDebug() << "ScApacheSe::processBuf shit has happened"
-                     << buf_id_s << "should be int";
-            exit(1);
-        }
-        // skip already received packages
-        int diff = rx_curr_id - buf_id;
-        if( qAbs(diff)<SC_MAX_PACKID/2 )
-        {
-            if( buf_id<=rx_curr_id )
-            {
-                // Remove the processed packet from the buffer
-                rx_buf.remove(0, end + strlen(SC_DATA_EOP));
-                continue;
-            }
-        }
-        else if( buf_id>SC_MAX_PACKID/2 )
-        {
-            // Remove the processed packet from the buffer
-            rx_buf.remove(0, end + strlen(SC_DATA_EOP));
+            // skip already received packet
             continue;
         }
 
-        // Extract the packet including the EOP marker
-        read_bufs[buf_id] = rx_buf.mid(SC_LEN_PACKID,
-                                       end-SC_LEN_PACKID);
+        // Save data to buffer
+        read_bufs[p.id] = p.data;
         if( client.isOpen() )
         {
             QByteArray pack = getPack();
             int w = client.write(pack);
             qDebug() << "ScApacheSe::processBuf data_len:"
                      << pack.length()
-                     << "buf_id:" << buf_id
+                     << "buf_id:" << p.id
                      << "rx_curr_id:" << rx_curr_id;
         }
         else
         {
-            init();
             qDebug() << "ScApacheSe::processBuf"
                      << "client is not open"
-                     << read_bufs[buf_id].length();
+                     << read_bufs[p.id].length();
         }
-        // Remove the processed packet from the buffer
-        rx_buf.remove(0, end + strlen(SC_DATA_EOP));
     }
 }
 

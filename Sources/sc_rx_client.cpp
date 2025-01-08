@@ -56,53 +56,30 @@ void ScRxClient::processBuf()
 {
     while( rx_buf.contains(SC_DATA_EOP) )
     {
-        QString buf_id_s = rx_buf.mid(0, SC_LEN_PACKID);
-        bool    int_ok   = 0;
-        int     buf_id   = buf_id_s.toInt(&int_ok);
-        int     end      = rx_buf.indexOf(SC_DATA_EOP);
-
-        if( int_ok==0 )
-        {
-            qDebug() << "ScRxClient::processBuf shit has happened"
-                     << buf_id_s << "should be int";
-            exit(1);
-        }
+        ScPacket pack = sc_processPacket(&rx_buf, curr_id);
         if( port!=ScSetting::dbg_rx_port )
         {
 //            qDebug() << "b";
         }
 
-        // skip already received packages
-        int diff = curr_id - buf_id;
-        if( qAbs(diff)<SC_MAX_PACKID/2 )
+        if( pack.skip )
         {
-            if( buf_id<=curr_id )
-            {
-                // Remove the processed packet from the buffer
-                rx_buf.remove(0, end + strlen(SC_DATA_EOP));
-                continue;
-            }
-        }
-        else if( buf_id>SC_MAX_PACKID/2 )
-        {
-            // Remove the processed packet from the buffer
-            rx_buf.remove(0, end + strlen(SC_DATA_EOP));
+            // skip already received packet
             continue;
         }
 
-        // Extract the packet including the EOP marker
-        read_bufs[buf_id] = rx_buf.mid(SC_LEN_PACKID,
-                                       end-SC_LEN_PACKID);
+        // Save data to buffer
+        read_bufs[pack.id] = pack.data;
 
         if( port==ScSetting::dbg_rx_port )
         {
-            emit dataReady(read_bufs[buf_id]);
+            emit dataReady(pack.data);
         }
         else
         {
             qDebug() << "ScRxClient::processBuf"
-                     << read_bufs[buf_id].length()
-                     << "buf_id:"  << buf_id
+                     << pack.data.length()
+                     << "buf_id:"  << pack.id
                      << "curr_id:" << curr_id;
             QByteArray pack = getPack();
             if( pack.length() )
@@ -110,9 +87,6 @@ void ScRxClient::processBuf()
                 emit dataReady(pack);
             }
         }
-
-        // Remove the processed packet from the buffer
-        rx_buf.remove(0, end + strlen(SC_DATA_EOP));
     }
 }
 

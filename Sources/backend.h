@@ -19,6 +19,7 @@
 #define SC_PC_CONLEN    20
 #define SC_MAX_PACKID   999
 #define SC_LEN_PACKID   3
+#define SC_LEN_PACKLEN  4
 #define SC_MAX_PACK     5
 
 #define SC_MIN_PACKLEN  1000
@@ -51,10 +52,20 @@ public:
     static QHostAddress remote_host;
 };
 
+typedef struct ScPacket
+{
+    int        id;
+    int        len;
+    int        skip;
+    QByteArray data;
+} ScPacket;
+
 QByteArray     sc_mkPacket(QByteArray *send_buf, int *count);
+int            sc_skipPacket(int current, int id);
 int            sc_resendID(int ack, int curr_index);
 int            sc_hasPacket(QVector<QByteArray> *buf, int id);
 QByteArrayList sc_splitPacket(QByteArray  data,
                               const char *separator);
+ScPacket       sc_processPacket(QByteArray *buf, int curr_id);
 
 #endif // SC_BACKEND_H

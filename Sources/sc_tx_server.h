@@ -33,19 +33,22 @@ public slots:
     void write(QByteArray data);
     void txError();
     void readyRead();
-    void writeBuf();
+    void timerTick();
 
 signals:
     void init();
 
 
 private:
+    void writeBuf();
     int  sendData(QByteArray send_buf);
 
     QByteArray  buf;
     QUdpSocket *server;
     QTimer     *timer;
     int         is_dbg;
+    int         tick_counter; // 0 to 9
+    int         data_counter; // data transmitted in 1 sec
 };
 
 #endif // SC_TX_SERVER_H

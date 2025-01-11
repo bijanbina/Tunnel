@@ -28,14 +28,16 @@ void ScTxClient::write(QByteArray data)
     {
         return;
     }
-    writeBuf();
+//    writeBuf();
 }
 
 void ScTxClient::writeBuf()
 {
     QByteArray send_buf;
-    while( buf.length() )
+    int count = 20; //rate control
+    while( buf.length() && count>0 )
     {
+        count--;
         int len = SC_MAX_PACKLEN;
         if( buf.length()<SC_MAX_PACKLEN )
         {

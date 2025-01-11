@@ -50,6 +50,13 @@ void ScApachePcTE::init()
         qDebug() << "Server failed, Error message is:"
                  << server->errorString();
     }
+
+    rx_buf.clear();
+    read_bufs.clear();
+    read_bufs .resize(SC_MAX_PACKID+1);
+    rx_con->reset();
+    tx_con->reset();
+    rx_con->sendDummy();
 }
 
 void ScApachePcTE::clientConnected()
@@ -117,22 +124,18 @@ void ScApachePcTE::rxReadyRead(QByteArray data)
 
 void ScApachePcTE::txTest()
 {
-    int len = cons.length();
     int count = 0;
     QByteArray buf;
-    int buf_count = 500;
-    for( int i=0 ; i<len ; i++ )
+    int buf_count = 500000;
+    buf.clear();
+    for( int j=0 ; j<buf_count ; j++ )
     {
-        buf.clear();
-        for( int j=i*buf_count ; j<(i+1)*buf_count ; j++ )
-        {
-            buf += "<";
-            buf += QString::number(j).rightJustified(5, '0');
-            buf += ">";
-        }
-        tx_con->write(buf);
-        count++;
+        buf += "<";
+        buf += QString::number(j).rightJustified(6, '0');
+        buf += ">";
     }
+    tx_con->write(buf);
+    count++;
     qDebug() << "txRefresh" << count;
 }
 

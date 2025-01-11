@@ -72,8 +72,7 @@ void ScApacheTe::connectApp()
     {
         QByteArray msg = "<";
         msg += QString::number(i) + ">";
-        client.writeDatagram(msg,
-                             QHostAddress(ScSetting::remote_host),
+        client.writeDatagram(msg, ScSetting::remote_host,
                              5030);
     }
     qDebug() << "Ehsan say hello";

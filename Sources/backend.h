@@ -14,7 +14,7 @@
 #define SC_STATE_CLIENT   0
 #define SC_STATE_SERVER   1
 #define SC_STATE_SE_TEST  2
-#define SC_STATE_PC_TEST  2
+#define SC_STATE_PC_TEST  3
 
 #define SC_PC_CONLEN    20
 #define SC_MAX_PACKID   999
@@ -24,6 +24,7 @@
 
 #define SC_MIN_PACKLEN  2000
 #define SC_MAX_PACKLEN  6980
+#define SC_MAX_RATE     1000000
 
 #define SC_TXSERVER_TIMEOUT  100   //ms
 #define SC_TXCLIENT_TIMEOUT  SC_TXSERVER_TIMEOUT

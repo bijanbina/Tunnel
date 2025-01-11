@@ -11,8 +11,10 @@ ScTxServer::ScTxServer(int port, QObject *parent):
     tx_buf.resize(SC_MAX_PACKID+1);
 
     connect(timer, SIGNAL(timeout()),
-            this , SLOT  (writeBuf()));
+            this , SLOT  (timerTick()));
     timer->start(SC_TXSERVER_TIMEOUT);
+    data_counter  = 0;
+    tick_counter  = 0;
 
     // because of NAT we don't know the port!
     server->bind(port);
@@ -33,6 +35,17 @@ void ScTxServer::reset()
     buf.clear();
     tx_buf.clear();
     tx_buf.resize(SC_MAX_PACKID+1);
+}
+
+void ScTxServer::timerTick()
+{
+    tick_counter++;
+    if( tick_counter>9 )
+    {
+        tick_counter = 0;
+        data_counter = 0;
+    }
+    writeBuf();
 }
 
 void ScTxServer::txError()
@@ -57,7 +70,6 @@ void ScTxServer::write(QByteArray data)
     {
         return;
     }
-    writeBuf();
 }
 
 void ScTxServer::writeBuf()
@@ -69,7 +81,8 @@ void ScTxServer::writeBuf()
 
     QByteArray send_buf;
     int count = 20; //rate control
-    while( buf.length() && count>0 )
+    while( buf.length() && count>0 &&
+           data_counter<SC_MAX_RATE )
     {
         count--;
         int len = SC_MAX_PACKLEN;
@@ -82,6 +95,7 @@ void ScTxServer::writeBuf()
 
         if( sendData(send_buf) )
         {
+            data_counter += send_buf.length();
             buf.remove(0, len);
         }
     }

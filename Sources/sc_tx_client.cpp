@@ -24,6 +24,10 @@ void ScTxClient::reset()
 void ScTxClient::write(QByteArray data)
 {
     buf += data;
+    if( buf.length()<SC_MIN_PACKLEN )
+    {
+        return;
+    }
     writeBuf();
 }
 
@@ -59,9 +63,10 @@ int ScTxClient::sendData(QByteArray send_buf)
     {
         return 0;
     }
+    cons->waitForBytesWritten();
     int s = cons->writeDatagram(send_buf, ScSetting::remote_host,
                                 tx_port);
-    cons->waitForBytesWritten();
+//    qDebug() << "ScTxClient::sendData:" << s;
 
     if( s!=send_buf.length() )
     {

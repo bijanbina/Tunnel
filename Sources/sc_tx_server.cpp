@@ -53,6 +53,10 @@ void ScTxServer::resendBuf(int id)
 void ScTxServer::write(QByteArray data)
 {
     buf += data;
+    if( buf.length()<SC_MIN_PACKLEN )
+    {
+        return;
+    }
     writeBuf();
 }
 
@@ -84,10 +88,9 @@ void ScTxServer::writeBuf()
 // return 1 when sending data is successful
 int ScTxServer::sendData(QByteArray send_buf)
 {
+    server->waitForBytesWritten();
     int ret = server->writeDatagram(send_buf, ipv4,
                                     tx_port);
-    server->flush();
-    server->waitForBytesWritten();
     if( ret!=send_buf.length() )
     {
         if( server->error()==QAbstractSocket::TemporaryError )

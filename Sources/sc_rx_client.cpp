@@ -57,15 +57,14 @@ void ScRxClient::processBuf()
     while( rx_buf.contains(SC_DATA_EOP) )
     {
         ScPacket p = sc_processPacket(&rx_buf, curr_id);
-        if( port!=ScSetting::dbg_rx_port )
-        {
-//            qDebug() << "b";
-        }
 
         if( p.skip )
         {
             // skip already received packet
-            qDebug() << "SKIP" << curr_id << p.id;
+            if( port!=ScSetting::dbg_rx_port )
+            {
+                qDebug() << "SKIP" << curr_id << p.id;
+            }
             continue;
         }
 

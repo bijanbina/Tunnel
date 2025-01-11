@@ -83,9 +83,9 @@ void ScApacheSe::connectApp()
 
 void ScApacheSe::init()
 {
-    reset();
     if( client.isOpen() )
     {
+        reset();
         client.disconnectFromHost();
         client.waitForDisconnected();
         client.connectToHost(QHostAddress::LocalHost,

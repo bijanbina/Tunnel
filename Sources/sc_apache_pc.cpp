@@ -12,6 +12,7 @@ ScApachePC::ScApachePC(QObject *parent):
     connect(server, SIGNAL(newConnection()),
             this  , SLOT(clientConnected()));
 
+    // client
     mapper_data       = new QSignalMapper(this);
     mapper_error      = new QSignalMapper(this);
     mapper_disconnect = new QSignalMapper(this);

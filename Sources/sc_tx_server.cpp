@@ -68,8 +68,10 @@ void ScTxServer::writeBuf()
     }
 
     QByteArray send_buf;
-    while( buf.length() )
+    int count = 20; //rate control
+    while( buf.length() && count>0 )
     {
+        count--;
         int len = SC_MAX_PACKLEN;
         if( buf.length()<SC_MAX_PACKLEN )
         {
@@ -121,5 +123,9 @@ void ScTxServer::readyRead()
 
     qDebug() << "ScTxServer::dummy load start:"
              << tx_port << "is_dbg" << is_dbg;
+//  1 MB
+    int newSize = 1024 * 1024;
+    server->setSocketOption(QAbstractSocket::
+                            SendBufferSizeSocketOption, newSize);
     emit init();
 }

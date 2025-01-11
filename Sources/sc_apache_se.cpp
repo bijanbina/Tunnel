@@ -274,7 +274,7 @@ void ScApacheSe::dbgRxReadyRead()
 //                         << "dbg_buf:" << dbg_buf;
                 tx_server->resendBuf(resend);
             }
-            else
+            else if( ack_id!=tx_server->curr_id )
             {
                 qDebug() << "ScApacheSe::dbgRxReady res_failed:"
                          << "curr_id:" << tx_server->curr_id

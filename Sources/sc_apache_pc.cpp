@@ -144,7 +144,7 @@ void ScApachePC::rxReadyRead(QByteArray pack)
 // check if we need to resend a packet
 void ScApachePC::sendAck()
 {
-    if( rx_con->curr_id>0 )
+    if( rx_con->curr_id>0 && cons[0]->isOpen() )
     {
         QByteArray msg = SC_CMD_ACK;
         msg += QString::number(rx_con->curr_id);

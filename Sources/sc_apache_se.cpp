@@ -180,7 +180,7 @@ void ScApacheSe::processBuf()
 
         // Save data to buffer
         read_bufs[p.id] = p.data;
-        if( client.isOpen() )
+        if( client.isValid() )
         {
             QByteArray pack = getPack();
             int w = client.write(pack);
@@ -248,6 +248,12 @@ void ScApacheSe::dbgRxReadyRead()
                              &sender, &sender_port);
 
         dbg_buf += data;
+    }
+
+    if( client.isValid()==0 )
+    {
+        dbg_buf.clear();
+        return;
     }
 
     while( dbg_buf.contains(SC_DATA_EOP) )

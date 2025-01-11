@@ -42,6 +42,11 @@ void ScTxServer::timerTick()
     tick_counter++;
     if( tick_counter>9 )
     {
+        if( is_dbg==0 && data_counter>2000 )
+        {
+            qDebug() << "ScTxServer::timerTick load:"
+                     << data_counter/1000 << "KB";
+        }
         tick_counter = 0;
         data_counter = 0;
     }
@@ -97,6 +102,10 @@ void ScTxServer::writeBuf()
         {
             data_counter += send_buf.length();
             buf.remove(0, len);
+        }
+        else
+        {
+            curr_id--;
         }
     }
 }

@@ -63,7 +63,8 @@ void ScRxClient::processBuf()
             // skip already received packet
             if( port!=ScSetting::dbg_rx_port )
             {
-                qDebug() << "SKIP" << curr_id << p.id;
+                qDebug() << "SKIP curr_id:" << curr_id
+                         << p.id;
             }
             continue;
         }
@@ -78,11 +79,11 @@ void ScRxClient::processBuf()
         else
         {
             QByteArray pack = getPack();
-            qDebug() << "ScRxClient::processBuf"
-                     << p.data.length()
-                     << "buf_id:"  << p.id
-                     << "curr_id:" << curr_id
-                     << "pack_len" << pack.length();
+//            qDebug() << "ScRxClient::processBuf"
+//                     << p.data.length()
+//                     << "buf_id:"  << p.id
+//                     << "curr_id:" << curr_id
+//                     << "pack_len" << pack.length();
             if( pack.length() )
             {
                 emit dataReady(pack);

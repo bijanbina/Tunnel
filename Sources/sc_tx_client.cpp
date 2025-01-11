@@ -50,6 +50,10 @@ void ScTxClient::writeBuf()
         {
             buf.remove(0, len);
         }
+        else
+        {
+            curr_id--;
+        }
     }
 }
 

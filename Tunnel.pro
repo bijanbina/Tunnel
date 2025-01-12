@@ -10,6 +10,8 @@ UI_DIR = Build/.ui
 
 HEADERS += \
     Sources/backend.h \
+    Sources/dns_client.h \
+    Sources/dns_server.h \
     Sources/local.h \
     Sources/sc_apache_pc.h \
     Sources/sc_apache_pcte.h \
@@ -24,6 +26,8 @@ win32:HEADERS +=
 
 SOURCES += \
     Sources/backend.cpp \
+    Sources/dns_client.cpp \
+    Sources/dns_server.cpp \
     Sources/local.cpp \
     Sources/main.cpp \
     Sources/sc_apache_pc.cpp \

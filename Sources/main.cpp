@@ -1,5 +1,10 @@
 #include <QCoreApplication>
-#include "local.h"
+#include <QUdpSocket>
+#include <QByteArray>
+#include <QDebug>
+#include <QtEndian>
+#include "backend.h"
+#include "dns_client.h"
 
 int          ScSetting::state       = SC_STATE_CLIENT;
 int          ScSetting::local_port  = 1088;
@@ -10,44 +15,17 @@ int          ScSetting::dbg_rx_port = 5513;
 QString      ScSetting::password    = "pass";
 QHostAddress ScSetting::remote_host = QHostAddress("5.255.113.20");
 
-// tunnel <local_port> <is_server=s>
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
-    app.setOrganizationName("WBT");
-    app.setOrganizationDomain("WBT.com");
-    app.setApplicationName("PolyBar");
 
-    QString port = argv[1];
-    if( port=="p" )
-    {
-        ScSetting::state = SC_STATE_PC_TEST;
-    }
-    else
-    {
-        ScSetting::local_port = port.toUInt();
-    }
-    if( argc>2 )
-    {
-        QString arg = argv[2];
-        if( arg=="t" )
-        {
-            ScSetting::state = SC_STATE_SE_TEST;
-        }
-        else
-        {
-            ScSetting::state = SC_STATE_SERVER;
-        }
-        int tmp;
-        tmp = ScSetting::tx_port;
-        ScSetting::tx_port = ScSetting::rx_port;
-        ScSetting::rx_port = tmp;
+    QString serverIp   = "5.255.113.20";
+    quint16 serverPort = 5000;
+    QByteArray message = "sag sag sag";
 
-        tmp = ScSetting::dbg_tx_port;
-        ScSetting::dbg_tx_port = ScSetting::dbg_rx_port;
-        ScSetting::dbg_rx_port = tmp;
-    }
-    ScLocal local;
+    DnsClient client;
+    client.sendDataAsDns(message, QHostAddress(serverIp),
+                         serverPort);
 
-    return app.exec();
+    return 0;
 }

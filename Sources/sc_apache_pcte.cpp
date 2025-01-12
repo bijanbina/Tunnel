@@ -137,6 +137,25 @@ void ScApachePcTE::txTest()
     tx_con->write(buf);
     count++;
     qDebug() << "txRefresh" << count;
+
+//    QByteArray message = "sag sag sag";
+
+//    DnsClient client;
+//    int buf_count = 100;
+//    QByteArray buf;
+//    for( int i=0 ; i<2000 ; i++ )
+//    {
+//        for( int j=0 ; j<buf_count ; j++ )
+//        {
+//            int k = i * buf_count;
+//            buf += "<";
+//            buf += QString::number(k+j).rightJustified(6, '0');
+//            buf += ">";
+//        }
+//        client.sendDataAsDns(buf, ScSetting::remote_host,
+//                             ScSetting::tx_port);
+//        buf.clear();
+//    }
 }
 
 // return id in array where connection is free

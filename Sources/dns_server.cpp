@@ -5,18 +5,21 @@ DnsServer::DnsServer(quint16 port, QObject *parent)
 {
     socket = new QUdpSocket(this);
 
-    if (!socket->bind(QHostAddress::Any, port)) {
+    if( !socket->bind(QHostAddress::Any, port) )
+    {
         qDebug() << "Failed to bind on port" << port;
         return;
     }
 
-    connect(socket, &QUdpSocket::readyRead, this, &DnsServer::onReadyRead);
+    connect(socket, &QUdpSocket::readyRead,
+            this, &DnsServer::onReadyRead);
     qDebug() << "DNS Server listening on UDP port" << port;
 }
 
 void DnsServer::onReadyRead()
 {
-    while (socket->hasPendingDatagrams()) {
+    while( socket->hasPendingDatagrams() )
+    {
         QByteArray data;
         data.resize(socket->pendingDatagramSize());
 
@@ -25,14 +28,13 @@ void DnsServer::onReadyRead()
 
         socket->readDatagram(data.data(), data.size(),
                              &sender, &sender_port);
-
+        // remove header
+        data.remove(0, 12);
 
         // For demo, just print out the raw bytes (in hex)
-        qDebug() << "Received packet from"
-                 << sender.toString()
-                 << ":" << sender_port;
-        qDebug() << "Size:" << data.size();
-        qDebug() << "Hex dump:" << data.toHex(' ');
+        qDebug() << "Received packet "
+                 << "Size:" << data.size()
+                 << "Hex dump:" << data;
         qDebug() << "-----------------------------------";
     }
 }

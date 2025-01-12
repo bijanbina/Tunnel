@@ -85,7 +85,7 @@ void ScTxServer::writeBuf()
     }
 
     QByteArray send_buf;
-    int count = 20; //rate control
+    int count = 30; //rate control
     while( buf.length() && count>0 &&
            data_counter<SC_MAX_RATE )
     {

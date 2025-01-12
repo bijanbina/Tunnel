@@ -22,8 +22,8 @@
 #define SC_LEN_PACKLEN  4
 #define SC_MAX_PACK     5
 
-#define SC_MIN_PACKLEN  2000
-#define SC_MAX_PACKLEN  6980
+#define SC_MIN_PACKLEN  500
+#define SC_MAX_PACKLEN  800
 #define SC_MAX_RATE     1000000
 
 #define SC_TXSERVER_TIMEOUT  100   //ms

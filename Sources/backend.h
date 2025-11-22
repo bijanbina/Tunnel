@@ -15,6 +15,8 @@
 #define SC_STATE_SERVER   1
 #define SC_STATE_SE_TEST  2
 #define SC_STATE_PC_TEST  3
+#define SC_STATE_TEST     4 // check max limit pc
+#define SC_STATE_LIMIT    5 // check max limit server
 
 #define SC_PC_CONLEN    20
 #define SC_MAX_PACKID   999
@@ -47,6 +49,7 @@ public:
     static int          local_port;
     static int          tx_port;
     static int          rx_port;
+    static int          limit;
     static int          dbg_rx_port;
     static int          dbg_tx_port;
     static QString      password;

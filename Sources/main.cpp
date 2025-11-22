@@ -8,7 +8,8 @@ int          ScSetting::rx_port     = 5511;
 int          ScSetting::dbg_tx_port = 5512;
 int          ScSetting::dbg_rx_port = 5513;
 QString      ScSetting::password    = "pass";
-QHostAddress ScSetting::remote_host = QHostAddress("5.255.113.20");
+//QHostAddress ScSetting::remote_host = QHostAddress("5.255.113.20");
+QHostAddress ScSetting::remote_host = QHostAddress("188.121.116.220");
 
 // tunnel <local_port> <is_server=s>
 int main(int argc, char *argv[])
@@ -22,6 +23,18 @@ int main(int argc, char *argv[])
     if( arg=="p" )
     {
         ScSetting::state = SC_STATE_PC_TEST;
+    }
+    else if( arg=="l" ) // limit
+    {
+        ScSetting::state = SC_STATE_TEST;
+    }
+    else if( arg=="s" ) // limit server
+    {
+        int tmp;
+        tmp = ScSetting::tx_port;
+        ScSetting::tx_port = ScSetting::rx_port;
+        ScSetting::rx_port = tmp;
+        ScSetting::state = SC_STATE_LIMIT;
     }
     else
     {
@@ -37,7 +50,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            ScSetting::state = SC_STATE_SERVER;
+            ScSetting::state = SC_STATE_TEST;
         }
         int tmp;
         tmp = ScSetting::tx_port;

@@ -4,21 +4,21 @@
 ScApacheTe::ScApacheTe(QObject *parent):
     QObject(parent)
 {
-    tx_server  = new ScTxServer(ScSetting::tx_port);
-    tx_timer   = new QTimer;
-    rx_server  = new QTcpServer;
+    tx_server    = new ScTxServer(ScSetting::tx_port);
+    tx_timer     = new QTimer;
+    rx_server    = new QTcpServer;
     rxdbg_server = new QTcpServer;
-    tx_curr_id = 0;
-    rx_curr_id = 0;
+    tx_curr_id   = 0;
+    rx_curr_id   = 0;
     rx_buf.resize(SC_PC_CONLEN);
     read_bufs.resize(SC_MAX_PACKID+1);
 
-    connect(rx_server,  SIGNAL(newConnection()),
-            this,       SLOT(rxConnected()));
-    connect(tx_server,  SIGNAL(newConnection()),
-            this,       SLOT(txConnected()));
+    connect(rx_server   , SIGNAL(newConnection()),
+            this,         SLOT(rxConnected()));
+    connect(tx_server   , SIGNAL(newConnection()),
+            this,         SLOT(txConnected()));
     connect(rxdbg_server, SIGNAL(newConnection()),
-            this,       SLOT(dbgConnected()));
+            this,         SLOT(dbgConnected()));
 
     rx_mapper_data       = new QSignalMapper(this);
     rx_mapper_error      = new QSignalMapper(this);

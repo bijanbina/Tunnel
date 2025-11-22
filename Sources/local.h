@@ -8,6 +8,8 @@
 #include "sc_apache_pcte.h"
 #include "sc_apache_se.h"
 #include "sc_apache_te.h"
+#include "sc_test_pc.h"
+#include "sc_test_se.h"
 
 class ScLocal : public QObject
 {

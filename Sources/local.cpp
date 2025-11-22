@@ -32,6 +32,16 @@ ScLocal::ScLocal(QObject *parent):
         ScApachePcTE *pcte = new ScApachePcTE;
         pcte->init();
     }
+    else if( ScSetting::state==SC_STATE_TEST )
+    {
+        ScTestPc *test_pc = new ScTestPc;
+        test_pc->init();
+    }
+    else if( ScSetting::state==SC_STATE_LIMIT )
+    {
+        ScTestSe *test_se = new ScTestSe;
+        test_se->init();
+    }
     else
     {
         ScApachePC *pc = new ScApachePC;

@@ -2,6 +2,7 @@
 #include "local.h"
 
 int          ScSetting::state       = SC_STATE_CLIENT;
+int          ScSetting::limit       = 50;
 int          ScSetting::local_port  = 1088;
 int          ScSetting::tx_port     = 5510;
 int          ScSetting::rx_port     = 5511;

@@ -16,7 +16,7 @@ ScTxServer::ScTxServer(int port, QObject *parent):
     data_counter  = 0;
     tick_counter  = 0;
 
-    // because of NAT we don't know the port!
+    // because of NAT we don't know the ip!
     server->bind(QHostAddress::Any, port);
     connect(server, SIGNAL(readyRead()),
             this  , SLOT  (readyRead()));

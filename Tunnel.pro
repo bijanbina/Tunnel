@@ -19,6 +19,8 @@ HEADERS += \
     Sources/sc_apache_te.h \
     Sources/sc_meta_client.h \
     Sources/sc_rx_client.h \
+    Sources/sc_test_pc.h \
+    Sources/sc_test_se.h \
     Sources/sc_tx_client.h \
     Sources/sc_tx_server.h
 
@@ -36,6 +38,8 @@ SOURCES += \
     Sources/sc_apache_te.cpp \
     Sources/sc_meta_client.cpp \
     Sources/sc_rx_client.cpp \
+    Sources/sc_test_pc.cpp \
+    Sources/sc_test_se.cpp \
     Sources/sc_tx_client.cpp \
     Sources/sc_tx_server.cpp
 

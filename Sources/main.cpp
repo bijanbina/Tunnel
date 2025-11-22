@@ -18,19 +18,20 @@ int main(int argc, char *argv[])
     app.setOrganizationDomain("WBT.com");
     app.setApplicationName("PolyBar");
 
-    QString port = argv[1];
-    if( port=="p" )
+    QString arg = argv[1];
+    if( arg=="p" )
     {
         ScSetting::state = SC_STATE_PC_TEST;
     }
     else
     {
-        ScSetting::local_port = port.toUInt();
+        ScSetting::local_port = arg.toUInt();
     }
+
     if( argc>2 )
     {
-        QString arg = argv[2];
-        if( arg=="t" )
+        QString arg2 = argv[2];
+        if( arg2=="t" )
         {
             ScSetting::state = SC_STATE_SE_TEST;
         }

@@ -173,7 +173,7 @@ void ScApachePC::dbgReadyRead(QByteArray data)
             qDebug() << "ScApachePC::dbgReadyRead RESEND_ID:"
                      << resend << "curr_id:" << tx_con->curr_id;
         }
-        else
+        else if( ack_id!=tx_con->curr_id )
         {
             qDebug() << "ScApachePC::dbgReadyRead RES_FAILED:"
                      << ack_id << "curr_id:" << tx_con->curr_id;

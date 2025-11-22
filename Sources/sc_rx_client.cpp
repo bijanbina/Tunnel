@@ -25,12 +25,9 @@ void ScRxClient::reset()
 
 void ScRxClient::error()
 {
-    if( client->error()!=QUdpSocket::RemoteHostClosedError )
-    {
-        qDebug() << "ScRxClient::error"
-                 << client->state()
-                 << client->errorString();
-    }
+    qDebug() << "ScRxClient::error"
+             << client->state()
+             << client->errorString();
 }
 
 void ScRxClient::readyRead()
@@ -119,6 +116,8 @@ QByteArray ScRxClient::getPack()
     return pack;
 }
 
+// send dummy data to get ip address of receiving side
+// as the client IP is dynamic
 void ScRxClient::sendDummy()
 {
     int ret = client->writeDatagram("a", 1,

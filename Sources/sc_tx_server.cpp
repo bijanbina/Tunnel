@@ -17,7 +17,7 @@ ScTxServer::ScTxServer(int port, QObject *parent):
     tick_counter  = 0;
 
     // because of NAT we don't know the port!
-    server->bind(port);
+    server->bind(QHostAddress::Any, port);
     connect(server, SIGNAL(readyRead()),
             this  , SLOT  (readyRead()));
     connect(server, SIGNAL(error(QAbstractSocket::SocketError)),
@@ -113,7 +113,6 @@ void ScTxServer::writeBuf()
 // return 1 when sending data is successful
 int ScTxServer::sendData(QByteArray send_buf)
 {
-    server->waitForBytesWritten();
     int ret = server->writeDatagram(send_buf, ipv4,
                                     tx_port);
     if( ret!=send_buf.length() )
@@ -144,7 +143,7 @@ void ScTxServer::readyRead()
     server->readDatagram(data.data(), data.size(),
                          &ipv4, &tx_port);
 
-    qDebug() << "ScTxServer::dummy load start:"
+    qDebug() << "ScTxServer::dummy load tx_port:"
              << tx_port << "is_dbg" << is_dbg;
 //  1 MB
     int newSize = 1024 * 1024;

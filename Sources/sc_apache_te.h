@@ -64,7 +64,7 @@ private:
     void dbgSetupConnection(int con_id);
 
     QTimer     *rx_timer;
-    QUdpSocket  client;
+    QTcpSocket  client;
     QByteArray  tx_buf;
 
     // rx

@@ -22,6 +22,7 @@ public:
 
     QTcpSocket   *con;
     QHostAddress  ipv4;
+    quint16       tx_port;
 
 public slots:
     void clientConnected();
@@ -36,12 +37,8 @@ public slots:
 
 private:
     QTcpServer     *server;
-    QUdpSocket     *tx_con;
+    QUdpSocket     *udp_con;
     QTimer         *tx_timer;
-
-    // rx
-    QUdpSocket *rx_con;
-    QTimer *    rx_timer;
 };
 
 #endif // SC_TEST_SE_H

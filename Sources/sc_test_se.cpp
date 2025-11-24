@@ -5,19 +5,18 @@ ScTestSe::ScTestSe(QObject *parent):
 {
     con      = NULL;
     server   = new QTcpServer;
-    tx_con   = new QUdpSocket();
-    rx_con   = new QUdpSocket();
+    udp_con  = new QUdpSocket;
     tx_timer = new QTimer;
     connect(server, SIGNAL(newConnection()),
             this  , SLOT(clientConnected()));
 
     // tx
-    connect(tx_con, SIGNAL(error(QAbstractSocket::SocketError)),
+    connect(udp_con, SIGNAL(error(QAbstractSocket::SocketError)),
             this  , SLOT(txError()));
 
     // rx
-    rx_con->bind(QHostAddress::Any, ScSetting::rx_port);
-    connect(rx_con, SIGNAL(readyRead()),
+    udp_con->bind(QHostAddress::Any, ScSetting::rx_port);
+    connect(udp_con, SIGNAL(readyRead()),
             this  , SLOT(rxReadyRead()));
 
     connect(tx_timer, SIGNAL(timeout()),
@@ -64,25 +63,23 @@ void ScTestSe::clientError()
 void ScTestSe::txError()
 {
     qDebug() << "txError"
-             << tx_con->errorString()
-             << tx_con->state();
+             << udp_con->errorString()
+             << udp_con->state();
 
-    tx_con->close();
+    udp_con->close();
 }
 
 void ScTestSe::rxReadyRead()
 {
     QByteArray rx_buf;
 
-    while( rx_con->hasPendingDatagrams() )
+    while( udp_con->hasPendingDatagrams() )
     {
         QByteArray data;
-        data.resize(rx_con->pendingDatagramSize());
+        data.resize(udp_con->pendingDatagramSize());
 
-        quint16 sender_port;
-
-        rx_con->readDatagram(data.data(), data.size(),
-                             &ipv4, &sender_port);
+        udp_con->readDatagram(data.data(), data.size(),
+                             &ipv4, &tx_port);
 
         rx_buf += data;
     }
@@ -95,17 +92,15 @@ void ScTestSe::rxReadyRead()
 
 void ScTestSe::txTest()
 {
-    int count = 0;
     QByteArray buf;
-    buf.clear();
     for( int j=0 ; j<ScSetting::limit ; j++ )
     {
         buf += "<";
         buf += QString::number(j).rightJustified(6, '0');
         buf += ">";
     }
-    
-    tx_con->writeDatagram(buf, ipv4, ScSetting::tx_port);
-    count++;
-    qDebug() << "txRefresh" << count;
+
+    udp_con->writeDatagram(buf, ipv4, tx_port);
+    qDebug() << "txRefresh" << QHostAddress(ipv4.toIPv4Address())
+             << tx_port;
 }

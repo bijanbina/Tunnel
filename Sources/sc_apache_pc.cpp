@@ -25,21 +25,16 @@ ScApachePC::ScApachePC(QObject *parent):
             this     , SLOT  (sendAck()));
     ack_timer->start(SC_ACK_TIMEOUT);
 
-    read_bufs .resize(SC_MAX_PACKID+1);
+    read_bufs.resize(SC_MAX_PACKID+1);
 }
 
 ScApachePC::~ScApachePC()
 {
-    int len = cons.size();
-    for( int i=0 ; i<len ; i++ )
+    if( con )
     {
-        if( cons[i]==NULL )
+        if( con->isOpen() )
         {
-            continue;
-        }
-        if( cons[i]->isOpen() )
-        {
-            cons[i]->close();
+            con->close();
         }
     }
 }
@@ -53,16 +48,15 @@ void ScApachePC::init()
     }
     else
     {
-        qDebug() << "Server failed, Error message is:"
+        qDebug() << "Server failed, Error:"
                  << server->errorString();
     }
 }
 
 void ScApachePC::reset()
 {
-    rx_buf.clear();
     read_bufs.clear();
-    read_bufs .resize(SC_MAX_PACKID+1);
+    read_bufs.resize(SC_MAX_PACKID+1);
     rx_con->reset();
     tx_con->reset();
     rx_dbg->reset();
@@ -72,68 +66,77 @@ void ScApachePC::reset()
 
 void ScApachePC::clientConnected()
 {
-    if( putInFree() )
+    qDebug() << "ScApachePC::clientConnected";
+    if( con )
     {
-        reset();
-        return;
+        if( con->isOpen() )
+        {
+            con->close();
+            delete con;
+        }
     }
-    int new_con_id = cons.length();
-    cons.push_back(NULL);
-    setupConnection(new_con_id);
+    con = server->nextPendingConnection();
+    con->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+
+    // signals
+    connect(con , SIGNAL(readyRead()),
+            this, SLOT(txReadyRead()));
+    connect(con , SIGNAL(error(QAbstractSocket::SocketError)),
+            this, SLOT(clientError()));
+    connect(con , SIGNAL(disconnected()),
+            this, SLOT(clientDisconnected()));
+
     if( rx_buf.length() )
     {
-        qDebug() << "saaalam" << new_con_id;
-        cons[0]->write(rx_buf);
+        qDebug() << "clientConnected rx_buf"
+                 << rx_buf.length();
+        con->write(rx_buf);
         rx_buf.clear();
     }
     reset();
 }
 
-void ScApachePC::clientError(int id)
+void ScApachePC::clientError()
 {
-    qDebug() << id << "clientError"
-             << cons[id]->errorString()
-             << cons[id]->state()
-             << ipv4[id].toString();
+    qDebug() << "clientError"
+             << con->errorString()
+             << con->state();
 
-    cons[id]->close();
+    con->close();
 }
 
-void ScApachePC::clientDisconnected(int id)
+void ScApachePC::clientDisconnected()
 {
-    qDebug() << id << "clientDisconnected";
+    qDebug() << "clientDisconnected";
 }
 
-void ScApachePC::txReadyRead(int id)
+void ScApachePC::txReadyRead()
 {
-    QByteArray data = cons[id]->readAll();
+    QByteArray data = con->readAll();
     //    qDebug() << "read_buf::" << data;
     tx_con->write(data);
 }
 
+// rx_con
 void ScApachePC::rxReadyRead(QByteArray pack)
 {
     rx_buf += pack;
-    int len = cons.length();
-    for( int i=0 ; i<len ; i++ )
+    if( con->isOpen() )
     {
-        if( cons[i]->isOpen() )
+        int ret = con->write(pack);
+        if( ret==0 )
         {
-            int ret = cons[i]->write(pack);
-            if( ret==0 )
-            {
-                qDebug() << "FAILED PACK:" << pack << i
-                         << "write:" << pack.length() << ret;
-            }
-            return;
+            qDebug() << "FAILED PACK:" << pack
+                     << "write:" << pack.length() << ret;
         }
+        return;
     }
 }
 
 // check if we need to resend a packet
 void ScApachePC::sendAck()
 {
-    if( rx_con->curr_id>0 && cons[0]->isOpen() )
+    if( rx_con->curr_id>0 && con->isOpen() )
     {
         QByteArray msg = SC_CMD_ACK;
         msg += QString::number(rx_con->curr_id);
@@ -173,65 +176,4 @@ void ScApachePC::dbgReadyRead(QByteArray data)
         qDebug() << "ScApachePC::dbgReadyRead cmd:"
                  << data;
     }
-}
-
-// return id in array where connection is free
-int ScApachePC::putInFree()
-{
-    int len = cons.length();
-    for( int i=0 ; i<len ; i++ )
-    {
-        if( cons[i]->isOpen()==0 )
-        {
-            mapper_data->removeMappings(cons[i]);
-            mapper_error->removeMappings(cons[i]);
-            mapper_disconnect->removeMappings(cons[i]);
-            delete cons[i];
-            setupConnection(i);
-
-            return 1;
-        }
-        else
-        {
-            qDebug() << "conn is open" << i;
-        }
-    }
-
-    return 0;
-}
-
-void ScApachePC::setupConnection(int con_id)
-{
-    QTcpSocket *con = server->nextPendingConnection();
-    cons[con_id] = con;
-    con->setSocketOption(QAbstractSocket::LowDelayOption, 1);
-    quint32 ip_32 = con->peerAddress().toIPv4Address();
-    QString msg = "ScApachePC::setupConnection ";
-    if( con_id<ipv4.length() )
-    { // put in free
-        ipv4[con_id] = QHostAddress(ip_32);
-        msg += "refereshing connection";
-    }
-    else
-    {
-        ipv4.push_back(QHostAddress(ip_32));
-        msg += "accept connection";
-    }
-    qDebug() << msg.toStdString().c_str() << con_id
-             << ipv4[con_id].toString();
-
-    // readyRead
-    mapper_data->setMapping(con, con_id);
-    connect(con        , SIGNAL(readyRead()),
-            mapper_data, SLOT(map()));
-
-    // displayError
-    mapper_error->setMapping(con, con_id);
-    connect(con, SIGNAL(error(QAbstractSocket::SocketError)),
-            mapper_error, SLOT(map()));
-
-    // disconnected
-    mapper_disconnect->setMapping(con, con_id);
-    connect(con, SIGNAL(disconnected()),
-            mapper_disconnect, SLOT(map()));
 }

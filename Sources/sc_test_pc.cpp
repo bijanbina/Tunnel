@@ -5,19 +5,18 @@ ScTestPc::ScTestPc(QObject *parent):
 {
     con      = NULL;
     server   = new QTcpServer;
-    tx_con   = new QUdpSocket();
-    rx_con   = new QUdpSocket();
+    udp_con  = new QUdpSocket();
     tx_timer = new QTimer;
     connect(server, SIGNAL(newConnection()),
             this  , SLOT(clientConnected()));
 
     // tx
-    connect(tx_con, SIGNAL(error(QAbstractSocket::SocketError)),
-            this  , SLOT(txError()));
+    connect(udp_con, SIGNAL(error(QAbstractSocket::SocketError)),
+            this   , SLOT(txError()));
 
     // rx
-    connect(rx_con, SIGNAL(readyRead()),
-            this  , SLOT  (rxReadyRead()));
+    connect(udp_con, SIGNAL(readyRead()),
+            this   , SLOT  (rxReadyRead()));
 
     connect(tx_timer, SIGNAL(timeout()),
             this    , SLOT  (txTest()));
@@ -63,32 +62,33 @@ void ScTestPc::clientError()
 void ScTestPc::txError()
 {
     qDebug() << "txError"
-             << tx_con->errorString()
-             << tx_con->state();
+             << udp_con->errorString()
+             << udp_con->state();
 
-    tx_con->close();
+    udp_con->close();
 }
 
 void ScTestPc::rxReadyRead()
 {
     QByteArray rx_buf;
 
-    while( rx_con->hasPendingDatagrams() )
+    while( udp_con->hasPendingDatagrams() )
     {
         QByteArray data;
-        data.resize(rx_con->pendingDatagramSize());
+        data.resize(udp_con->pendingDatagramSize());
 
         QHostAddress sender;
         quint16 sender_port;
 
-        rx_con->readDatagram(data.data(), data.size(),
-                             &sender, &sender_port);
+        udp_con->readDatagram(data.data(), data.size(),
+                              &sender, &sender_port);
 
         rx_buf += data;
     }
 
     if( con )
     {
+        qDebug() << "rx" << rx_buf.length();
         con->write(rx_buf);
     }
 }
@@ -104,8 +104,9 @@ void ScTestPc::txTest()
         buf += QString::number(j).rightJustified(6, '0');
         buf += ">";
     }
-    tx_con->writeDatagram(buf, ScSetting::remote_host, 
-                          ScSetting::tx_port);
+    udp_con->writeDatagram(buf, ScSetting::remote_host,
+                           ScSetting::tx_port);
     count++;
-    qDebug() << "txRefresh" << count;
+    qDebug() << "txRefresh" << ScSetting::remote_host
+             << ScSetting::tx_port;
 }

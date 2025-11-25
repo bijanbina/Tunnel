@@ -36,12 +36,8 @@ public slots:
 
 private:
     QTcpServer     *server;
-    QUdpSocket     *tx_con;
+    QUdpSocket     *udp_con;
     QTimer         *tx_timer;
-
-    // rx
-    QUdpSocket *rx_con;
-    QTimer *    rx_timer;
 };
 
 #endif // SC_TEST_PC_H

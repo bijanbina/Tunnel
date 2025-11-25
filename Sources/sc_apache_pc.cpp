@@ -3,26 +3,15 @@
 ScApachePC::ScApachePC(QObject *parent):
     QObject(parent)
 {
-    server = new QTcpServer;
-    tx_con = new ScTxClient(ScSetting::tx_port);
-    rx_con = new ScRxClient(ScSetting::rx_port);
-    tx_dbg = new ScMetaClient(ScSetting::dbg_tx_port);
-    rx_dbg = new ScRxClient  (ScSetting::dbg_rx_port);
-    ack_timer     = new QTimer;
+    con       = NULL;
+    server    = new QTcpServer;
+    tx_con    = new ScTxClient(ScSetting::tx_port);
+    rx_con    = new ScRxClient(ScSetting::rx_port);
+    tx_dbg    = new ScMetaClient(ScSetting::dbg_tx_port);
+    rx_dbg    = new ScRxClient  (ScSetting::dbg_rx_port);
+    ack_timer = new QTimer;
     connect(server, SIGNAL(newConnection()),
             this  , SLOT(clientConnected()));
-
-    // client
-    mapper_data       = new QSignalMapper(this);
-    mapper_error      = new QSignalMapper(this);
-    mapper_disconnect = new QSignalMapper(this);
-
-    connect(mapper_data      , SIGNAL(mapped(int)),
-            this             , SLOT(txReadyRead(int)));
-    connect(mapper_error     , SIGNAL(mapped(int)),
-            this             , SLOT(clientError(int)));
-    connect(mapper_disconnect, SIGNAL(mapped(int)),
-            this             , SLOT(clientDisconnected(int)));
 
     // rx
     connect(rx_con, SIGNAL(dataReady(QByteArray)),

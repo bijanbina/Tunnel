@@ -26,14 +26,13 @@ public:
     void init();
     void reset();
 
-    QVector<QTcpSocket *> cons;
-    QVector<QHostAddress> ipv4;
+    QTcpSocket   *con;
 
 public slots:
-    void txReadyRead(int id);
+    void txReadyRead();
     void clientConnected();
-    void clientError(int id);
-    void clientDisconnected(int id);
+    void clientError();
+    void clientDisconnected();
 
     // rx
     void rxReadyRead(QByteArray pack);
@@ -43,8 +42,7 @@ public slots:
     void dbgReadyRead(QByteArray data);
 
 private:
-    int  putInFree();
-    void setupConnection(int con_id);
+    void setupConnection();
 
     QSignalMapper  *mapper_data;
     QSignalMapper  *mapper_disconnect;

@@ -51,10 +51,9 @@ int main(int argc, char *argv[])
         }
         else
         {
-            ScSetting::state = SC_STATE_TEST;
+            ScSetting::state = SC_STATE_SERVER;
         }
-        int tmp;
-        tmp = ScSetting::tx_port;
+        int tmp = ScSetting::tx_port;
         ScSetting::tx_port = ScSetting::rx_port;
         ScSetting::rx_port = tmp;
 

@@ -7,7 +7,7 @@ ScTxServer::ScTxServer(int port, QObject *parent):
     server  = new QUdpSocket;
     timer   = new QTimer;
     curr_id = -1;
-    is_dbg  = 0;
+    is_dbg  =  0;
     tx_buf.resize(SC_MAX_PACKID+1);
 
     connect(timer, SIGNAL(timeout()),
@@ -143,11 +143,11 @@ void ScTxServer::readyRead()
     server->readDatagram(data.data(), data.size(),
                          &ipv4, &tx_port);
 
-    qDebug() << "ScTxServer::dummy load tx_port:"
+    qDebug() << "ScTxServer::update tx_port:"
              << tx_port << "is_dbg" << is_dbg;
 //  1 MB
-    int newSize = 1024 * 1024;
-    server->setSocketOption(QAbstractSocket::
-                            SendBufferSizeSocketOption, newSize);
+//    int new_size = 1024 * 1024;
+//    server->setSocketOption(QAbstractSocket::
+//                            SendBufferSizeSocketOption, new_size);
     emit init();
 }

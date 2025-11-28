@@ -13,16 +13,11 @@ ScApacheSe::ScApacheSe(QObject *parent):
     read_bufs.resize(SC_MAX_PACKID+1);
 
     connect(tx_server, SIGNAL(init()),
-            this     , SLOT(init()));
+            this     , SLOT  (init()));
 
     connect(ack_timer, SIGNAL(timeout()),
             this     , SLOT  (sendAck()));
     ack_timer->start(SC_ACK_TIMEOUT);
-}
-
-ScApacheSe::~ScApacheSe()
-{
-    ;
 }
 
 void ScApacheSe::connectApp()

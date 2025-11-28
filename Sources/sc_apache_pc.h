@@ -44,13 +44,13 @@ public slots:
 private:
     void setupConnection();
 
-    QSignalMapper  *mapper_data;
-    QSignalMapper  *mapper_disconnect;
-    QSignalMapper  *mapper_error;
-    QTcpServer     *server;
-    ScTxClient     *tx_con;
-    QByteArray      tx_buf;
-    ScMetaClient   *tx_dbg;
+    QSignalMapper *mapper_data;
+    QSignalMapper *mapper_disconnect;
+    QSignalMapper *mapper_error;
+    QTcpServer    *server;
+    ScTxClient    *tx_con;
+    QByteArray     tx_buf;
+    ScMetaClient  *tx_dbg;
     QVector<QByteArray> read_bufs;
 
     // rx

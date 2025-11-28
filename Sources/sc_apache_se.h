@@ -22,7 +22,6 @@ class ScApacheSe : public QObject
 
 public:
     explicit ScApacheSe(QObject *parent = 0);
-    ~ScApacheSe();
 
     void connectApp();
 

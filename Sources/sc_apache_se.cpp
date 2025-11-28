@@ -271,10 +271,14 @@ void ScApacheSe::dbgRxReadyRead()
 
             if( resend!=-1 )
             { // neet to retransmit as packet has been lost
-                qDebug() << "ScApacheSe::dbgRx Retransmit from"
-                         << resend << "to"
-                         << tx_server->curr_id;
                 tx_server->resendBuf(resend);
+            }
+            else if( ack_id!=tx_server->curr_id )
+            {
+                qDebug() << "ScApacheSe::dbgRx TX_FAILURE"
+                         << "curr_id:"   << tx_server->curr_id
+                         << "resend_id:" << resend
+                         << "ack_id:"    << ack_id;
             }
             else if( ack_id!=tx_server->curr_id )
             {

@@ -20,6 +20,8 @@ int main(int argc, char *argv[])
     app.setOrganizationDomain("WBT.com");
     app.setApplicationName("PolyBar");
 
+    qSetMessagePattern("%{time hh:mm:ss} %{message}");
+
     QString arg = argv[1];
     if( arg=="p" )
     {

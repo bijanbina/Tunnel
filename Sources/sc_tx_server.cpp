@@ -65,8 +65,18 @@ void ScTxServer::txError()
 void ScTxServer::resendBuf(int id)
 {
     if( tx_buf[id].length() )
-    {
+    { // print in green
+        qDebug() << "\x1b[32mScApacheSe::dbgRx Retransmit"
+                 << QString::number(id) + "->"
+                 +  QString::number(curr_id)
+                 << "packet len:"
+                 << tx_buf[id].length() << "\x1b[0m";
         sendData(tx_buf[id]);
+    }
+    else
+    {
+        qDebug() << "ScTxServer::resendBuf failed,"
+                 << "Packet not found:" << id;
     }
 }
 
@@ -79,6 +89,7 @@ void ScTxServer::write(QByteArray data)
     }
 }
 
+// called every SC_TXSERVER_TIMEOUT msec
 void ScTxServer::writeBuf()
 {
     if( ipv4.isNull() )
@@ -86,6 +97,9 @@ void ScTxServer::writeBuf()
         return;
     }
 
+    // for debug only
+    int b_len = buf.length();
+    int s_id  = curr_id+1;
     QByteArray send_buf;
     int count = 30; //rate control
     while( buf.length() && count>0 &&
@@ -110,9 +124,18 @@ void ScTxServer::writeBuf()
             curr_id--;
         }
     }
+
+    if( b_len && is_dbg==0 )
+    { // print in red
+        qDebug() << "\x1b[31mScTxServer::TX s_id:"
+                 << s_id  << "count:" << curr_id-s_id+1
+                 << "len" << b_len << "remaining:"
+                 << buf.length() << "\x1b[0m";
+    }
 }
 
 // return 1 when sending data is successful
+// otherwise print error
 int ScTxServer::sendData(QByteArray send_buf)
 {
     int ret = server->writeDatagram(send_buf, ipv4,
@@ -149,11 +172,11 @@ void ScTxServer::readyRead()
     QString ip_str = ip.toString();
     if( is_dbg==1 )
     {
-        qDebug() << "update DBG tx:" << ip_str << tx_port;
+        qDebug() << "DT Connect:" << ip_str << tx_port;
     }
     else
     {
-        qDebug() << "update Main tx:" << ip_str << tx_port;
+        qDebug() << "TX Connect:" << ip_str << tx_port;
     }
 //  1 MB
 //    int new_size = 1024 * 1024;

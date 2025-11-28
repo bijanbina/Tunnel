@@ -3,12 +3,11 @@
 ScTxClient::ScTxClient(int port, QObject *parent):
     QObject(parent)
 {
-    tx_port = port;
-    curr_id = -1;
+    tx_port  = port;
+    curr_id  = -1;
+    tx_timer = new QTimer;
+    cons     = new QUdpSocket;
     tx_buf.resize(SC_MAX_PACKID+1);
-    tx_timer      = new QTimer;
-
-    cons = new QUdpSocket;
 
     connect(tx_timer, SIGNAL(timeout()),
             this    , SLOT  (writeBuf()));

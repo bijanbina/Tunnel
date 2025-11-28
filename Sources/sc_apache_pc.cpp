@@ -10,14 +10,11 @@ ScApachePC::ScApachePC(QObject *parent):
     tx_dbg    = new ScMetaClient(ScSetting::dbg_tx_port);
     rx_dbg    = new ScRxClient  (ScSetting::dbg_rx_port);
     ack_timer = new QTimer;
-    connect(server, SIGNAL(newConnection()),
-            this  , SLOT(clientConnected()));
 
-    // rx
+    connect(server, SIGNAL(newConnection()),
+            this  , SLOT  (clientConnected()));
     connect(rx_con, SIGNAL(dataReady(QByteArray)),
             this  , SLOT  (rxReadyRead(QByteArray)));
-
-    // dbg
     connect(rx_dbg, SIGNAL(dataReady(QByteArray)),
             this  , SLOT  (dbgReadyRead(QByteArray)));
 
@@ -43,14 +40,17 @@ void ScApachePC::init()
 {
     if( server->listen(QHostAddress::Any, ScSetting::local_port) )
     {
-        qDebug() << "created on port "
+        qDebug() << "ScApachePC Listening on "
                  << ScSetting::local_port;
     }
     else
     {
-        qDebug() << "Server failed, Error:"
+        qDebug() << "ScApachePC Server failed, Error:"
                  << server->errorString();
     }
+
+    rx_con->sendDummy();
+    rx_dbg->sendDummy();
 }
 
 void ScApachePC::reset()
@@ -60,8 +60,6 @@ void ScApachePC::reset()
     rx_con->reset();
     tx_con->reset();
     rx_dbg->reset();
-    rx_con->sendDummy();
-    rx_dbg->sendDummy();
 }
 
 void ScApachePC::clientConnected()
@@ -88,12 +86,11 @@ void ScApachePC::clientConnected()
 
     if( rx_buf.length() )
     {
-        qDebug() << "clientConnected rx_buf"
+        qDebug() << "ScApachePC::clientConnected Send rx_buf"
                  << rx_buf.length();
         con->write(rx_buf);
         rx_buf.clear();
     }
-    reset();
 }
 
 void ScApachePC::clientError()
@@ -107,20 +104,43 @@ void ScApachePC::clientError()
 
 void ScApachePC::clientDisconnected()
 {
+    delete con;
+    con = NULL;
     qDebug() << "clientDisconnected";
 }
 
 void ScApachePC::txReadyRead()
 {
     QByteArray data = con->readAll();
-    //    qDebug() << "read_buf::" << data;
+//    qDebug() << "read_buf::" << data;
     tx_con->write(data);
+}
+
+// send id of last received packet
+void ScApachePC::sendAck()
+{
+    if( con==NULL )
+    {
+        return;
+    }
+
+    if( rx_con->curr_id>0 && con->isOpen() )
+    {
+        QByteArray msg = SC_CMD_ACK;
+        msg += QString::number(rx_con->curr_id);
+        tx_dbg->write(msg);
+    }
 }
 
 // rx_con
 void ScApachePC::rxReadyRead(QByteArray pack)
 {
     rx_buf += pack;
+    if( con==NULL )
+    {
+        return;
+    }
+
     if( con->isOpen() )
     {
         int ret = con->write(pack);
@@ -133,17 +153,7 @@ void ScApachePC::rxReadyRead(QByteArray pack)
     }
 }
 
-// check if we need to resend a packet
-void ScApachePC::sendAck()
-{
-    if( rx_con->curr_id>0 && con->isOpen() )
-    {
-        QByteArray msg = SC_CMD_ACK;
-        msg += QString::number(rx_con->curr_id);
-        tx_dbg->write(msg);
-    }
-}
-
+// rx_dbg
 void ScApachePC::dbgReadyRead(QByteArray data)
 {
     if( data.isEmpty() )
@@ -157,7 +167,7 @@ void ScApachePC::dbgReadyRead(QByteArray data)
         int cmd_len = strlen(SC_CMD_ACK);
         data.remove(0, cmd_len);
         int ack_id = data.toInt();
-        int resend = sc_resendID(ack_id, tx_con->curr_id);
+        int resend = sc_needResend(ack_id, tx_con->curr_id);
 
         if( resend!=-1 )
         {
@@ -173,7 +183,7 @@ void ScApachePC::dbgReadyRead(QByteArray data)
     }
     else
     {
-        qDebug() << "ScApachePC::dbgReadyRead cmd:"
+        qDebug() << "ScApachePC::Debug Received Unknown Packet:"
                  << data;
     }
 }

@@ -73,16 +73,16 @@ void ScRxClient::processBuf()
         {
             emit dataReady(p.data);
         }
-        else
+        else // no debug
         {
             QByteArray pack = getPack();
-//            qDebug() << "ScRxClient::processBuf"
-//                     << p.data.length()
-//                     << "buf_id:"  << p.id
-//                     << "curr_id:" << curr_id
-//                     << "pack_len" << pack.length();
             if( pack.length() )
             {
+                qDebug() << "ScRxClient::RX"
+                         << p.data.length()
+                         << "buf_id:"  << p.id
+                         << "curr_id:" << curr_id
+                         << "pack_len" << pack.length();
                 emit dataReady(pack);
             }
         }

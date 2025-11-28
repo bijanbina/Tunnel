@@ -20,12 +20,15 @@ QByteArray sc_mkPacket(QByteArray *send_buf, int *count)
     return *send_buf;
 }
 
-// return -1 if no packet should be send
-int sc_resendID(int ack, int curr_index)
+// return -1 if no packet should be send, if detect
+// packet loss, will return start index of packet
+// that should be retransmit again
+int sc_needResend(int ack, int curr_index)
 {
-    int ret = -1;
+    int ret  = -1;
     int diff = curr_index - ack;
 
+    // bigger than a cycle
     if( qAbs(diff)>SC_MAX_PACKID/2 )
     {
         if( ack>SC_MAX_PACKID/2 && curr_index<SC_MAX_PACKID/2 )

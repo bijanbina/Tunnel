@@ -8,6 +8,7 @@ ScTxServer::ScTxServer(int port, QObject *parent):
     timer   = new QTimer;
     curr_id = -1;
     is_dbg  =  0;
+    tx_port =  0;
     tx_buf.resize(SC_MAX_PACKID+1);
 
     connect(timer, SIGNAL(timeout()),
@@ -31,6 +32,7 @@ ScTxServer::ScTxServer(int port, QObject *parent):
 
 void ScTxServer::reset()
 {
+    tx_port =  0;
     curr_id = -1;
     buf.clear();
     tx_buf.clear();
@@ -143,8 +145,16 @@ void ScTxServer::readyRead()
     server->readDatagram(data.data(), data.size(),
                          &ipv4, &tx_port);
 
-    qDebug() << "ScTxServer::update tx_port:"
-             << tx_port << "is_dbg" << is_dbg;
+    QHostAddress ip = QHostAddress(ipv4.toIPv4Address());
+    QString ip_str = ip.toString();
+    if( is_dbg==1 )
+    {
+        qDebug() << "update DBG tx:" << ip_str << tx_port;
+    }
+    else
+    {
+        qDebug() << "update Main tx:" << ip_str << tx_port;
+    }
 //  1 MB
 //    int new_size = 1024 * 1024;
 //    server->setSocketOption(QAbstractSocket::

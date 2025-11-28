@@ -12,7 +12,11 @@ ScApacheSe::ScApacheSe(QObject *parent):
     rx_curr_id = -1;
     read_bufs.resize(SC_MAX_PACKID+1);
 
+    // both channel fire init but init only runs
+    // once when both tx & dbg are ready.
     connect(tx_server, SIGNAL(init()),
+            this     , SLOT  (init()));
+    connect(dbg_tx   , SIGNAL(init()),
             this     , SLOT  (init()));
 
     connect(ack_timer, SIGNAL(timeout()),
@@ -24,19 +28,13 @@ void ScApacheSe::connectApp()
 {
     client.setSocketOption(QAbstractSocket::LowDelayOption, 1);
 
-    // readyRead
+    // signals
     connect(&client, SIGNAL(readyRead()),
             this,   SLOT(txReadyRead()));
-
-    // error
     connect(&client, SIGNAL(error(QAbstractSocket::SocketError)),
             this,    SLOT(clientError()));
-
-    // connected
     connect(&client, SIGNAL(connected()),
             this,    SLOT(clientConnected()));
-
-    // disconnected
     connect(&client, SIGNAL(disconnected()),
             this,    SLOT(clientDisconnected()));
 
@@ -52,7 +50,7 @@ void ScApacheSe::connectApp()
     }
     else
     {
-        qDebug() << "RxServer failed, Error message is:"
+        qDebug() << "ScApacheSe::RxServer failed, Error:"
                  << rx_cons->errorString();
     }
 
@@ -69,15 +67,19 @@ void ScApacheSe::connectApp()
     }
     else
     {
-        qDebug() << "DbgServer failed, Error message is:"
+        qDebug() << "ScApacheSe::DbgServer failed, Error:"
                  << dbg_rx->errorString();
     }
-
-    tx_server->tx_port = ScSetting::tx_port;
 }
 
 void ScApacheSe::init()
 {
+    if( tx_server->tx_port==0 ||
+        dbg_tx->tx_port==0 )
+    { // wait till both channels are ready
+        return;
+    }
+
     if( client.isOpen() )
     {
         reset();
@@ -114,7 +116,7 @@ void ScApacheSe::clientConnected()
     client.setSocketOption(QAbstractSocket::LowDelayOption, 1);
     QByteArray pack = getPack();
     int w = client.write(pack);
-    qDebug() << "ScApacheSe::Client Connected#########"
+    qDebug() << "ScApacheSe::Client Connected"
              << w;
 }
 
@@ -215,9 +217,8 @@ QByteArray ScApacheSe::getPack()
 
     if( count )
     {
-        qDebug() << "ScApacheSe::getPack start:"
-                 << rx_curr_id-count << "curr_id:"
-                 << rx_curr_id << "count:" << count;
+        qDebug() << "ScApacheSe::rxPacket start:"
+                 << rx_curr_id-count+1 << "count:" << count;
     }
 
     return pack;
@@ -264,28 +265,28 @@ void ScApacheSe::dbgRxReadyRead()
         {
             int cmd_len = strlen(SC_CMD_ACK);
             cmd.remove(0, cmd_len);
-            int ack_id  = cmd.toInt();
-            int resend = sc_resendID(ack_id, tx_server->curr_id);
+            int ack_id = cmd.toInt();
+            int resend = sc_needResend(ack_id,
+                                       tx_server->curr_id);
 
             if( resend!=-1 )
-            {
-                qDebug() << "ScApacheSe::dbgRxReadyRead resend"
-                         << "curr_id:" << tx_server->curr_id
-                         << "id:" << resend;
-//                         << "dbg_buf:" << dbg_buf;
+            { // neet to retransmit as packet has been lost
+                qDebug() << "ScApacheSe::dbgRx Retransmit from"
+                         << resend << "to"
+                         << tx_server->curr_id;
                 tx_server->resendBuf(resend);
             }
             else if( ack_id!=tx_server->curr_id )
             {
-                qDebug() << "ScApacheSe::dbgRxReady res_failed:"
-                         << "curr_id:" << tx_server->curr_id
-                         << "id:" << resend
-                         << "ack_id:" << ack_id;
+                qDebug() << "ScApacheSe::dbgRx TX_FAILURE"
+                         << "curr_id:"   << tx_server->curr_id
+                         << "resend_id:" << resend
+                         << "ack_id:"    << ack_id;
             }
         }
         else
         {
-            qDebug() << "ScApacheSe::dbgRxReadyRead cmd:"
+            qDebug() << "ScApacheSe::dbgRx Unknown packet:"
                      << cmd;
         }
         // Remove the processed packet from the buffer

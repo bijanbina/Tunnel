@@ -66,7 +66,7 @@ typedef struct ScPacket
 
 QByteArray     sc_mkPacket(QByteArray *send_buf, int *count);
 int            sc_skipPacket(int current, int id);
-int            sc_resendID(int ack, int curr_index);
+int            sc_needResend(int ack, int curr_index);
 int            sc_hasPacket(QVector<QByteArray> *buf, int id);
 QByteArrayList sc_splitPacket(QByteArray  data,
                               const char *separator);

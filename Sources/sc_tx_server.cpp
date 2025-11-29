@@ -162,25 +162,59 @@ int ScTxServer::sendData(QByteArray send_buf)
 
 void ScTxServer::readyRead()
 {
-    // Just to update client address
-    QByteArray data;
-    data.resize(server->pendingDatagramSize());
-    server->readDatagram(data.data(), data.size(),
-                         &ipv4, &tx_port);
-
-    QHostAddress ip = QHostAddress(ipv4.toIPv4Address());
-    QString ip_str = ip.toString();
-    if( is_dbg==1 )
+    // update client address
+    rx_buf.clear();
+    while( server->hasPendingDatagrams() )
     {
-        qDebug() << "DT Connect:" << ip_str << tx_port;
-    }
-    else
-    {
-        qDebug() << "TX Connect:" << ip_str << tx_port;
+        QByteArray data;
+        data.resize(server->pendingDatagramSize());
+        server->readDatagram(data.data(), data.size(),
+                             &ipv4, &tx_port);
+        rx_buf += data;
     }
 //  1 MB
 //    int new_size = 1024 * 1024;
 //    server->setSocketOption(QAbstractSocket::
 //                            SendBufferSizeSocketOption, new_size);
-    emit init();
+
+    if( rx_buf==SC_CMD_START )
+    {
+        QHostAddress ip = QHostAddress(ipv4.toIPv4Address());
+        QString ip_str = ip.toString();
+        if( is_dbg==1 )
+        {
+            qDebug() << "DT Connect:" << ip_str << tx_port;
+        }
+        else
+        {
+            qDebug() << "TX Connect:" << ip_str << tx_port;
+        }
+        emit init();
+    }
+    else if( rx_buf.startsWith(SC_CMD_ACK) )
+    {
+        int cmd_len = strlen(SC_CMD_ACK);
+        rx_buf.remove(0, cmd_len);
+        int ack_id = rx_buf.toInt();
+        int resend = sc_needResend(ack_id, curr_id);
+
+        if( resend!=-1 )
+        { // neet to retransmit as packet has been lost
+            resendBuf(resend);
+        }
+        else if( ack_id!=curr_id )
+        {
+            qDebug() << "ScTxServer::RX TX_FAILURE"
+                     << "curr_id:"   << curr_id
+                     << "resend_id:" << resend
+                     << "ack_id:"    << ack_id;
+        }
+        else if( ack_id!=curr_id )
+        {
+            qDebug() << "ScTxServer::Rx TX_FAILURE"
+                     << "curr_id:"   << curr_id
+                     << "resend_id:" << resend
+                     << "ack_id:"    << ack_id;
+        }
+    }
 }

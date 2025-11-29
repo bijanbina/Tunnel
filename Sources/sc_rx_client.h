@@ -20,7 +20,7 @@ class ScRxClient : public QObject
 
 public:
     explicit ScRxClient(int rx_port, QObject *parent = 0);
-    void     sendDummy();
+    int      write(QString data);
     void     reset();
 
     int  curr_id;

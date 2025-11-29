@@ -34,12 +34,13 @@
 #define SC_TEST_TIMEOUT      15000 // how often send test packet
 #define SC_TXWRITE_TIMEOUT   100   // how often make sure to send
                                    // all remaining data
-#define SC_ACK_TIMEOUT       200   // how often make sure to check
+#define SC_ACK_TIMEOUT       500   // how often make sure to check
                                    // all packet are here
 #define SC_CONN_TIMEOUT      300
 
 #define SC_CMD_ACK           "ack"
 #define SC_CMD_INIT          "init"
+#define SC_CMD_START         "st"
 #define SC_DATA_EOP          "<EOP>\n"
 
 class ScSetting

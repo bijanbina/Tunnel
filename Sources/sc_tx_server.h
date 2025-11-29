@@ -38,6 +38,9 @@ public slots:
 signals:
     void init();
 
+private:
+    QByteArray rx_buf; // data comming, only start and ack
+
 
 private:
     void writeBuf();

@@ -118,16 +118,17 @@ QByteArray ScRxClient::getPack()
 
 // send dummy data to get ip address of receiving side
 // as the client IP is dynamic
-void ScRxClient::sendDummy()
+int ScRxClient::write(QString data)
 {
-    int ret = client->writeDatagram("a", 1,
+    int ret = client->writeDatagram(data.toStdString().c_str(),
+                                    data.length(),
                                     ScSetting::remote_host, port);
     if( ret!=1 )
     {
-        qDebug() << "ScRxClient::sendDummy Error:"
-                 << client->errorString();
-        return;
+        qDebug() << "ScRxClient::write" << data
+                 << "Error:" << client->errorString();
+        return ret;
     }
     client->flush();
-    qDebug() << "dummy sent" << port;
+    return ret;
 }

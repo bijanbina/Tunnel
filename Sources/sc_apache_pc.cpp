@@ -7,8 +7,7 @@ ScApachePC::ScApachePC(QObject *parent):
     server    = new QTcpServer;
     tx_con    = new ScTxClient(ScSetting::tx_port);
     rx_con    = new ScRxClient(ScSetting::rx_port);
-    tx_dbg    = new ScMetaClient(ScSetting::dbg_tx_port);
-    rx_dbg    = new ScRxClient  (ScSetting::dbg_rx_port);
+    rx_dbg    = new ScRxClient(ScSetting::dbg_rx_port);
     ack_timer = new QTimer;
 
     connect(server, SIGNAL(newConnection()),
@@ -49,8 +48,8 @@ void ScApachePC::init()
                  << server->errorString();
     }
 
-    rx_con->sendDummy();
-    rx_dbg->sendDummy();
+    rx_con->write(SC_CMD_START);
+    rx_dbg->write(SC_CMD_START);
 }
 
 void ScApachePC::reset()
@@ -128,13 +127,16 @@ void ScApachePC::sendAck()
     {
         QByteArray msg = SC_CMD_ACK;
         msg += QString::number(rx_con->curr_id);
-        tx_dbg->write(msg);
+        rx_con->write(msg);
+        qDebug() << "ACK:" << rx_con->curr_id;
     }
 }
 
 // rx_con
 void ScApachePC::rxReadyRead(QByteArray pack)
 {
+    // dont send ack till u were idle for a while
+    ack_timer->start(SC_ACK_TIMEOUT);
     rx_buf += pack;
     if( con==NULL )
     {

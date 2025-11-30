@@ -6,7 +6,6 @@ ScApacheSe::ScApacheSe(QObject *parent):
 {
     rx_cons    = new QUdpSocket;
     tx_server  = new ScTxServer(ScSetting::tx_port);
-    dbg_rx     = new QUdpSocket;
     dbg_tx     = new ScTxServer(ScSetting::dbg_tx_port);
     ack_timer  = new QTimer;
     rx_curr_id = -1;
@@ -228,84 +227,6 @@ void ScApacheSe::txReadyRead()
 {
     QByteArray data = client.readAll();
     tx_server->write(data);
-}
-
-void ScApacheSe::dbgRxReadyRead()
-{
-    while( dbg_rx->hasPendingDatagrams() )
-    {
-        QByteArray data;
-        data.resize(dbg_rx->pendingDatagramSize());
-
-        QHostAddress sender;
-        quint16 sender_port;
-
-        dbg_rx->readDatagram(data.data(), data.size(),
-                             &sender, &sender_port);
-
-        dbg_buf += data;
-    }
-
-    if( client.isValid()==0 )
-    {
-        dbg_buf.clear();
-        return;
-    }
-
-    while( dbg_buf.contains(SC_DATA_EOP) )
-    {
-        int start = SC_LEN_PACKID + SC_LEN_PACKLEN;
-        int end   = dbg_buf.indexOf(SC_DATA_EOP);
-
-        QByteArray cmd;
-        // Extract the packet including the EOP marker
-        cmd = dbg_buf.mid(start, end-start);
-
-        if( cmd.startsWith(SC_CMD_ACK) )
-        {
-            int cmd_len = strlen(SC_CMD_ACK);
-            cmd.remove(0, cmd_len);
-            int ack_id = cmd.toInt();
-            int resend = sc_needResend(ack_id,
-                                       tx_server->curr_id);
-
-            if( resend!=-1 )
-            { // neet to retransmit as packet has been lost
-                tx_server->resendBuf(resend);
-            }
-            else if( ack_id!=tx_server->curr_id )
-            {
-                qDebug() << "ScApacheSe::dbgRx TX_FAILURE"
-                         << "curr_id:"   << tx_server->curr_id
-                         << "resend_id:" << resend
-                         << "ack_id:"    << ack_id;
-            }
-            else if( ack_id!=tx_server->curr_id )
-            {
-                qDebug() << "ScApacheSe::dbgRx TX_FAILURE"
-                         << "curr_id:"   << tx_server->curr_id
-                         << "resend_id:" << resend
-                         << "ack_id:"    << ack_id;
-            }
-        }
-        else
-        {
-            qDebug() << "ScApacheSe::dbgRx Unknown packet:"
-                     << cmd;
-        }
-        // Remove the processed packet from the buffer
-        dbg_buf.remove(0, end + strlen(SC_DATA_EOP));
-    }
-}
-
-void ScApacheSe::dbgRxError()
-{
-    if( dbg_rx->error()!=QTcpSocket::RemoteHostClosedError )
-    {
-        qDebug() << "ScApacheSe::dbgError"
-                 << dbg_rx->errorString()
-                 << dbg_rx->state();
-    }
 }
 
 // check if we need to resend a packet

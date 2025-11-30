@@ -160,6 +160,8 @@ int ScTxServer::sendData(QByteArray send_buf)
     return 1;
 }
 
+// this function also keep Client IP and Port
+// behind NAT fresh
 void ScTxServer::readyRead()
 {
     // update client address

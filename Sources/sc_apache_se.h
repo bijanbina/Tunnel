@@ -45,10 +45,6 @@ public slots:
     // tx
     void txReadyRead();
 
-    // dbg rx
-    void dbgRxReadyRead();
-    void dbgRxError();
-
 private:
     void processBuf();
     void reset();

@@ -56,7 +56,7 @@ void ScApachePcTE::init()
     read_bufs .resize(SC_MAX_PACKID+1);
     rx_con->reset();
     tx_con->reset();
-    rx_con->sendDummy();
+    rx_con->write(SC_CMD_START);
 }
 
 void ScApachePcTE::clientConnected()

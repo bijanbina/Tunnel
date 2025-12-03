@@ -9,6 +9,7 @@ ScApachePC::ScApachePC(QObject *parent):
     rx_con    = new ScRxClient(ScSetting::rx_port);
     rx_dbg    = new ScRxClient(ScSetting::dbg_rx_port);
     ack_timer = new QTimer;
+    last_ack  = 0;
 
     connect(server, SIGNAL(newConnection()),
             this  , SLOT  (clientConnected()));
@@ -128,7 +129,26 @@ void ScApachePC::sendAck()
         QByteArray msg = SC_CMD_ACK;
         msg += QString::number(rx_con->curr_id);
         rx_con->write(msg);
-        qDebug() << "ACK:" << rx_con->curr_id;
+        qDebug() << "ACK:"  << rx_con->curr_id
+                 << "Port:" << rx_con->con->localPort()
+                 << "ack_streak:" << ack_streak
+                 << "last_ack:"   << last_ack;
+
+        if( last_ack==rx_con->curr_id )
+        {
+            ack_streak++;
+
+            if( ack_streak>2 )
+            {
+                ack_timer->setInterval(SC_ACK_TIMEOUT_SLOW);
+            }
+        }
+        else
+        {
+            ack_timer->setInterval(SC_ACK_TIMEOUT);
+            last_ack   = rx_con->curr_id;
+            ack_streak = 0;
+        }
     }
 }
 

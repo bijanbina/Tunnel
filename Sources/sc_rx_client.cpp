@@ -3,17 +3,17 @@
 ScRxClient::ScRxClient(int rx_port, QObject *parent):
     QObject(parent)
 {
-    port    = rx_port;
-
-    curr_id = -1;
+    port      = rx_port;
+    curr_id   = -1;
+    last_drop = 0;
     read_bufs.resize(SC_MAX_PACKID+1);
 
     // dbg
-    client = new QUdpSocket;
+    con = new QUdpSocket;
 
-    connect(client, SIGNAL(readyRead()),
+    connect(con, SIGNAL(readyRead()),
             this  , SLOT  (readyRead()));
-    connect(client, SIGNAL(error(QAbstractSocket::SocketError)),
+    connect(con, SIGNAL(error(QAbstractSocket::SocketError)),
             this  , SLOT  (error()));
 }
 
@@ -26,22 +26,22 @@ void ScRxClient::reset()
 void ScRxClient::error()
 {
     qDebug() << "ScRxClient::error"
-             << client->state()
-             << client->errorString();
+             << con->state()
+             << con->errorString();
 }
 
 void ScRxClient::readyRead()
 {
-    while( client->hasPendingDatagrams() )
+    while( con->hasPendingDatagrams() )
     {
         QByteArray data;
-        data.resize(client->pendingDatagramSize());
+        data.resize(con->pendingDatagramSize());
 
         QHostAddress sender;
         quint16 sender_port;
 
-        client->readDatagram(data.data(), data.size(),
-                             &sender, &sender_port);
+        con->readDatagram(data.data(), data.size(),
+                          &sender    , &sender_port);
 
         rx_buf += data;
     }
@@ -109,6 +109,17 @@ QByteArray ScRxClient::getPack()
         }
     }
 
+    // this only runs in non-debug
+    if( (curr_id-last_drop)>SC_MAX_DROP )
+    {
+        qDebug() << "DROOOOOOOOOOP"
+                 << curr_id
+                 << "count:" << (curr_id-last_drop);
+        con->close();
+        write(SC_CMD_DUMMY);
+        last_drop = curr_id;
+    }
+
     //    qDebug() << "ScRxClient::getPack start:"
     //             << rx_curr_id-count
     //             << "count:" << count << "tx_con:"
@@ -120,15 +131,15 @@ QByteArray ScRxClient::getPack()
 // as the client IP is dynamic
 int ScRxClient::write(QString data)
 {
-    int ret = client->writeDatagram(data.toStdString().c_str(),
-                                    data.length(),
-                                    ScSetting::remote_host, port);
-    if( ret!=1 )
+    int ret = con->writeDatagram(data.toStdString().c_str(),
+                                 data.length(),
+                                 ScSetting::remote_host, port);
+    if( ret!=data.length() )
     {
         qDebug() << "ScRxClient::write" << data
-                 << "Error:" << client->errorString();
+                 << "Error:" << con->errorString();
         return ret;
     }
-    client->flush();
+    con->flush();
     return ret;
 }

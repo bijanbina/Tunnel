@@ -66,7 +66,7 @@ void ScTxServer::resendBuf(int id)
 {
     if( tx_buf[id].length() )
     { // print in green
-        qDebug() << "\x1b[32mScApacheSe::dbgRx Retransmit"
+        qDebug() << "\x1b[32mScTxServer::Retransmit"
                  << QString::number(id) + "->"
                  +  QString::number(curr_id)
                  << "packet len:"

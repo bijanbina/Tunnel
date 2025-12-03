@@ -27,6 +27,7 @@
 #define SC_MIN_PACKLEN  500
 #define SC_MAX_PACKLEN  800
 #define SC_MAX_RATE     1000000
+#define SC_MAX_DROP     4
 
 #define SC_TXSERVER_TIMEOUT  100   //ms
 #define SC_TXCLIENT_TIMEOUT  SC_TXSERVER_TIMEOUT
@@ -36,9 +37,11 @@
                                    // all remaining data
 #define SC_ACK_TIMEOUT       500   // how often make sure to check
                                    // all packet are here
+#define SC_ACK_TIMEOUT_SLOW  9000  // only after enough ack sent
 #define SC_CONN_TIMEOUT      300
 
 #define SC_CMD_ACK           "ack"
+#define SC_CMD_DUMMY         "dum"
 #define SC_CMD_INIT          "init"
 #define SC_CMD_START         "st"
 #define SC_DATA_EOP          "<EOP>\n"

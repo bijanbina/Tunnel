@@ -23,7 +23,8 @@ public:
     int      write(QString data);
     void     reset();
 
-    int  curr_id;
+    int         curr_id;
+    QUdpSocket *con;
 
 signals:
     void dataReady(QByteArray data);
@@ -39,9 +40,9 @@ private:
     QVector<QByteArray> read_bufs;
 
     // rx
-    QUdpSocket *client;
     QByteArray  rx_buf;
     int         port;
+    int         last_drop;
 };
 
 #endif // SC_APACHE_PC_H

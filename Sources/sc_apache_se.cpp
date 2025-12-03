@@ -52,23 +52,6 @@ void ScApacheSe::connectApp()
         qDebug() << "ScApacheSe::RxServer failed, Error:"
                  << rx_cons->errorString();
     }
-
-    if( dbg_rx->bind(QHostAddress::Any,
-                     ScSetting::dbg_rx_port) )
-    {
-        qDebug() << "DR created on port "
-                 << ScSetting::dbg_rx_port;
-        connect(dbg_rx, SIGNAL(readyRead()),
-                this  , SLOT(dbgRxReadyRead()));
-        connect(dbg_rx,
-                SIGNAL(error(QAbstractSocket::SocketError)),
-                this  , SLOT(dbgRxError()));
-    }
-    else
-    {
-        qDebug() << "ScApacheSe::DbgServer failed, Error:"
-                 << dbg_rx->errorString();
-    }
 }
 
 void ScApacheSe::init()

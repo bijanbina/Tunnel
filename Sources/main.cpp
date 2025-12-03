@@ -9,8 +9,8 @@ int          ScSetting::rx_port     = 5511;
 int          ScSetting::dbg_tx_port = 5512;
 int          ScSetting::dbg_rx_port = 5513;
 QString      ScSetting::password    = "pass";
-//QHostAddress ScSetting::remote_host = QHostAddress("5.255.113.20");
-QHostAddress ScSetting::remote_host = QHostAddress("188.121.116.220");
+QHostAddress ScSetting::remote_host = QHostAddress("5.255.113.20");
+//QHostAddress ScSetting::remote_host = QHostAddress("188.121.116.220");
 
 // tunnel <local_port> <is_server=s>
 int main(int argc, char *argv[])

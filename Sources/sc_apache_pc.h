@@ -59,6 +59,8 @@ private:
 
     // dbg
     ScRxClient *rx_dbg;
+    int         last_ack;
+    int         ack_streak;
 };
 
 #endif // SC_APACHE_PC_H

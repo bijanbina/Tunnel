@@ -64,10 +64,6 @@ private:
     // tx
     ScTxServer    *tx_server;
 
-    // dbg rx
-    QUdpSocket    *dbg_rx;
-    QByteArray     dbg_buf;
-
     // dbg tx
     ScTxServer    *dbg_tx;
 };
